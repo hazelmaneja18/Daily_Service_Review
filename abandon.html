@@ -1,0 +1,230 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>Abandon Section</title>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+  <style>
+    :root {
+      --bg: #0b0f19;
+      --card: #131c2e;
+      --border: #1e293b;
+      --text: #f9fafb;
+      --muted: #94a3b8;
+      --green: #10b981;
+      --yellow: #f59e0b;
+      --red: #ef4444;
+    }
+    * { box-sizing: border-box; margin: 0; padding: 0; font-family: 'Inter', sans-serif; }
+    body { background-color: var(--bg); color: var(--text); padding: 1.5rem; }
+
+    /* Top Grid / KPI Cards */
+    .kpi-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+      gap: 1.25rem;
+      margin-bottom: 1.5rem;
+    }
+    .kpi-card {
+      background: var(--card);
+      border: 1px solid var(--border);
+      border-radius: 10px;
+      padding: 1.25rem;
+      display: flex;
+      flex-direction: column;
+      gap: 0.4rem;
+    }
+    .kpi-title { font-size: 0.75rem; text-transform: uppercase; color: var(--muted); font-weight: 700; letter-spacing: 0.05em; }
+    .kpi-value { font-size: 1.8rem; font-weight: 800; }
+    .kpi-sub { font-size: 0.75rem; color: var(--muted); }
+
+    /* Split Section: Hourly Table & Insights */
+    .dashboard-split {
+      display: grid;
+      grid-template-columns: 2fr 1fr;
+      gap: 1.25rem;
+    }
+    .panel {
+      background: var(--card);
+      border: 1px solid var(--border);
+      border-radius: 10px;
+      padding: 1.25rem;
+    }
+    .panel-header {
+      font-size: 1rem;
+      font-weight: 700;
+      margin-bottom: 1rem;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+    }
+
+    /* Table Styles */
+    table { width: 100%; border-collapse: collapse; font-size: 0.82rem; }
+    th { text-align: left; padding: 0.6rem 0.75rem; color: var(--muted); border-bottom: 1px solid var(--border); font-weight: 600; }
+    td { padding: 0.65rem 0.75rem; border-bottom: 1px solid #1e293b55; }
+    tr:hover td { background-color: #1a2438; }
+
+    /* Badges & Status */
+    .badge { padding: 0.2rem 0.5rem; border-radius: 4px; font-weight: 700; font-size: 0.75rem; }
+    .badge-red { background: rgba(239, 68, 68, 0.15); color: var(--red); border: 1px solid rgba(239, 68, 68, 0.3); }
+    .badge-green { background: rgba(16, 185, 129, 0.15); color: var(--green); border: 1px solid rgba(16, 185, 129, 0.3); }
+
+    /* Drivers list */
+    .driver-row {
+      display: flex;
+      justify-content: space-between;
+      padding: 0.75rem 0;
+      border-bottom: 1px solid var(--border);
+    }
+    .driver-name { font-weight: 600; color: #e2e8f0; }
+    .driver-count { background: #1e293b; padding: 0.2rem 0.6rem; border-radius: 6px; font-weight: 700; }
+  </style>
+</head>
+<body>
+
+  <!-- KPI SUMMARY (BASELINE DATA) -->
+  <div class="kpi-grid">
+    <div class="kpi-card">
+      <span class="kpi-title">Total Received Calls</span>
+      <span class="kpi-value" style="color: #60a5fa;">393</span>
+      <span class="kpi-sub">Reference Date: Aug 24, 2026</span>
+    </div>
+    <div class="kpi-card">
+      <span class="kpi-title">Service Level (SLA)</span>
+      <span class="kpi-value" style="color: var(--red);">35.9%</span>
+      <span class="kpi-sub">Target Threshold: ≥ 85.0%</span>
+    </div>
+    <div class="kpi-card">
+      <span class="kpi-title">Average Handle Time</span>
+      <span class="kpi-value">00:18:56</span>
+      <span class="kpi-sub">Sumproduct Weight: ~1,135s</span>
+    </div>
+    <div class="kpi-card">
+      <span class="kpi-title">Total Abandon Calls</span>
+      <span class="kpi-value" style="color: #fbbf24;">84</span>
+      <span class="kpi-sub">Peak Surge: 02:00 & 06:00 intervals</span>
+    </div>
+  </div>
+
+  <!-- DETAILS SPLIT -->
+  <div class="dashboard-split">
+    <!-- Hourly Telemetry Breakdown -->
+    <div class="panel">
+      <div class="panel-header">
+        <span>Hourly Interval Performance</span>
+        <span style="font-size: 0.75rem; color: var(--muted); font-weight: normal;">Interval: 00:00 - 07:00</span>
+      </div>
+      <table>
+        <thead>
+          <tr>
+            <th>Hour</th>
+            <th>Staff Count</th>
+            <th>Received Calls</th>
+            <th>AHT</th>
+            <th>SLA %</th>
+            <th>Abandon Calls</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr>
+            <td>00:00</td>
+            <td>6</td>
+            <td>11</td>
+            <td>00:20:59</td>
+            <td><span class="badge badge-red">0.0%</span></td>
+            <td><strong>5</strong></td>
+          </tr>
+          <tr>
+            <td>01:00</td>
+            <td>1</td>
+            <td>6</td>
+            <td>00:21:00</td>
+            <td><span class="badge badge-red">0.0%</span></td>
+            <td><strong>5</strong></td>
+          </tr>
+          <tr>
+            <td>02:00</td>
+            <td>19</td>
+            <td>47</td>
+            <td>00:19:29</td>
+            <td><span class="badge badge-red">2.1%</span></td>
+            <td><strong style="color: var(--red);">28</strong></td>
+          </tr>
+          <tr>
+            <td>03:00</td>
+            <td>45</td>
+            <td>51</td>
+            <td>00:19:51</td>
+            <td><span class="badge badge-red">14.0%</span></td>
+            <td><strong>6</strong></td>
+          </tr>
+          <tr>
+            <td>04:00</td>
+            <td>50</td>
+            <td>53</td>
+            <td>00:18:57</td>
+            <td><span class="badge badge-green">90.4%</span></td>
+            <td><strong>1</strong></td>
+          </tr>
+          <tr>
+            <td>05:00</td>
+            <td>78</td>
+            <td>80</td>
+            <td>00:18:28</td>
+            <td><span class="badge badge-green">86.1%</span></td>
+            <td><strong>1</strong></td>
+          </tr>
+          <tr>
+            <td>06:00</td>
+            <td>92</td>
+            <td>111</td>
+            <td>00:20:53</td>
+            <td><span class="badge badge-red">9.9%</span></td>
+            <td><strong style="color: var(--red);">19</strong></td>
+          </tr>
+          <tr>
+            <td>07:00</td>
+            <td>20</td>
+            <td>34</td>
+            <td>00:10:23</td>
+            <td><span class="badge badge-red">14.7%</span></td>
+            <td><strong>14</strong></td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+
+    <!-- Call Drivers & Staffing Correlation -->
+    <div class="panel">
+      <div class="panel-header">
+        <span>Top Call Drivers</span>
+        <span style="font-size: 0.75rem; color: var(--muted);">Recorded Incidents</span>
+      </div>
+      <div>
+        <div class="driver-row">
+          <span class="driver-name">Pump Issue</span>
+          <span class="driver-count">40</span>
+        </div>
+        <div class="driver-row">
+          <span class="driver-name">POS Issue</span>
+          <span class="driver-count">40</span>
+        </div>
+        <div class="driver-row">
+          <span class="driver-name">DCR Issue</span>
+          <span class="driver-count">27</span>
+        </div>
+      </div>
+
+      <div class="panel-header" style="margin-top: 2rem;">
+        <span>Staffing Outages</span>
+      </div>
+      <div class="driver-row">
+        <span class="driver-name">Unplanned Absences</span>
+        <span class="driver-count" style="color: #f87171;">1</span>
+      </div>
+    </div>
+  </div>
+
+</body>
+</html>
