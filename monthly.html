@@ -466,7 +466,7 @@
       </div>
 
       <div style="font-size: 0.7rem; color: var(--text-muted); line-height: 1.45; margin-top: 0.2rem;">
-        Optimized metrics are securely synchronized to Firebase, preventing file size limits.
+        Agent Summary data is securely synced to Firebase Firestore and persists permanently.
       </div>
     </div>
   </div>
@@ -508,7 +508,7 @@
       return yNum * 100 + mNum;
     }
 
-    let rawAHTRows = JSON.parse(localStorage.getItem('PETRO_RAW_AHT_STORE') || 'null');
+    let summaryAHTRows = JSON.parse(localStorage.getItem('PETRO_SUMMARY_AHT_STORE') || 'null');
     let rawDSRRows = JSON.parse(localStorage.getItem('PETRO_RAW_DSR_STORE') || 'null');
 
     let activeMode = 'single';
@@ -544,62 +544,44 @@
       return null;
     }
 
-    function getPrimaryMonthMaxDay(primaryMonthKey) {
-      if (!rawAHTRows || rawAHTRows.length === 0) return 31;
-      const cleanName = primaryMonthKey.split(' - ')[0].trim().toLowerCase();
-      let trueMax = 0;
-      rawAHTRows.forEach(r => {
-        const m = String(r['MONTH'] || r['Month'] || '').trim().toLowerCase();
-        if (m === cleanName) {
-          const dtVal = r['DATE'] || r['Date'] || r['TIMESTAMP'];
-          if (dtVal) {
-            const dObj = new Date(dtVal);
-            if (!isNaN(dObj.getTime())) {
-              trueMax = Math.max(trueMax, dObj.getDate());
-            }
-          }
-        }
-      });
-      return trueMax > 0 ? trueMax : 31;
-    }
-
     function getAggregatedMetricsForMonth(monthName, maxDayLimit = 31) {
       const cleanName = monthName.split(' - ')[0].trim().toLowerCase();
 
-      if (!rawAHTRows || rawAHTRows.length === 0) {
+      if (!summaryAHTRows || summaryAHTRows.length === 0) {
         return { ahtSec: 1190, consultSec: 291, holdSec: 84, confSec: 221, surveyScore: 4.64, responded: 222, slaPercent: 19, totalCalls: 3005, maxDay: maxDayLimit };
       }
 
-      const rows = rawAHTRows.filter(r => {
+      // Filter rows belonging to the selected month from the Agent Summary sheet
+      const rows = summaryAHTRows.filter(r => {
         const m = String(r['MONTH'] || r['Month'] || '').trim().toLowerCase();
-        if (m !== cleanName) return false;
-        if (!maxDayLimit || maxDayLimit >= 31) return true;
-        const dtVal = r['DATE'] || r['Date'] || r['TIMESTAMP'];
-        if (dtVal) {
-          const dObj = new Date(dtVal);
-          if (!isNaN(dObj.getTime())) {
-            return dObj.getDate() <= maxDayLimit;
-          }
-        }
-        return true;
+        return m === cleanName;
       });
 
-      let ahtArr = [], consultArr = [], holdArr = [], confArr = [], surveyArr = [];
+      let totalCalls = 0;
+      let sumprodAHT = 0, sumprodConsult = 0, sumprodHold = 0, sumprodConf = 0;
+      let surveyArr = [], respondedCount = 0;
+
       rows.forEach(r => {
-        const ht = parseSecOrNull(r['HANDLE TIME']);
+        const calls = Number(r['CALLS'] || r['Calls'] || r['Total Calls'] || r['Total Handled'] || 1) || 1;
+        const ht = parseSecOrNull(r['HANDLE TIME'] || r['AHT']);
         const cs = parseSecOrNull(r['CONSULT TIME']);
         const hd = parseSecOrNull(r['HOLD TIME']);
         const cf = parseSecOrNull(r['CONFERENCE TIME']);
-        if (ht !== null) ahtArr.push(ht);
-        if (cs !== null) consultArr.push(cs);
-        if (hd !== null) holdArr.push(hd);
-        if (cf !== null) confArr.push(cf);
-        const sq = Number(r['Survey Q1']);
-        if (sq > 0) surveyArr.push(sq);
+        const sq = Number(r['Survey Q1'] || r['CSAT'] || 0);
+
+        totalCalls += calls;
+        if (ht !== null) sumprodAHT += (ht * calls);
+        if (cs !== null) sumprodConsult += (cs * calls);
+        if (hd !== null) sumprodHold += (hd * calls);
+        if (cf !== null) sumprodConf += (cf * calls);
+        if (sq > 0) {
+          surveyArr.push(sq * calls);
+          respondedCount += calls;
+        }
       });
 
-      const calcAvg = arr => arr.length ? Math.round(arr.reduce((a, b) => a + b, 0) / arr.length) : 0;
-      const calcFloatAvg = arr => arr.length ? +(arr.reduce((a, b) => a + b, 0) / arr.length).toFixed(2) : 0;
+      const calcWAvg = (sumprod, total) => total > 0 ? Math.round(sumprod / total) : 0;
+      const calcFloatWAvg = (sumArr, total) => total > 0 ? +(sumArr.reduce((a, b) => a + b, 0) / total).toFixed(2) : 0;
 
       let matchedSla = cleanName === 'august' ? 19 : 8;
       if (rawDSRRows && rawDSRRows.length > 0) {
@@ -622,22 +604,22 @@
       }
 
       return {
-        ahtSec: calcAvg(ahtArr),
-        consultSec: calcAvg(consultArr),
-        holdSec: calcAvg(holdArr),
-        confSec: calcAvg(confArr),
-        surveyScore: calcFloatAvg(surveyArr),
-        responded: surveyArr.length,
+        ahtSec: calcWAvg(sumprodAHT, totalCalls),
+        consultSec: calcWAvg(sumprodConsult, totalCalls),
+        holdSec: calcWAvg(sumprodHold, totalCalls),
+        confSec: calcWAvg(sumprodConf, totalCalls),
+        surveyScore: calcFloatWAvg(surveyArr, respondedCount),
+        responded: respondedCount || rows.length,
         slaPercent: matchedSla,
-        totalCalls: rows.length,
+        totalCalls: totalCalls || rows.length,
         maxDay: maxDayLimit
       };
     }
 
     function getAvailableMonths() {
-      if (!rawAHTRows || rawAHTRows.length === 0) return ["September - 2026", "August - 2026", "July - 2026"];
+      if (!summaryAHTRows || summaryAHTRows.length === 0) return ["September - 2026", "August - 2026", "July - 2026"];
       const set = new Set();
-      rawAHTRows.forEach(r => {
+      summaryAHTRows.forEach(r => {
         const m = r['MONTH'] || r['Month'];
         if (m) set.add(`${String(m).trim()} - 2026`);
       });
@@ -681,23 +663,11 @@
         const mKey = document.getElementById('monthSelect1')?.value;
         if (!mKey) return;
         monthKeys = [mKey];
-        if (rawAHTRows) {
-          const cleanName = mKey.split(' - ')[0].trim();
-          const matchRows = rawAHTRows.filter(r => String(r['MONTH'] || r['Month'] || '').toLowerCase() === cleanName.toLowerCase());
-          matchRows.forEach(r => {
-            const dtVal = r['DATE'] || r['Date'];
-            if (dtVal) {
-              const d = new Date(dtVal);
-              if (!isNaN(d.getTime())) maxDayLimit = Math.max(maxDayLimit, d.getDate());
-            }
-          });
-        }
       } else {
         const m1Key = document.getElementById('monthComp1')?.value;
         const m2Key = document.getElementById('monthComp2')?.value;
         if (!m1Key || !m2Key) return;
         monthKeys = [m1Key, m2Key];
-        maxDayLimit = getPrimaryMonthMaxDay(m1Key);
       }
 
       const activeDataMap = {};
@@ -722,7 +692,7 @@
         const delta = callsVal - secondary.totalCalls;
         document.getElementById('kpiCallsPill').innerText = `${delta >= 0 ? '+' : ''}${delta.toLocaleString()}`;
         document.getElementById('kpiCallsPill').className = delta >= 0 ? 'kpi-pill pill-green' : 'kpi-pill pill-rose';
-        document.getElementById('kpiCallsSub').innerText = `vs ${months[1]} (Days 1-${primary.maxDay})`;
+        document.getElementById('kpiCallsSub').innerText = `vs ${months[1]}`;
       } else {
         document.getElementById('kpiCallsPill').innerText = 'Telemetry';
         document.getElementById('kpiCallsPill').className = 'kpi-pill pill-teal';
@@ -931,26 +901,26 @@
 
     // Save to Firebase Cloud & Local Cache
     function saveToCloud() {
-      localStorage.setItem('PETRO_RAW_AHT_STORE', JSON.stringify(rawAHTRows));
+      localStorage.setItem('PETRO_SUMMARY_AHT_STORE', JSON.stringify(summaryAHTRows));
       localStorage.setItem('PETRO_RAW_DSR_STORE', JSON.stringify(rawDSRRows));
 
-      db.collection('petro_reports').doc('monthly_master').set({
-        rawAHTRows: rawAHTRows,
+      db.collection('petro_reports').doc('monthly_summary_master').set({
+        summaryAHTRows: summaryAHTRows,
         rawDSRRows: rawDSRRows,
         updatedAt: new Date()
       }).then(() => {
-        console.log("Monthly data saved to Firebase Firestore.");
+        console.log("Agent Summary monthly data saved to Firebase Firestore successfully.");
       }).catch(err => console.error("Firebase save error:", err));
     }
 
-    // Load from Firebase Cloud with local cache fallback
+    // Load from Firebase Cloud on startup with local cache fallback
     function loadFromCloud() {
-      db.collection('petro_reports').doc('monthly_master').get().then(doc => {
+      db.collection('petro_reports').doc('monthly_summary_master').get().then(doc => {
         if (doc.exists) {
           const remote = doc.data();
-          if (remote.rawAHTRows) {
-            rawAHTRows = remote.rawAHTRows;
-            localStorage.setItem('PETRO_RAW_AHT_STORE', JSON.stringify(rawAHTRows));
+          if (remote.summaryAHTRows) {
+            summaryAHTRows = remote.summaryAHTRows;
+            localStorage.setItem('PETRO_SUMMARY_AHT_STORE', JSON.stringify(summaryAHTRows));
           }
           if (remote.rawDSRRows) {
             rawDSRRows = remote.rawDSRRows;
@@ -973,10 +943,12 @@
       reader.onload = function(evt) {
         const data = new Uint8Array(evt.target.result);
         const wb = XLSX.read(data, { type: 'array' });
-        const rawSheet = wb.Sheets['Raw Data'] || wb.Sheets[wb.SheetNames[0]];
-        const json = XLSX.utils.sheet_to_json(rawSheet);
+        // Automatically look for 'Agent Summary' sheet, fallback to first sheet if not found
+        const targetSheetName = wb.SheetNames.find(n => n.toLowerCase().includes('agent summary')) || wb.SheetNames[0];
+        const sheet = wb.Sheets[targetSheetName];
+        const json = XLSX.utils.sheet_to_json(sheet);
 
-        rawAHTRows = json;
+        summaryAHTRows = json;
         saveToCloud();
 
         document.getElementById('ahtUploadStatus').innerText = `Synced (${file.name.slice(0, 10)}...)`;
@@ -1018,11 +990,11 @@
     }
 
     window.addEventListener("DOMContentLoaded", () => {
-      // 1. Instant load from local cache so graphs display immediately
-      rawAHTRows = JSON.parse(localStorage.getItem('PETRO_RAW_AHT_STORE') || 'null');
+      // 1. Instant local cache load so graphs display immediately
+      summaryAHTRows = JSON.parse(localStorage.getItem('PETRO_SUMMARY_AHT_STORE') || 'null');
       rawDSRRows = JSON.parse(localStorage.getItem('PETRO_RAW_DSR_STORE') || 'null');
 
-      if (rawAHTRows && rawAHTRows.length > 0) {
+      if (summaryAHTRows && summaryAHTRows.length > 0) {
         document.getElementById('ahtUploadStatus').innerText = `Loaded (Saved)`;
       }
       if (rawDSRRows && rawDSRRows.length > 0) {
@@ -1032,7 +1004,7 @@
       initMonthDropdowns();
       renderActiveView();
 
-      // 2. Background sync with Firebase Cloud
+      // 2. Background cloud sync
       loadFromCloud();
     });
   </script>
