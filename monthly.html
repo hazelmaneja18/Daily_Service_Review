@@ -551,7 +551,6 @@
         return { ahtSec: 1190, consultSec: 291, holdSec: 84, confSec: 221, surveyScore: 4.64, responded: 222, slaPercent: 19, totalCalls: 3005, maxDay: maxDayLimit };
       }
 
-      // Filter rows belonging to the selected month from the Agent Summary sheet
       const rows = summaryAHTRows.filter(r => {
         const m = String(r['MONTH'] || r['Month'] || '').trim().toLowerCase();
         return m === cleanName;
@@ -931,6 +930,12 @@
           document.getElementById('dsrUploadStatus').innerText = 'Loaded (Cloud Sync)';
           initMonthDropdowns();
           renderActiveView();
+          
+          // Automatically close modal and force chart layout recalculation
+          toggleModal(false);
+          setTimeout(() => {
+            window.dispatchEvent(new Event('resize'));
+          }, 150);
         }
       }).catch(err => console.log("Cloud fetch note:", err));
     }
@@ -943,7 +948,6 @@
       reader.onload = function(evt) {
         const data = new Uint8Array(evt.target.result);
         const wb = XLSX.read(data, { type: 'array' });
-        // Automatically look for 'Agent Summary' sheet, fallback to first sheet if not found
         const targetSheetName = wb.SheetNames.find(n => n.toLowerCase().includes('agent summary')) || wb.SheetNames[0];
         const sheet = wb.Sheets[targetSheetName];
         const json = XLSX.utils.sheet_to_json(sheet);
@@ -954,6 +958,12 @@
         document.getElementById('ahtUploadStatus').innerText = `Synced (${file.name.slice(0, 10)}...)`;
         initMonthDropdowns();
         renderActiveView();
+        
+        // Automatically close modal and resize charts
+        toggleModal(false);
+        setTimeout(() => {
+          window.dispatchEvent(new Event('resize'));
+        }, 150);
       };
       reader.readAsArrayBuffer(file);
     }
@@ -985,6 +995,12 @@
 
         document.getElementById('dsrUploadStatus').innerText = `Synced (${file.name.slice(0, 10)}...)`;
         renderActiveView();
+        
+        // Automatically close modal and resize charts
+        toggleModal(false);
+        setTimeout(() => {
+          window.dispatchEvent(new Event('resize'));
+        }, 150);
       };
       reader.readAsArrayBuffer(file);
     }
@@ -1003,6 +1019,11 @@
 
       initMonthDropdowns();
       renderActiveView();
+
+      // Force canvas layout resize trigger
+      setTimeout(() => {
+        window.dispatchEvent(new Event('resize'));
+      }, 150);
 
       // 2. Background cloud sync
       loadFromCloud();
