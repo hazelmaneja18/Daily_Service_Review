@@ -214,7 +214,6 @@
       min-height: 0;
     }
 
-    /* Enhanced Card Container */
     .chart-card {
       background: var(--card-bg);
       border: 1px solid var(--border-subtle);
@@ -933,11 +932,12 @@
         .catch(err => console.error("Firebase save error:", err));
     }
 
-    // Load from Firebase Firestore Cloud on startup
+    // Load from Firebase Firestore Cloud + local cache fallback
     function loadFromCloud() {
       db.collection('petro_reports').doc('aht_data').get().then(doc => {
         if (doc.exists) {
           rawAHTRows = doc.data().data;
+          localStorage.setItem('PETRO_RAW_AHT_STORE', JSON.stringify(rawAHTRows));
           document.getElementById('ahtUploadStatus').innerText = 'Loaded (Cloud Sync)';
           initMonthDropdowns();
           renderActiveView();
@@ -947,6 +947,7 @@
       db.collection('petro_reports').doc('dsr_data').get().then(doc => {
         if (doc.exists) {
           rawDSRRows = doc.data().data;
+          localStorage.setItem('PETRO_RAW_DSR_STORE', JSON.stringify(rawDSRRows));
           document.getElementById('dsrUploadStatus').innerText = 'Loaded (Cloud Sync)';
           renderActiveView();
         }
@@ -965,6 +966,7 @@
         const json = XLSX.utils.sheet_to_json(rawSheet);
 
         rawAHTRows = json;
+        localStorage.setItem('PETRO_RAW_AHT_STORE', JSON.stringify(json));
         saveToCloud('petro_reports', 'aht_data', json);
 
         document.getElementById('ahtUploadStatus').innerText = `Synced (${file.name.slice(0, 10)}...)`;
@@ -997,6 +999,7 @@
         }
 
         rawDSRRows = parsedRows;
+        localStorage.setItem('PETRO_RAW_DSR_STORE', JSON.stringify(parsedRows));
         saveToCloud('petro_reports', 'dsr_data', parsedRows);
 
         document.getElementById('dsrUploadStatus').innerText = `Synced (${file.name.slice(0, 10)}...)`;
@@ -1006,9 +1009,26 @@
     }
 
     window.addEventListener("DOMContentLoaded", () => {
+      // 1. Instant local cache load
+      rawAHTRows = JSON.parse(localStorage.getItem('PETRO_RAW_AHT_STORE') || 'null');
+      rawDSRRows = JSON.parse(localStorage.getItem('PETRO_RAW_DSR_STORE') || 'null');
+
+      if (rawAHTRows && rawAHTRows.length > 0) {
+        document.getElementById('ahtUploadStatus').innerText = `Loaded (Saved)`;
+      }
+      if (rawDSRRows && rawDSRRows.length > 0) {
+        document.getElementById('dsrUploadStatus').innerText = `Loaded (Saved)`;
+      }
+
       initMonthDropdowns();
       renderActiveView();
+
+      // 2. Background cloud sync
       loadFromCloud();
+      setTimeout(() => {
+        initMonthDropdowns();
+        renderActiveView();
+      }, 800);
     });
   </script>
 </body>
