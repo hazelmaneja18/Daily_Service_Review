@@ -5,7 +5,7 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Updates - PETRO MNL</title>
   <link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@600;700;800&family=Plus+Jakarta+Sans:wght@500;600;700;800;900&display=swap" rel="stylesheet">
-  <!-- SheetJS, Firebase SDKs -->
+  <!-- SheetJS and Firebase SDKs -->
   <script src="https://cdn.jsdelivr.net/npm/xlsx@0.18.5/dist/xlsx.full.min.js"></script>
   <script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-app-compat.js"></script>
   <script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore-compat.js"></script>
@@ -407,7 +407,7 @@
     }
     const db = firebase.firestore();
 
-    let updatesList = JSON.parse(localStorage.getItem('PETRO_MNL_CLIENT_UPDATES_V20') || 'null') || [
+    let updatesList = [
       {
         id: 1,
         title: "ABSENCES",
@@ -419,9 +419,8 @@
 
     let selectedImageDataUrl = "";
 
-    // Save updates to Firebase Cloud Firestore + local cache
+    // Save updates to Firebase Cloud Firestore
     function saveToCloud() {
-      localStorage.setItem('PETRO_MNL_CLIENT_UPDATES_V20', JSON.stringify(updatesList));
       document.getElementById('syncStatus').innerText = 'Syncing to Cloud...';
       db.collection('petro_updates').doc('notices_data').set({
         updatesList: updatesList,
@@ -435,7 +434,7 @@
       });
     }
 
-    // Load updates from Firebase Cloud Firestore + local cache fallback
+    // Load updates from Firebase Cloud Firestore on startup
     function loadFromCloud() {
       document.getElementById('syncStatus').innerText = 'Connecting to Cloud...';
       db.collection('petro_updates').doc('notices_data').get().then(doc => {
@@ -443,7 +442,6 @@
           const remote = doc.data();
           if (remote.updatesList && Array.isArray(remote.updatesList)) {
             updatesList = remote.updatesList;
-            localStorage.setItem('PETRO_MNL_CLIENT_UPDATES_V20', JSON.stringify(updatesList));
           }
           document.getElementById('syncStatus').innerText = 'Operational Broadcast & Notices (Cloud Synced)';
           renderUpdatesDashboard();
@@ -604,14 +602,6 @@
     }
 
     window.addEventListener("DOMContentLoaded", () => {
-      // 1. Instant local cache load
-      const cachedUpdates = JSON.parse(localStorage.getItem('PETRO_MNL_CLIENT_UPDATES_V20') || 'null');
-      if (cachedUpdates && Array.isArray(cachedUpdates)) {
-        updatesList = cachedUpdates;
-      }
-      renderUpdatesDashboard();
-
-      // 2. Background cloud sync
       loadFromCloud();
     });
   </script>
