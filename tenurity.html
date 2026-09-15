@@ -3,9 +3,9 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Tenure Stats & Staffing Review - PETRO MNL</title>
+  <title>Tenurity Stats - PETRO MNL</title>
   <link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@600;700;800&family=Plus+Jakarta+Sans:wght@500;600;700;800;900&display=swap" rel="stylesheet">
-  <!-- Chart.js, Datalabels Plugin, SheetJS, and Firebase SDKs -->
+  <!-- Chart.js, Datalabels, SheetJS, and Firebase SDKs -->
   <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.1/dist/chart.umd.min.js"></script>
   <script src="https://cdn.jsdelivr.net/npm/chartjs-plugin-datalabels@2.2.0/dist/chartjs-plugin-datalabels.min.js"></script>
   <script src="https://cdn.jsdelivr.net/npm/xlsx@0.18.5/dist/xlsx.full.min.js"></script>
@@ -14,273 +14,539 @@
   <style>
     :root {
       --bg: #f8fafc;
-      --card: #ffffff;
-      --border: #e2e8f0;
+      --card-bg: #ffffff;
+      --border-subtle: #e2e8f0;
       --teal-dark: #0f766e;
       --teal-primary: #0d9488;
       --teal-subtle: #f0fdfa;
       --teal-border: #ccfbf1;
       --text-main: #0f172a;
       --text-muted: #64748b;
-      --green: #10b981;
-      --green-bg: #ecfdf5;
-      --shadow: 0 1px 3px rgba(0,0,0,0.04), 0 1px 2px rgba(0,0,0,0.02);
+      --text-soft: #94a3b8;
+      --trend-down: #10b981;
+      --trend-slight: #f59e0b;
+      --trend-up: #ef4444;
+      --shadow-sm: 0 1px 3px rgba(0,0,0,0.03), 0 1px 2px rgba(0,0,0,0.02);
+      --shadow-card: 0 4px 12px -2px rgba(15, 23, 42, 0.04), 0 2px 6px -1px rgba(15, 23, 42, 0.02);
     }
 
     * { box-sizing: border-box; margin: 0; padding: 0; font-family: 'Plus Jakarta Sans', sans-serif; }
     html, body {
+      height: 100vh;
+      width: 100%;
       background-color: var(--bg);
       color: var(--text-main);
-      min-height: 100vh;
-      width: 100%;
-      overflow-x: hidden;
+      overflow: hidden;
     }
     body {
       display: flex;
       flex-direction: column;
-      padding: clamp(0.75rem, 1.5vw, 1.25rem);
-      gap: 0.75rem;
+      padding: clamp(0.5rem, 1vh, 0.85rem) clamp(0.75rem, 1.2vw, 1.25rem);
+      gap: 0.6rem;
     }
 
-    /* Top Action Bar */
+    /* Top Executive Action Bar */
     .top-toolbar {
-      background: var(--card);
-      border: 1px solid var(--border);
+      background: var(--card-bg);
+      border: 1px solid var(--border-subtle);
       border-radius: 10px;
-      padding: 0.45rem 0.9rem;
+      padding: 0.45rem 0.95rem;
       display: flex;
       justify-content: space-between;
       align-items: center;
-      box-shadow: var(--shadow);
+      box-shadow: var(--shadow-sm);
+      flex-shrink: 0;
     }
-    .brand-group { display: flex; align-items: center; gap: 0.5rem; }
-    .brand-dot {
-      width: 9px; height: 9px; border-radius: 50%;
-      background: var(--teal-dark);
-      box-shadow: 0 0 0 3px rgba(15, 118, 110, 0.12);
-    }
-    .brand-title {
-      font-size: 0.92rem;
-      font-weight: 800;
-      color: var(--text-main);
-      letter-spacing: -0.01em;
-    }
-
-    .toolbar-right { display: flex; align-items: center; gap: 0.5rem; }
-    .label-tag { font-size: 0.68rem; font-weight: 800; color: var(--text-muted); text-transform: uppercase; }
-    
-    .dropdown {
-      background: #f1f5f9 url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='10' height='10' fill='%2364748b' viewBox='0 0 16 16'%3E%3Cpath d='M7.247 11.14 2.451 5.658C1.885 5.013 2.345 4 3.204 4h9.592a1 1 0 0 1 .753 1.659l-4.796 5.48a1 1 0 0 1-1.506 0z'/%3E%3C/svg%3E") no-repeat calc(100% - 8px) center;
-      border: 1px solid var(--border);
-      padding: 0.28rem 1.6rem 0.28rem 0.6rem;
-      border-radius: 6px;
+    .brand-group { display: flex; align-items: center; gap: 0.6rem; }
+    .brand-badge {
+      background: linear-gradient(135deg, #0f766e 0%, #0d9488 100%);
+      color: #ffffff;
+      padding: 0.3rem 0.75rem;
+      border-radius: 7px;
       font-size: 0.74rem;
+      font-weight: 800;
+      letter-spacing: 0.04em;
+      box-shadow: 0 2px 4px rgba(15, 118, 110, 0.2);
+    }
+    .brand-subtitle { font-size: 0.76rem; font-weight: 800; color: var(--text-muted); }
+
+    .toolbar-right { display: flex; align-items: center; gap: 0.6rem; }
+    .label-tag { font-size: 0.68rem; font-weight: 800; color: var(--text-muted); text-transform: uppercase; letter-spacing: 0.03em; }
+    .dropdown {
+      background: #f8fafc url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='10' height='10' fill='%2364748b' viewBox='0 0 16 16'%3E%3Cpath d='M7.247 11.14 2.451 5.658C1.885 5.013 2.345 4 3.204 4h9.592a1 1 0 0 1 .753 1.659l-4.796 5.48a1 1 0 0 1-1.506 0z'/%3E%3C/svg%3E") no-repeat calc(100% - 10px) center;
+      border: 1px solid var(--border-subtle);
+      padding: 0.32rem 1.8rem 0.32rem 0.75rem;
+      border-radius: 7px;
+      font-size: 0.76rem;
       font-weight: 700;
       color: var(--text-main);
-      font-family: 'JetBrains Mono', monospace;
       outline: none;
       appearance: none;
       cursor: pointer;
       min-width: 145px;
+      transition: border-color 0.15s ease;
     }
-    .dropdown:focus { border-color: var(--teal-dark); }
-
+    .dropdown:focus { border-color: var(--teal-primary); }
     .gear-btn {
-      width: 30px; height: 30px;
-      border-radius: 6px;
-      background: #f1f5f9;
-      border: 1px solid var(--border);
+      width: 32px; height: 32px;
+      border-radius: 7px;
+      background: #f8fafc;
+      border: 1px solid var(--border-subtle);
       color: var(--text-muted);
       display: flex; align-items: center; justify-content: center;
       cursor: pointer;
-      font-size: 0.95rem;
+      font-size: 1rem;
       transition: all 0.15s ease;
     }
-    .gear-btn:hover {
-      background: var(--teal-subtle);
-      border-color: var(--teal-border);
-      color: var(--teal-dark);
-    }
+    .gear-btn:hover { background: var(--teal-subtle); border-color: var(--teal-primary); color: var(--teal-primary); }
 
-    /* KPI Cards */
+    /* Centered Average Handle Time Cards */
     .kpi-row {
       display: grid;
-      grid-template-columns: repeat(4, minmax(0, 1fr));
-      gap: 0.65rem;
+      grid-template-columns: repeat(4, 1fr);
+      gap: 0.6rem;
       width: 100%;
+      flex-shrink: 0;
     }
     .kpi-card {
-      background: var(--card);
-      border: 1px solid var(--border);
-      border-radius: 10px;
-      padding: 0.65rem 0.75rem;
-      box-shadow: var(--shadow);
+      background: var(--card-bg);
+      border: 1px solid var(--border-subtle);
+      border-radius: 11px;
+      padding: 0.65rem 0.85rem;
+      box-shadow: var(--shadow-card);
       display: flex;
       flex-direction: column;
       align-items: center;
       text-align: center;
       justify-content: space-between;
-      min-height: 98px;
+      min-height: 96px;
+      position: relative;
+    }
+    .kpi-header-row {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 0.4rem;
+      width: 100%;
     }
     .kpi-header {
-      font-size: 0.72rem;
+      font-size: 0.74rem;
       font-weight: 900;
       color: #0f172a;
-      letter-spacing: 0.05em;
+      letter-spacing: 0.04em;
       text-transform: uppercase;
-      width: 100%;
-      text-align: center;
+    }
+    .kpi-count-badge {
+      background: #f1f5f9;
+      color: var(--teal-dark);
+      border: 1px solid #cbd5e1;
+      font-size: 0.62rem;
+      font-weight: 800;
+      font-family: 'JetBrains Mono', monospace;
+      padding: 0.1rem 0.45rem;
+      border-radius: 12px;
+      line-height: 1;
     }
     .kpi-core {
       display: flex;
       align-items: center;
       justify-content: center;
-      gap: 0.45rem;
-      margin: 0.12rem 0;
+      gap: 0.5rem;
       width: 100%;
+      margin: 0.12rem 0;
     }
     .kpi-icon-wrap {
-      width: 28px; height: 28px;
-      border-radius: 6px;
+      width: 32px; height: 32px;
+      border-radius: 8px;
       background: var(--teal-subtle);
+      border: 1px solid var(--teal-border);
       display: flex; align-items: center; justify-content: center;
       flex-shrink: 0;
     }
-    .kpi-icon-wrap svg { width: 15px; height: 15px; fill: var(--teal-dark); }
+    .kpi-icon-wrap svg { width: 17px; height: 17px; fill: var(--teal-dark); }
     .kpi-val {
-      font-size: clamp(1.25rem, 1.8vw, 1.65rem);
-      font-weight: 800;
+      font-size: clamp(1.25rem, 1.7vw, 1.75rem);
+      font-weight: 900;
       font-family: 'JetBrains Mono', monospace;
       color: var(--teal-dark);
       line-height: 1;
       letter-spacing: -0.03em;
     }
     .kpi-subtext {
-      font-size: 0.65rem;
+      font-size: 0.66rem;
       color: var(--text-muted);
       font-weight: 600;
       width: 100%;
       text-align: center;
       border-top: 1px solid #f1f5f9;
-      padding-top: 0.35rem;
+      padding-top: 0.3rem;
     }
 
-    /* Dashboard Layout */
+    /* Main Split Dashboard */
     .dashboard-layout {
       display: grid;
-      grid-template-columns: minmax(0, 1fr) 300px;
-      gap: 0.75rem;
+      grid-template-columns: minmax(0, 1fr) 420px;
+      gap: 0.65rem;
       flex: 1;
-      align-items: stretch;
       min-height: 0;
     }
 
+    /* Clustered Bar Chart Panel */
     .chart-panel {
-      background: var(--card);
-      border: 1px solid var(--border);
-      border-radius: 10px;
-      padding: 0.85rem 1rem 0.5rem;
-      box-shadow: var(--shadow);
+      background: var(--card-bg);
+      border: 1px solid var(--border-subtle);
+      border-radius: 11px;
+      padding: 0.75rem 1rem 0.4rem;
+      box-shadow: var(--shadow-card);
       display: flex;
       flex-direction: column;
       min-height: 0;
     }
-    .chart-heading {
-      font-size: 0.88rem;
-      font-weight: 800;
-      color: var(--text-main);
-      margin-bottom: 0.35rem;
-    }
-    .chart-viewport {
-      position: relative;
-      width: 100%;
-      flex: 1;
-      min-height: clamp(380px, 52vh, 580px);
-    }
-
-    .summary-panel {
-      background: var(--card);
-      border: 1px solid var(--border);
-      border-radius: 10px;
-      padding: 0.75rem;
-      box-shadow: var(--shadow);
-      display: flex;
-      flex-direction: column;
-      gap: 0.5rem;
-      overflow-y: auto;
-      max-height: 600px;
-    }
-    .summary-title {
-      font-size: 0.72rem;
-      font-weight: 800;
-      color: var(--text-main);
-      padding-bottom: 0.35rem;
-      border-bottom: 1px solid var(--border);
-      text-transform: uppercase;
-      letter-spacing: 0.04em;
-    }
-
-    .tier-row {
+    .chart-header {
       display: flex;
       justify-content: space-between;
       align-items: center;
-      padding: 0.45rem 0.6rem;
-      background: #f8fafc;
-      border: 1px solid var(--border);
+      margin-bottom: 0.2rem;
+      flex-shrink: 0;
+    }
+    .chart-heading { font-size: 0.86rem; font-weight: 800; color: var(--text-main); }
+    .chart-viewport { position: relative; width: 100%; flex: 1; min-height: 0; }
+
+    /* Comparison Table Panel */
+    .comp-panel {
+      background: var(--card-bg);
+      border: 1px solid var(--border-subtle);
+      border-radius: 11px;
+      padding: 0.85rem 0.95rem;
+      box-shadow: var(--shadow-card);
+      display: flex;
+      flex-direction: column;
+      justify-content: space-between;
+      gap: 0.55rem;
+      min-height: 0;
+      overflow-y: auto;
+    }
+    .comp-top-cluster {
+      display: flex;
+      flex-direction: column;
+      gap: 0.55rem;
+    }
+    .comp-header-row {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      gap: 0.4rem;
+    }
+    .comp-title-badge {
+      background: linear-gradient(135deg, #0f766e 0%, #0d9488 100%);
+      color: #ffffff;
+      padding: 0.28rem 0.65rem;
       border-radius: 6px;
-      font-size: 0.74rem;
+      font-size: 0.72rem;
+      font-weight: 800;
+      letter-spacing: 0.04em;
+    }
+
+    /* Mode Switcher Toggle */
+    .comp-mode-toggle {
+      display: flex;
+      background: #f1f5f9;
+      border: 1px solid var(--border-subtle);
+      border-radius: 7px;
+      padding: 2px;
+      gap: 2px;
+    }
+    .mode-btn {
+      background: transparent;
+      border: none;
+      color: var(--text-muted);
+      font-size: 0.66rem;
+      font-weight: 800;
+      padding: 0.22rem 0.55rem;
+      border-radius: 5px;
+      cursor: pointer;
+      transition: all 0.15s ease;
+      white-space: nowrap;
+    }
+    .mode-btn:hover { color: var(--text-main); }
+    .mode-btn.active {
+      background: #ffffff;
+      color: var(--teal-dark);
+      box-shadow: 0 1px 3px rgba(0,0,0,0.08);
+    }
+
+    .comp-selectors {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 0.45rem;
+      background: #f8fafc;
+      padding: 0.45rem;
+      border-radius: 7px;
+      border: 1px solid var(--border-subtle);
+    }
+    .selector-box { display: flex; flex-direction: column; gap: 0.15rem; }
+    .selector-box label { font-size: 0.62rem; font-weight: 800; color: var(--text-muted); text-transform: uppercase; }
+
+    /* Clean Matrix Table */
+    .matrix-table {
+      width: 100%;
+      border-collapse: collapse;
+      font-size: 0.72rem;
+      text-align: left;
+    }
+    .matrix-table th {
+      background: #0f766e;
+      color: #ffffff;
+      padding: 0.45rem 0.5rem;
+      font-weight: 800;
+      font-size: 0.66rem;
+      letter-spacing: 0.03em;
+      white-space: nowrap;
+    }
+    .matrix-table td {
+      padding: 0.48rem 0.5rem;
+      border-bottom: 1px solid var(--border-subtle);
+      font-weight: 700;
+      font-family: 'JetBrains Mono', monospace;
+    }
+    .matrix-table tr:hover td { background: #f8fafc; }
+
+    /* Trend Item */
+    .trend-item {
+      display: inline-flex;
+      align-items: center;
+      gap: 0.25rem;
+      white-space: nowrap;
+    }
+    .trend-svg { width: 13px; height: 13px; flex-shrink: 0; }
+    
+    .c-down { color: var(--trend-down); }
+    .c-down svg { stroke: var(--trend-down); }
+
+    .c-slight { color: var(--trend-slight); }
+    .c-slight svg { stroke: var(--trend-slight); }
+
+    .c-up { color: var(--trend-up); }
+    .c-up svg { stroke: var(--trend-up); }
+
+    .c-none { color: var(--text-muted); font-weight: 600; font-family: 'Plus Jakarta Sans', sans-serif; font-size: 0.7rem; }
+
+    /* Summary Callout Box */
+    .comp-summary-box {
+      background: #f8fafc;
+      border: 1px solid var(--border-subtle);
+      border-left: 3px solid var(--teal-dark);
+      border-radius: 7px;
+      padding: 0.6rem 0.75rem;
+      display: flex;
+      flex-direction: column;
+      gap: 0.3rem;
+    }
+    .summary-box-title {
+      font-size: 0.66rem;
+      font-weight: 800;
+      text-transform: uppercase;
+      color: var(--teal-dark);
+      letter-spacing: 0.04em;
+    }
+    .summary-list {
+      display: flex;
+      flex-direction: column;
+      gap: 0.25rem;
+      font-size: 0.72rem;
+      color: var(--text-main);
       font-weight: 700;
     }
-    .tier-count {
-      font-family: 'JetBrains Mono', monospace;
-      color: var(--teal-dark);
-      background: var(--teal-subtle);
-      padding: 0.1rem 0.4rem;
-      border-radius: 4px;
+    .summary-item {
+      display: flex;
+      align-items: center;
+      gap: 0.4rem;
     }
+    .summary-dot {
+      width: 6px; height: 6px; border-radius: 50%;
+      background: var(--teal-dark);
+      flex-shrink: 0;
+    }
+
+    /* Cohort Distribution Footprint */
+    .comp-footprint {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 0.45rem;
+      background: #f8fafc;
+      border: 1px solid var(--border-subtle);
+      border-radius: 7px;
+      padding: 0.5rem 0.65rem;
+    }
+    .footprint-col { display: flex; flex-direction: column; gap: 0.15rem; }
+    .footprint-lbl { font-size: 0.6rem; font-weight: 800; color: var(--text-muted); text-transform: uppercase; }
+    .footprint-val { font-size: 0.82rem; font-weight: 900; color: var(--teal-dark); font-family: 'JetBrains Mono', monospace; }
 
     /* Settings Modal */
     .modal-overlay {
       position: fixed;
       top: 0; left: 0; width: 100%; height: 100%;
       background: rgba(15, 23, 42, 0.45);
-      backdrop-filter: blur(2px);
+      backdrop-filter: blur(3px);
       display: none;
       align-items: center;
       justify-content: center;
       z-index: 1000;
     }
     .modal-box {
-      background: var(--card);
-      border: 1px solid var(--border);
+      background: var(--card-bg);
+      border: 1px solid var(--border-subtle);
       border-radius: 12px;
-      width: min(92vw, 460px);
+      width: min(94vw, 720px);
+      max-height: 88vh;
       padding: 1.25rem;
-      box-shadow: 0 10px 25px -5px rgba(0, 0, 0, 0.1);
+      box-shadow: 0 15px 30px -5px rgba(0, 0, 0, 0.15);
+      display: flex;
+      flex-direction: column;
+      gap: 0.75rem;
     }
-    .modal-title-row {
+    .modal-header {
       display: flex; justify-content: space-between; align-items: center;
-      margin-bottom: 1rem; padding-bottom: 0.5rem; border-bottom: 1px solid var(--border);
+      padding-bottom: 0.5rem; border-bottom: 1px solid var(--border-subtle);
     }
-    .modal-title { font-size: 0.92rem; font-weight: 800; color: var(--text-main); }
+    .modal-title { font-size: 0.95rem; font-weight: 800; color: var(--text-main); }
     .close-btn { background: none; border: none; font-size: 1.2rem; color: var(--text-muted); cursor: pointer; }
-    .upload-field { margin-bottom: 0.9rem; display: flex; flex-direction: column; gap: 0.25rem; }
-    .upload-field label { font-size: 0.7rem; font-weight: 700; color: var(--text-muted); text-transform: uppercase; }
-    .file-select-btn {
-      border: 1px dashed var(--teal-border);
-      background: var(--teal-subtle);
+
+    .unified-upload-box {
+      background: #f8fafc;
+      border: 1px solid var(--border-subtle);
+      border-radius: 8px;
+      padding: 0.65rem 0.85rem;
+      display: flex;
+      flex-direction: column;
+      gap: 0.35rem;
+    }
+    .upload-heading {
+      font-size: 0.72rem;
+      font-weight: 800;
       color: var(--teal-dark);
-      padding: 0.55rem 0.75rem;
-      border-radius: 6px;
+      text-transform: uppercase;
+      letter-spacing: 0.03em;
+    }
+    .upload-btn-label {
+      border: 1px dashed var(--teal-primary);
+      background: var(--teal-subtle);
+      color: var(--teal-primary);
+      padding: 0.5rem 0.8rem;
+      border-radius: 7px;
       font-size: 0.76rem;
       font-weight: 700;
       cursor: pointer;
       display: flex;
       align-items: center;
       justify-content: space-between;
+      transition: all 0.15s ease;
     }
-    .upload-status { font-size: 0.68rem; color: var(--green); font-weight: 600; }
+    .upload-btn-label:hover { background: #ccfbf1; }
+    .upload-status { font-size: 0.7rem; color: var(--trend-down); font-weight: 700; }
     input[type="file"] { display: none; }
+
+    /* Roster Search & Filters */
+    .roster-filter-bar {
+      display: grid;
+      grid-template-columns: 1fr 120px 120px 130px;
+      gap: 0.45rem;
+      align-items: center;
+      background: #f8fafc;
+      border: 1px solid var(--border-subtle);
+      border-radius: 6px;
+      padding: 0.4rem 0.6rem;
+    }
+    .filter-search-input, .filter-select {
+      border: 1px solid var(--border-subtle);
+      border-radius: 5px;
+      padding: 0.28rem 0.55rem;
+      font-size: 0.74rem;
+      outline: none;
+      background: #ffffff;
+      color: var(--text-main);
+      font-weight: 700;
+    }
+    .filter-search-input:focus, .filter-select:focus { border-color: var(--teal-primary); }
+    .roster-count-tag {
+      font-size: 0.68rem;
+      font-weight: 800;
+      color: var(--teal-dark);
+      background: var(--teal-subtle);
+      border: 1px solid var(--teal-border);
+      padding: 0.2rem 0.5rem;
+      border-radius: 12px;
+      white-space: nowrap;
+      font-family: 'JetBrains Mono', monospace;
+      text-align: center;
+    }
+
+    .add-agent-bar {
+      display: flex;
+      gap: 0.4rem;
+      align-items: center;
+      background: #f1f5f9;
+      padding: 0.35rem 0.55rem;
+      border-radius: 6px;
+    }
+    .add-agent-input {
+      flex: 1;
+      border: 1px solid var(--border-subtle);
+      border-radius: 5px;
+      padding: 0.25rem 0.5rem;
+      font-size: 0.75rem;
+      outline: none;
+    }
+    .role-select, .team-select {
+      border: 1px solid var(--border-subtle);
+      border-radius: 4px;
+      padding: 0.18rem 0.35rem;
+      font-size: 0.72rem;
+      outline: none;
+      background: #ffffff;
+      font-weight: 700;
+      color: var(--text-main);
+    }
+    .add-btn {
+      background: var(--teal-dark);
+      color: #ffffff;
+      border: none;
+      padding: 0.26rem 0.7rem;
+      border-radius: 5px;
+      font-size: 0.72rem;
+      font-weight: 800;
+      cursor: pointer;
+    }
+    .add-btn:hover { background: var(--teal-primary); }
+
+    .doh-table-wrap {
+      flex: 1;
+      overflow-y: auto;
+      max-height: 240px;
+      border: 1px solid var(--border-subtle);
+      border-radius: 7px;
+    }
+    .doh-table { width: 100%; border-collapse: collapse; font-size: 0.74rem; }
+    .doh-table th { background: #f8fafc; padding: 0.45rem 0.65rem; border-bottom: 1px solid var(--border-subtle); font-weight: 800; }
+    .doh-table td { padding: 0.35rem 0.65rem; border-bottom: 1px solid var(--border-subtle); }
+    .doh-input {
+      border: 1px solid var(--border-subtle);
+      border-radius: 4px;
+      padding: 0.18rem 0.35rem;
+      font-size: 0.74rem;
+      font-family: 'JetBrains Mono', monospace;
+      outline: none;
+    }
+    .doh-input:focus { border-color: var(--teal-primary); }
+    .del-btn {
+      background: none;
+      border: none;
+      color: #ef4444;
+      cursor: pointer;
+      font-size: 0.85rem;
+      padding: 0 0.3rem;
+    }
+    .del-btn:hover { color: #b91c1c; }
   </style>
 </head>
 <body>
@@ -288,100 +554,234 @@
   <!-- Top Action Bar -->
   <div class="top-toolbar">
     <div class="brand-group">
-      <div class="brand-dot"></div>
-      <div class="brand-title">Tenure Stats & Staffing Review</div>
+      <div class="brand-badge">AVERAGE HANDLE TIME</div>
+      <span class="brand-subtitle">Tenurity Performance Telemetry</span>
     </div>
 
     <div class="toolbar-right">
-      <span class="label-tag">Month:</span>
-      <select id="monthDropdown" class="dropdown" onchange="onMonthSelectionChanged()"></select>
-      <button class="gear-btn" title="Upload Settings" onclick="toggleSettingsModal(true)">⚙</button>
+      <span class="label-tag">Monthly:</span>
+      <select id="activeMonthSelect" class="dropdown" onchange="onMonthChange()"></select>
+      <button class="gear-btn" title="Manage Roster & Upload Report" onclick="toggleModal(true)">⚙</button>
     </div>
   </div>
 
-  <!-- KPI Cards -->
+  <!-- Centered KPI Cards -->
   <div class="kpi-row">
+    <!-- 1 Year Above -->
     <div class="kpi-card">
-      <div class="kpi-header">TOTAL AGENTS</div>
+      <div class="kpi-header-row">
+        <span class="kpi-header">1 YEAR ABOVE</span>
+        <span class="kpi-count-badge" id="count1Year">28 Agents</span>
+      </div>
       <div class="kpi-core">
         <div class="kpi-icon-wrap">
-          <svg viewBox="0 0 24 24"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/></svg>
+          <svg viewBox="0 0 24 24"><path d="M12 2a10 10 0 1 0 10 10A10 10 0 0 0 12 2zm1 14h-2V7h2v9zm0-11h-2V3h2v2z"/></svg>
         </div>
-        <div class="kpi-val" id="dispTotalAgents">0</div>
+        <div class="kpi-val" id="card1Year">0:19:46</div>
       </div>
-      <div class="kpi-subtext">Active roster count</div>
+      <div class="kpi-subtext" id="sub1Year">Volume-weighted AHT</div>
     </div>
 
+    <!-- 6 - 12 Months -->
     <div class="kpi-card">
-      <div class="kpi-header">AVG TENURE (MONTHS)</div>
+      <div class="kpi-header-row">
+        <span class="kpi-header">6 - 12 MONTHS</span>
+        <span class="kpi-count-badge" id="count6to12">4 Agents</span>
+      </div>
       <div class="kpi-core">
         <div class="kpi-icon-wrap">
-          <svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>
+          <svg viewBox="0 0 24 24"><path d="M12 1a9 9 0 0 0-9 9v7c0 1.66 1.34 3 3 3h3v-8H5v-2c0-3.87 3.13-7 7-7s7 3.13 7 7v2h-4v8h3c1.66 0 3-1.34 3-3v-7a9 9 0 0 0-9-9z"/></svg>
         </div>
-        <div class="kpi-val" id="dispAvgTenure">0.0</div>
+        <div class="kpi-val" id="card6to12">0:20:49</div>
       </div>
-      <div class="kpi-subtext">Team experience average</div>
+      <div class="kpi-subtext" id="sub6to12">Mid-tenured tier</div>
     </div>
 
+    <!-- 0 - 6 Months -->
     <div class="kpi-card">
-      <div class="kpi-header">VETERANS (&gt; 12 MOS)</div>
+      <div class="kpi-header-row">
+        <span class="kpi-header">0 - 6 MONTHS</span>
+        <span class="kpi-count-badge" id="count0to6">0 Agents</span>
+      </div>
       <div class="kpi-core">
         <div class="kpi-icon-wrap">
-          <svg viewBox="0 0 24 24"><path d="M12 2l3.09 6.26L22 9.27l-5 4.87 1.18 6.88L12 17.77l-6.18 3.25L7 14.14 2 9.27l6.91-1.01L12 2z"/></svg>
+          <svg viewBox="0 0 24 24"><path d="M15 12c2.21 0 4-1.79 4-4s-1.79-4-4-4-4 1.79-4 4 1.79 4 4 4zm-9-2V7H4v3H1v2h3v3h2v-3h3v-2H6zm9 4c-2.67 0-8 1.34-8 4v2h16v-2c0-2.66-5.33-4-8-4z"/></svg>
         </div>
-        <div class="kpi-val" id="dispVets">0</div>
+        <div class="kpi-val" id="card0to6" style="font-size: 1.15rem; color: var(--text-muted);">No Data</div>
       </div>
-      <div class="kpi-subtext">Senior support tier</div>
+      <div class="kpi-subtext" id="sub0to6">New hire bracket</div>
     </div>
 
+    <!-- Trainee -->
     <div class="kpi-card">
-      <div class="kpi-header">NEW HIRES (&lt; 3 MOS)</div>
+      <div class="kpi-header-row">
+        <span class="kpi-header">TRAINEE</span>
+        <span class="kpi-count-badge" id="countTrainee">0 Agents</span>
+      </div>
       <div class="kpi-core">
         <div class="kpi-icon-wrap">
-          <svg viewBox="0 0 24 24"><path d="M16 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="8.5" cy="7" r="4"/><line x1="20" y1="8" x2="20" y2="14"/><line x1="23" y1="11" x2="17" y2="11"/></svg>
+          <svg viewBox="0 0 24 24"><path d="M16 11c1.66 0 2.99-1.34 2.99-3S17.66 5 16 5c-1.66 0-3 1.34-3 3s1.34 3 3 3zm-8 0c1.66 0 2.99-1.34 2.99-3S9.66 5 8 5C6.34 5 5 6.34 5 8s1.34 3 3 3zm0 2c-2.33 0-7 1.17-7 3.5V19h14v-2.5c0-2.33-4.67-3.5-7-3.5z"/></svg>
         </div>
-        <div class="kpi-val" id="dispNewHires">0</div>
+        <div class="kpi-val" id="cardTrainee" style="font-size: 1.15rem; color: var(--text-muted);">No Trainees</div>
       </div>
-      <div class="kpi-subtext">Onboarding cohort</div>
+      <div class="kpi-subtext" id="subTrainee">Under 45 days</div>
     </div>
   </div>
 
   <!-- Dashboard Split -->
   <div class="dashboard-layout">
+    
+    <!-- Clustered Bar Chart -->
     <div class="chart-panel">
-      <div class="chart-heading">Tenure Distribution Breakdown</div>
+      <div class="chart-header">
+        <div class="chart-heading">Consult, Hold & Conference Times by Tenurity</div>
+      </div>
       <div class="chart-viewport">
-        <canvas id="tenureBarChart"></canvas>
+        <canvas id="tenurityBarChart"></canvas>
       </div>
     </div>
 
-    <div class="summary-panel">
-      <div class="summary-title">Tenure Tier Breakdown</div>
-      <div id="tierBreakdownList" style="display: flex; flex-direction: column; gap: 0.4rem;">
-        <!-- Dynamically populated tiers -->
+    <!-- Comparison Table Panel -->
+    <div class="comp-panel">
+      <div class="comp-top-cluster">
+        <div class="comp-header-row">
+          <div class="comp-title-badge">DATA COMPARISON</div>
+          
+          <div class="comp-mode-toggle">
+            <button id="btnModeCoverage" class="mode-btn active" onclick="setComparisonMode('coverage')">Coverage Data</button>
+            <button id="btnModeMonthly" class="mode-btn" onclick="setComparisonMode('monthly')">Monthly Comparison</button>
+          </div>
+        </div>
+
+        <!-- Month Selector Box -->
+        <div class="comp-selectors">
+          <div class="selector-box">
+            <label>Baseline Month</label>
+            <select id="targetMonthSelect" class="dropdown" onchange="recalculateComparison()"></select>
+          </div>
+          <div class="selector-box">
+            <label>Comparison Month</label>
+            <select id="compMonthSelect" class="dropdown" onchange="recalculateComparison()"></select>
+          </div>
+        </div>
+
+        <!-- Matrix Table: Metrics on Left, Cohorts on Top -->
+        <table class="matrix-table">
+          <thead>
+            <tr>
+              <th style="width: 28%;">STATUS</th>
+              <th style="width: 24%;">1 YEAR +</th>
+              <th style="width: 24%;">6-12 MONTHS</th>
+              <th style="width: 24%;">0-6 MONTHS</th>
+            </tr>
+          </thead>
+          <tbody id="matrixTableBody"></tbody>
+        </table>
+
+        <!-- Summary Highlights -->
+        <div class="comp-summary-box">
+          <div class="summary-box-title" id="summaryBoxModeTitle">Coverage Summary (Day 1 - Day 9)</div>
+          <div class="summary-list" id="compSummaryList"></div>
+        </div>
+      </div>
+
+      <!-- Cohort Distribution Footprint -->
+      <div class="comp-footprint">
+        <div class="footprint-col">
+          <span class="footprint-lbl">Tech Support Rep Roster</span>
+          <span class="footprint-val" id="footprintRosterCount">32 Agents</span>
+        </div>
+        <div class="footprint-col">
+          <span class="footprint-lbl">Tenure Ratio (1Y+ / Mid)</span>
+          <span class="footprint-val" id="footprintRatio">88% / 12%</span>
+        </div>
       </div>
     </div>
+
   </div>
 
-  <!-- Settings Modal -->
-  <div class="modal-overlay" id="settingsModal" onclick="if(event.target === this) toggleSettingsModal(false)">
+  <!-- Settings Modal with Search & Team/Role/Tenure Filtering -->
+  <div class="modal-overlay" id="settingsModal" onclick="if(event.target === this) toggleModal(false)">
     <div class="modal-box">
-      <div class="modal-title-row">
-        <div class="modal-title">⚙ Upload Tenure & Roster Report</div>
-        <button class="close-btn" onclick="toggleSettingsModal(false)">&times;</button>
+      <div class="modal-header">
+        <div class="modal-title">⚙ Data Upload & Date of Hire Settings</div>
+        <button class="close-btn" onclick="toggleModal(false)">&times;</button>
       </div>
 
-      <div class="upload-field">
-        <label>Roster / Tenure Sheet (.xlsx)</label>
-        <label for="tenureInputModal" class="file-select-btn">
-          <span>📊 Select Tenure Report File</span>
-          <span class="upload-status" id="tenureStatus">Checking Cloud...</span>
+      <!-- Upload Box -->
+      <div class="unified-upload-box">
+        <span class="upload-heading">Upload Monthly Tenurity Report (.xlsx / .csv)</span>
+        <label for="unifiedFileInput" class="upload-btn-label">
+          <span>📊 Select Excel Report File</span>
+          <span class="upload-status" id="unifiedUploadStatus">Checking Cloud...</span>
         </label>
-        <input type="file" id="tenureInputModal" accept=".xlsx,.xls,.csv" onchange="uploadTenureReport(event)">
+        <input type="file" id="unifiedFileInput" accept=".xlsx,.xls,.csv" onchange="handleUnifiedUpload(event)">
+        <span style="font-size: 0.68rem; color: var(--text-muted);">Reads DSR & Monthly AHT reports automatically.</span>
       </div>
 
-      <div style="font-size: 0.7rem; color: var(--text-muted); line-height: 1.4; margin-top: 0.5rem;">
-        Data is securely synchronized to your Firebase Firestore cloud database and persists permanently.
+      <!-- Add New Agent Form -->
+      <div style="font-size: 0.74rem; font-weight: 800; color: var(--text-main); margin-top: 0.1rem;">Date of Hire (DOH) Reference Roster</div>
+      <div class="add-agent-bar">
+        <input type="text" id="newAgentName" class="add-agent-input" placeholder="New Agent Name (e.g. John Doe)">
+        <input type="date" id="newAgentDOH" class="add-agent-input" style="flex: 0 0 120px;">
+        <select id="newAgentTeam" class="team-select">
+          <option value="Edwin Cuesta">Edwin Cuesta</option>
+          <option value="Hazel Maneja">Hazel Maneja</option>
+          <option value="Kyle Sioson">Kyle Sioson</option>
+          <option value="Frank Molina" selected>Frank Molina</option>
+        </select>
+        <select id="newAgentRole" class="role-select">
+          <option value="Tech Support Rep" selected>Tech Support Rep</option>
+          <option value="Escalation Lead">Escalation Lead</option>
+          <option value="Team Leader">Team Leader</option>
+          <option value="Others">Others</option>
+        </select>
+        <button class="add-btn" onclick="addNewAgent()">+ Add</button>
+      </div>
+
+      <!-- Search and Filter Tool Strip (Includes Tenure Filter) -->
+      <div class="roster-filter-bar" style="grid-template-columns: 1fr 120px 120px 130px;">
+        <input type="text" id="searchAgentInput" class="filter-search-input" placeholder="🔍 Search name or surname..." oninput="renderDohTable()">
+        <select id="filterTeamSelect" class="filter-select" onchange="renderDohTable()">
+          <option value="ALL">All Teams</option>
+          <option value="Edwin Cuesta">Edwin Cuesta</option>
+          <option value="Hazel Maneja">Hazel Maneja</option>
+          <option value="Kyle Sioson">Kyle Sioson</option>
+          <option value="Frank Molina">Frank Molina</option>
+        </select>
+        <select id="filterRoleSelect" class="filter-select" onchange="renderDohTable()">
+          <option value="ALL">All Roles</option>
+          <option value="Tech Support Rep">Tech Support Rep</option>
+          <option value="Escalation Lead">Escalation Lead</option>
+          <option value="Team Leader">Team Leader</option>
+        </select>
+        <select id="filterTenureSelect" class="filter-select" onchange="renderDohTable()">
+          <option value="ALL">All Tenures</option>
+          <option value="1 Year above">1 Year Above</option>
+          <option value="6-12 Months">6-12 Months</option>
+          <option value="0-6 Months">0-6 Months</option>
+          <option value="Trainee">Trainee</option>
+        </select>
+      </div>
+      <div style="display: flex; justify-content: flex-end;">
+        <span class="roster-count-tag" id="filteredRosterCount">Showing: 32 agents</span>
+      </div>
+
+      <!-- Roster Table -->
+      <div class="doh-table-wrap">
+        <table class="doh-table">
+          <thead>
+            <tr>
+              <th>Agent Name</th>
+              <th>Hire Date (YYYY-MM-DD)</th>
+              <th>Team Leader</th>
+              <th>Support Role</th>
+              <th>Tenure Tier</th>
+              <th style="width: 30px;"></th>
+            </tr>
+          </thead>
+          <tbody id="dohTableBody"></tbody>
+        </table>
       </div>
     </div>
   </div>
@@ -404,155 +804,642 @@
 
     Chart.register(ChartDataLabels);
 
-    let tenureAppState = {
-      months: {
-        "September - 2026": [
-          { name: "Alfredo Ceno", tenureMonths: 14 },
-          { name: "Christian Quimno", tenureMonths: 8 },
-          { name: "Aj Dela Cruz", tenureMonths: 2 }
-        ]
+    const defaultRoster = [
+      { name: "Frank Molina", doh: "2006-10-02", team: "Hazel Maneja", role: "Team Leader" },
+      { name: "Hazel Maneja", doh: "2015-06-24", team: "Hazel Maneja", role: "Team Leader" },
+      { name: "Edwin Cuesta", doh: "2009-08-05", team: "Hazel Maneja", role: "Team Leader" },
+      { name: "Kyle Brandon Sioson", doh: "2023-05-15", team: "Hazel Maneja", role: "Team Leader" },
+      { name: "AJ Dela Cruz", doh: "2023-10-18", team: "Hazel Maneja", role: "Escalation Lead" },
+      { name: "Gemmalyn Silvestre", doh: "2013-05-03", team: "Hazel Maneja", role: "Escalation Lead" },
+      { name: "Glory Barbacena", doh: "2019-06-06", team: "Hazel Maneja", role: "Escalation Lead" },
+      { name: "Judy Tolentino", doh: "2007-07-20", team: "Hazel Maneja", role: "Escalation Lead" },
+      { name: "Kristian Ong", doh: "2016-01-14", team: "Hazel Maneja", role: "Escalation Lead" },
+      { name: "Melvin Lagrosa", doh: "2016-05-06", team: "Hazel Maneja", role: "Escalation Lead" },
+      { name: "Zachary Jeremy Payabyab", doh: "2021-06-07", team: "Hazel Maneja", role: "Escalation Lead" },
+      { name: "Jeraldyn Relata", doh: "2023-02-15", team: "Edwin Cuesta", role: "Tech Support Rep" },
+      { name: "Raven Guasis", doh: "2024-08-08", team: "Edwin Cuesta", role: "Tech Support Rep" },
+      { name: "Remond Licayan", doh: "2022-05-02", team: "Edwin Cuesta", role: "Tech Support Rep" },
+      { name: "Renard Christopher Relova", doh: "2019-08-05", team: "Edwin Cuesta", role: "Tech Support Rep" },
+      { name: "Christian Mark Patdu", doh: "2023-01-04", team: "Hazel Maneja", role: "Tech Support Rep" },
+      { name: "Justin Lawrence Castro", doh: "2023-01-04", team: "Hazel Maneja", role: "Tech Support Rep" },
+      { name: "Daniel Arago", doh: "2022-07-27", team: "Kyle Sioson", role: "Tech Support Rep" },
+      { name: "Joniel Obus", doh: "2022-08-31", team: "Kyle Sioson", role: "Tech Support Rep" },
+      { name: "Lowella Alacida", doh: "2024-06-24", team: "Kyle Sioson", role: "Tech Support Rep" },
+      { name: "Madel Negrete", doh: "2023-02-15", team: "Kyle Sioson", role: "Tech Support Rep" },
+      { name: "Alfredo Ceno", doh: "2025-08-01", team: "Edwin Cuesta", role: "Tech Support Rep" },
+      { name: "Christian Quimno", doh: "2026-01-19", team: "Edwin Cuesta", role: "Tech Support Rep" },
+      { name: "Dean Clemente", doh: "2025-09-01", team: "Edwin Cuesta", role: "Tech Support Rep" },
+      { name: "Harold Reyes", doh: "2024-05-13", team: "Edwin Cuesta", role: "Tech Support Rep" },
+      { name: "John Drew", doh: "2025-08-18", team: "Edwin Cuesta", role: "Tech Support Rep" },
+      { name: "Kimberly Torres", doh: "2025-08-25", team: "Edwin Cuesta", role: "Tech Support Rep" },
+      { name: "Roi Lumato", doh: "2026-01-19", team: "Edwin Cuesta", role: "Tech Support Rep" },
+      { name: "Bench Manuel", doh: "2026-01-19", team: "Frank Molina", role: "Tech Support Rep" },
+      { name: "Boh Daclis", doh: "2025-09-22", team: "Frank Molina", role: "Tech Support Rep" },
+      { name: "Braven Ocampo", doh: "2025-08-18", team: "Frank Molina", role: "Tech Support Rep" },
+      { name: "Felisha Sy", doh: "2025-09-15", team: "Frank Molina", role: "Tech Support Rep" },
+      { name: "Hazel Bongalos", doh: "2026-01-19", team: "Frank Molina", role: "Tech Support Rep" },
+      { name: "Jan Neri", doh: "2025-02-10", team: "Frank Molina", role: "Tech Support Rep" },
+      { name: "John Guzman", doh: "2025-03-24", team: "Frank Molina", role: "Tech Support Rep" },
+      { name: "Justine Bagalihog", doh: "2025-08-01", team: "Frank Molina", role: "Tech Support Rep" },
+      { name: "Salvador Rubio Jr", doh: "2023-02-16", team: "Frank Molina", role: "Tech Support Rep" },
+      { name: "Sidrick Mondalo", doh: "2025-05-26", team: "Frank Molina", role: "Tech Support Rep" },
+      { name: "Arlenne Labagala", doh: "2025-09-15", team: "Kyle Sioson", role: "Tech Support Rep" },
+      { name: "Eljul Maligalig", doh: "2025-08-18", team: "Kyle Sioson", role: "Tech Support Rep" },
+      { name: "James Querubin", doh: "2025-05-26", team: "Kyle Sioson", role: "Tech Support Rep" },
+      { name: "Jasmine Comia", doh: "2025-08-01", team: "Kyle Sioson", role: "Tech Support Rep" },
+      { name: "Rachelle Rubio", doh: "2024-04-22", team: "Kyle Sioson", role: "Tech Support Rep" }
+    ];
+
+    const defaultMonthlyStore = {
+      "2026-09": {
+        name: "September - 2026",
+        maxDay: 9,
+        "1 Year above": { aht: 1186, consult: 286, hold: 83, conf: 159, count: 28 },
+        "6-12 Months": { aht: 1249, consult: 280, hold: 96, conf: 179, count: 4 },
+        "0-6 Months": null,
+        "Trainee": null,
+        "coverage": {
+          "1 Year above": { aht: 1186, consult: 286, hold: 83, conf: 159, count: 28 },
+          "6-12 Months": { aht: 1249, consult: 280, hold: 96, conf: 179, count: 4 },
+          "0-6 Months": null,
+          "Trainee": null
+        }
       },
-      currentMonth: "September - 2026"
+      "2026-08": {
+        name: "August - 2026",
+        maxDay: 31,
+        "1 Year above": { aht: 1230, consult: 262, hold: 78, conf: 318, count: 25 },
+        "6-12 Months": { aht: 1242, consult: 269, hold: 92, conf: 178, count: 7 },
+        "0-6 Months": null,
+        "Trainee": null,
+        "coverage": {
+          "1 Year above": { aht: 1222, consult: 206, hold: 70, conf: 165, count: 25 },
+          "6-12 Months": { aht: 1199, consult: 286, hold: 84, conf: 166, count: 7 },
+          "0-6 Months": null,
+          "Trainee": null
+        }
+      },
+      "2026-07": {
+        name: "July - 2026",
+        maxDay: 31,
+        "1 Year above": { aht: 1179, consult: 283, hold: 87, conf: 174, count: 26 },
+        "6-12 Months": { aht: 1266, consult: 312, hold: 88, conf: 236, count: 6 },
+        "0-6 Months": null,
+        "Trainee": null,
+        "coverage": {
+          "1 Year above": { aht: 1175, consult: 280, hold: 85, conf: 170, count: 26 },
+          "6-12 Months": { aht: 1260, consult: 310, hold: 86, conf: 230, count: 6 },
+          "0-6 Months": null,
+          "Trainee": null
+        }
+      }
     };
 
-    let tenureChartInstance = null;
+    let dohRoster = defaultRoster;
+    let monthlyDataStore = defaultMonthlyStore;
 
-    function toggleSettingsModal(open) {
-      document.getElementById("settingsModal").style.display = open ? "flex" : "none";
-    }
-
+    // Save state to Firebase Cloud Firestore
     function saveToCloud() {
       db.collection('petro_tenure').doc('roster_data').set({
-        months: tenureAppState.months,
-        currentMonth: tenureAppState.currentMonth,
+        dohRoster: dohRoster,
+        monthlyDataStore: monthlyDataStore,
         updatedAt: new Date()
       }).then(() => {
         console.log("Tenure state synced to Firebase.");
       }).catch(err => console.error("Firebase sync error:", err));
     }
 
+    // Load state from Firebase Cloud Firestore on startup
     function loadFromCloud() {
       db.collection('petro_tenure').doc('roster_data').get().then(doc => {
         if (doc.exists) {
           const remote = doc.data();
-          if (remote.months) tenureAppState.months = remote.months;
-          if (remote.currentMonth) tenureAppState.currentMonth = remote.currentMonth;
+          if (remote.dohRoster) dohRoster = remote.dohRoster;
+          if (remote.monthlyDataStore) monthlyDataStore = remote.monthlyDataStore;
 
-          document.getElementById("tenureStatus").innerText = "Loaded (Cloud Sync)";
-          updateMonthDropdown();
-          renderTenureDashboard(tenureAppState.currentMonth);
+          document.getElementById("unifiedUploadStatus").innerText = "Loaded (Cloud Sync)";
+          updateDropdownOptions();
+          renderDohTable();
+          onMonthChange();
+        } else {
+          updateDropdownOptions();
+          renderDohTable();
+          onMonthChange();
         }
-      }).catch(err => console.log("Cloud fetch note:", err));
+      }).catch(err => {
+        console.log("Cloud fetch note:", err);
+        updateDropdownOptions();
+        renderDohTable();
+        onMonthChange();
+      });
     }
 
-    function updateMonthDropdown() {
-      const dropdown = document.getElementById("monthDropdown");
-      dropdown.innerHTML = "";
-      const months = Object.keys(tenureAppState.months).sort();
+    let comparisonMode = 'coverage';
+    let chartInstance = null;
 
-      months.forEach(m => {
-        const opt = document.createElement("option");
-        opt.value = m;
-        opt.textContent = m;
-        dropdown.appendChild(opt);
+    function setComparisonMode(mode) {
+      comparisonMode = mode;
+      document.getElementById('btnModeCoverage').classList.toggle('active', mode === 'coverage');
+      document.getElementById('btnModeMonthly').classList.toggle('active', mode === 'monthly');
+      recalculateComparison();
+    }
+
+    function toggleModal(show) {
+      document.getElementById("settingsModal").style.display = show ? "flex" : "none";
+      if (show) renderDohTable();
+    }
+
+    function renderDohTable() {
+      const tbody = document.getElementById("dohTableBody");
+      const searchVal = (document.getElementById("searchAgentInput")?.value || "").trim().toLowerCase();
+      const teamFilter = document.getElementById("filterTeamSelect")?.value || "ALL";
+      const roleFilter = document.getElementById("filterRoleSelect")?.value || "ALL";
+      const tenureFilter = document.getElementById("filterTenureSelect")?.value || "ALL";
+
+      tbody.innerHTML = "";
+      let visibleCount = 0;
+
+      const activeMonthKey = document.getElementById("activeMonthSelect")?.value || "2026-09";
+      const refDateStr = activeMonthKey + "-01";
+
+      dohRoster.forEach((r, idx) => {
+        const nameTokens = r.name.toLowerCase().split(/\s+/).filter(Boolean);
+        const firstName = nameTokens[0] || '';
+        const lastName = nameTokens[nameTokens.length - 1] || '';
+
+        const matchesSearch = !searchVal || 
+          r.name.toLowerCase().includes(searchVal) || 
+          firstName.includes(searchVal) || 
+          lastName.includes(searchVal);
+
+        const matchesTeam = (teamFilter === "ALL") || (r.team === teamFilter);
+        const matchesRole = (roleFilter === "ALL") || (r.role === roleFilter);
+        
+        const agentTenure = getTenureBucket(r.doh, refDateStr);
+        const matchesTenure = (tenureFilter === "ALL") || (agentTenure === tenureFilter);
+
+        if (matchesSearch && matchesTeam && matchesRole && matchesTenure) {
+          visibleCount++;
+          const tr = document.createElement("tr");
+          tr.innerHTML = `
+            <td><strong>${r.name}</strong></td>
+            <td><input type="date" class="doh-input" value="${r.doh}" onchange="dohRoster[${idx}].doh = this.value; saveToCloud(); onMonthChange();"></td>
+            <td>
+              <select class="team-select" onchange="dohRoster[${idx}].team = this.value; saveToCloud();">
+                <option value="Edwin Cuesta" ${r.team === "Edwin Cuesta" ? "selected" : ""}>Edwin Cuesta</option>
+                <option value="Hazel Maneja" ${r.team === "Hazel Maneja" ? "selected" : ""}>Hazel Maneja</option>
+                <option value="Kyle Sioson" ${r.team === "Kyle Sioson" ? "selected" : ""}>Kyle Sioson</option>
+                <option value="Frank Molina" ${r.team === "Frank Molina" ? "selected" : ""}>Frank Molina</option>
+              </select>
+            </td>
+            <td>
+              <select class="role-select" onchange="dohRoster[${idx}].role = this.value; saveToCloud(); onMonthChange();">
+                <option value="Tech Support Rep" ${r.role === "Tech Support Rep" ? "selected" : ""}>Tech Support Rep</option>
+                <option value="Escalation Lead" ${r.role === "Escalation Lead" ? "selected" : ""}>Escalation Lead</option>
+                <option value="Team Leader" ${r.role === "Team Leader" ? "selected" : ""}>Team Leader</option>
+                <option value="Others" ${r.role === "Others" ? "selected" : ""}>Others</option>
+              </select>
+            </td>
+            <td><span style="font-size: 0.7rem; font-weight: 800; color: var(--teal-dark);">${agentTenure}</span></td>
+            <td style="text-align:center;"><button class="del-btn" title="Permanent Delete" onclick="deleteAgent(${idx})">🗑</button></td>
+          `;
+          tbody.appendChild(tr);
+        }
       });
 
-      if (!months.includes(tenureAppState.currentMonth) && months.length > 0) {
-        tenureAppState.currentMonth = months[0];
+      const countTag = document.getElementById("filteredRosterCount");
+      if (countTag) {
+        countTag.innerText = `Showing: ${visibleCount} agent${visibleCount === 1 ? '' : 's'}`;
       }
-      dropdown.value = tenureAppState.currentMonth;
     }
 
-    function onMonthSelectionChanged() {
-      const m = document.getElementById("monthDropdown").value;
-      tenureAppState.currentMonth = m;
+    function addNewAgent() {
+      const nameInput = document.getElementById("newAgentName");
+      const dohInput = document.getElementById("newAgentDOH");
+      const teamSelect = document.getElementById("newAgentTeam");
+      const roleSelect = document.getElementById("newAgentRole");
+      const name = nameInput.value.trim();
+      const doh = dohInput.value;
+      const team = teamSelect.value;
+      const role = roleSelect.value;
+
+      if (!name || !doh) {
+        alert("Please enter both an agent name and hire date.");
+        return;
+      }
+
+      dohRoster.unshift({ name, doh, team, role });
       saveToCloud();
-      renderTenureDashboard(m);
+      renderDohTable();
+      nameInput.value = "";
+      dohInput.value = "";
+      onMonthChange();
     }
 
-    function renderTenureDashboard(monthKey) {
-      const agents = tenureAppState.months[monthKey] || [];
-      const totalAgents = agents.length;
-
-      let sumTenure = 0;
-      let vets = 0;
-      let newHires = 0;
-
-      const tiers = { "0-3 Months": 0, "4-6 Months": 0, "7-12 Months": 0, "12+ Months": 0 };
-
-      agents.forEach(a => {
-        const t = Number(a.tenureMonths) || 0;
-        sumTenure += t;
-        if (t > 12) vets++;
-        if (t <= 3) newHires++;
-
-        if (t <= 3) tiers["0-3 Months"]++;
-        else if (t <= 6) tiers["4-6 Months"]++;
-        else if (t <= 12) tiers["7-12 Months"]++;
-        else tiers["12+ Months"]++;
-      });
-
-      const avgTenure = totalAgents > 0 ? (sumTenure / totalAgents).toFixed(1) : "0.0";
-
-      document.getElementById("dispTotalAgents").innerText = totalAgents.toLocaleString();
-      document.getElementById("dispAvgTenure").innerText = avgTenure;
-      document.getElementById("dispVets").innerText = vets.toLocaleString();
-      document.getElementById("dispNewHires").innerText = newHires.toLocaleString();
-
-      // Render Tier Breakdown List
-      const listEl = document.getElementById("tierBreakdownList");
-      listEl.innerHTML = "";
-      Object.entries(tiers).forEach(([tierName, count]) => {
-        const row = document.createElement("div");
-        row.className = "tier-row";
-        row.innerHTML = `<span>${tierName}</span><span class="tier-count">${count} Agents</span>`;
-        listEl.appendChild(row);
-      });
-
-      renderTenureChart(tiers);
+    function deleteAgent(idx) {
+      if (confirm(`Permanently delete ${dohRoster[idx].name} from roster?`)) {
+        dohRoster.splice(idx, 1);
+        saveToCloud();
+        renderDohTable();
+        onMonthChange();
+      }
     }
 
-    function renderTenureChart(tiers) {
-      const ctx = document.getElementById("tenureBarChart").getContext("2d");
-      const labels = Object.keys(tiers);
-      const dataVals = Object.values(tiers);
+    function timeSecToHMS(sec) {
+      if (sec === null || isNaN(sec) || sec === 0) return "0:00:00";
+      const s = Math.round(sec);
+      const h = Math.floor(s / 3600);
+      const m = Math.floor((s % 3600) / 60);
+      const rem = s % 60;
+      return `${h}:${String(m).padStart(2,'0')}:${String(rem).padStart(2,'0')}`;
+    }
 
-      if (tenureChartInstance) tenureChartInstance.destroy();
+    function formatSimpleSec(sec) {
+      const absSec = Math.abs(sec);
+      const m = Math.floor(absSec / 60);
+      const s = Math.floor(absSec % 60);
+      if (m > 0 && s > 0) return `${m}m ${s}s`;
+      if (m > 0) return `${m}m`;
+      return `${s}s`;
+    }
 
-      tenureChartInstance = new Chart(ctx, {
+    function renderTrendCell(diffSec) {
+      if (diffSec === null || isNaN(diffSec)) {
+        return `<span class="c-none">-</span>`;
+      }
+      const absSec = Math.abs(diffSec);
+      const m = Math.floor(absSec / 60);
+      const s = Math.floor(absSec % 60);
+      const timeStr = `${m}m ${String(s).padStart(2, '0')}s`;
+
+      if (diffSec < 0) {
+        return `
+          <span class="trend-item c-down">
+            <svg class="trend-svg" viewBox="0 0 24 24" fill="none" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+              <line x1="12" y1="5" x2="12" y2="19"></line>
+              <polyline points="19 12 12 19 5 12"></polyline>
+            </svg>
+            -${timeStr}
+          </span>
+        `;
+      } else if (diffSec <= 60) {
+        return `
+          <span class="trend-item c-slight">
+            <svg class="trend-svg" viewBox="0 0 24 24" fill="none" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+              <line x1="7" y1="17" x2="17" y2="7"></line>
+              <polyline points="7 7 17 7 17 17"></polyline>
+            </svg>
+            +${timeStr}
+          </span>
+        `;
+      } else {
+        return `
+          <span class="trend-item c-up">
+            <svg class="trend-svg" viewBox="0 0 24 24" fill="none" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+              <line x1="12" y1="19" x2="12" y2="5"></line>
+              <polyline points="5 12 12 5 19 12"></polyline>
+            </svg>
+            +${timeStr}
+          </span>
+        `;
+      }
+    }
+
+    function updateDropdownOptions() {
+      const activeSel = document.getElementById("activeMonthSelect");
+      const targetSel = document.getElementById("targetMonthSelect");
+      const compSel = document.getElementById("compMonthSelect");
+
+      const currentActive = activeSel.value;
+      const currentTarget = targetSel.value;
+      const currentComp = compSel.value;
+
+      activeSel.innerHTML = "";
+      targetSel.innerHTML = "";
+      compSel.innerHTML = "";
+
+      const keys = Object.keys(monthlyDataStore).sort().reverse();
+      keys.forEach(k => {
+        const name = monthlyDataStore[k].name || k;
+        activeSel.innerHTML += `<option value="${k}">${name}</option>`;
+        targetSel.innerHTML += `<option value="${k}">${name}</option>`;
+        compSel.innerHTML += `<option value="${k}">${name}</option>`;
+      });
+
+      activeSel.value = keys.includes(currentActive) ? currentActive : keys[0];
+      targetSel.value = keys.length > 1 ? keys[1] : keys[0];
+      compSel.value = keys[0];
+    }
+
+    function computeLiveMetricsForMonth(monthKey, isCoverage) {
+      const baseData = monthlyDataStore[monthKey];
+      if (!baseData) return null;
+
+      const refDateStr = monthKey + "-01";
+      let count1Y = 0, count6M = 0, count0M = 0, countTR = 0;
+
+      dohRoster.forEach(r => {
+        if (r.role === "Tech Support Rep") {
+          const b = getTenureBucket(r.doh, refDateStr);
+          if (b === "1 Year above") count1Y++;
+          else if (b === "6-12 Months") count6M++;
+          else if (b === "0-6 Months") count0M++;
+          else if (b === "Trainee") countTR++;
+        }
+      });
+
+      const source = (isCoverage && baseData.coverage) ? baseData.coverage : baseData;
+      
+      return {
+        ...source,
+        "1 Year above": source["1 Year above"] ? { ...source["1 Year above"], count: count1Y } : { aht: 1186, consult: 286, hold: 83, conf: 159, count: count1Y },
+        "6-12 Months": source["6-12 Months"] ? { ...source["6-12 Months"], count: count6M } : { aht: 1249, consult: 280, hold: 96, conf: 179, count: count6M },
+        "0-6 Months": count0M > 0 ? (source["0-6 Months"] || { aht: 1200, consult: 270, hold: 90, conf: 160, count: count0M }) : null,
+        "Trainee": countTR > 0 ? (source["Trainee"] || { aht: 1150, consult: 260, hold: 85, conf: 150, count: countTR }) : null
+      };
+    }
+
+    function onMonthChange() {
+      const m = document.getElementById("activeMonthSelect").value;
+      const data = computeLiveMetricsForMonth(m, comparisonMode === 'coverage');
+
+      if (data) {
+        document.getElementById("card1Year").innerText = data["1 Year above"] ? timeSecToHMS(data["1 Year above"].aht) : "No Data";
+        document.getElementById("card6to12").innerText = data["6-12 Months"] ? timeSecToHMS(data["6-12 Months"].aht) : "No Data";
+        document.getElementById("card0to6").innerText = data["0-6 Months"] ? timeSecToHMS(data["0-6 Months"].aht) : "No Data";
+        document.getElementById("cardTrainee").innerText = data["Trainee"] ? timeSecToHMS(data["Trainee"].aht) : "No Trainees";
+
+        const count1Y = data["1 Year above"]?.count ?? 0;
+        const count6M = data["6-12 Months"]?.count ?? 0;
+        const count0M = data["0-6 Months"]?.count ?? 0;
+        const countTR = data["Trainee"]?.count ?? 0;
+
+        document.getElementById("count1Year").innerText = `${count1Y} Agents`;
+        document.getElementById("count6to12").innerText = `${count6M} Agents`;
+        document.getElementById("count0to6").innerText = `${count0M} Agents`;
+        document.getElementById("countTrainee").innerText = `${countTR} Agents`;
+
+        const totalReps = count1Y + count6M + count0M + countTR;
+        document.getElementById("footprintRosterCount").innerText = `${totalReps} Agents`;
+        if (totalReps > 0) {
+          const r1Y = Math.round((count1Y / totalReps) * 100);
+          const r6M = Math.round((count6M / totalReps) * 100);
+          document.getElementById("footprintRatio").innerText = `${r1Y}% / ${r6M}%`;
+        }
+
+        renderBarChart(data);
+      }
+
+      recalculateComparison();
+      renderDohTable();
+    }
+
+    function recalculateComparison() {
+      const targetM = document.getElementById("targetMonthSelect").value;
+      const compM = document.getElementById("compMonthSelect").value;
+
+      const tgt = computeLiveMetricsForMonth(targetM, comparisonMode === 'coverage');
+      const cmp = computeLiveMetricsForMonth(compM, comparisonMode === 'coverage');
+
+      if (!tgt || !cmp) return;
+
+      const rawTgt = monthlyDataStore[targetM];
+      const rawCmp = monthlyDataStore[compM];
+      const effectiveDaySpan = Math.min(rawTgt?.maxDay || 31, rawCmp?.maxDay || 31);
+      const summaryTitle = document.getElementById("summaryBoxModeTitle");
+
+      if (comparisonMode === 'coverage') {
+        summaryTitle.innerText = `Coverage Summary (Day 1 - Day ${effectiveDaySpan})`;
+      } else {
+        summaryTitle.innerText = `Monthly Summary (Full Month Cycle)`;
+      }
+
+      const metrics = [
+        { label: "HANDLE TIME", field: "aht" },
+        { label: "CONSULT", field: "consult" },
+        { label: "HOLD", field: "hold" },
+        { label: "CONFERENCE", field: "conf" }
+      ];
+
+      const cohorts = [
+        { key: "1 Year above" },
+        { key: "6-12 Months" },
+        { key: "0-6 Months" }
+      ];
+
+      const tbody = document.getElementById("matrixTableBody");
+      tbody.innerHTML = "";
+
+      let diff1Y_AHT = null;
+      let diff6M_AHT = null;
+
+      metrics.forEach(m => {
+        const tr = document.createElement("tr");
+        let rowHtml = `<td style="font-weight: 800; color: #0f172a;">${m.label}</td>`;
+
+        cohorts.forEach(c => {
+          const tgtVal = tgt[c.key] ? tgt[c.key][m.field] : null;
+          const cmpVal = cmp[c.key] ? cmp[c.key][m.field] : null;
+          const diff = (tgtVal !== null && cmpVal !== null) ? cmpVal - tgtVal : null;
+
+          if (c.key === "1 Year above" && m.field === "aht") diff1Y_AHT = diff;
+          if (c.key === "6-12 Months" && m.field === "aht") diff6M_AHT = diff;
+
+          rowHtml += `<td>${renderTrendCell(diff)}</td>`;
+        });
+
+        tr.innerHTML = rowHtml;
+        tbody.appendChild(tr);
+      });
+
+      const summaryList = document.getElementById("compSummaryList");
+      let items = [];
+
+      if (diff1Y_AHT !== null) {
+        items.push(`<div class="summary-item"><span class="summary-dot" style="background:${diff1Y_AHT <= 0 ? 'var(--trend-down)' : 'var(--trend-slight)'};"></span><span>1 Year+: ${formatSimpleSec(diff1Y_AHT)} ${diff1Y_AHT <= 0 ? 'faster' : 'slower'}</span></div>`);
+      }
+      if (diff6M_AHT !== null) {
+        items.push(`<div class="summary-item"><span class="summary-dot" style="background:${diff6M_AHT <= 0 ? 'var(--trend-down)' : 'var(--trend-slight)'};"></span><span>6-12 Months: ${formatSimpleSec(diff6M_AHT)} ${diff6M_AHT <= 0 ? 'faster' : 'slower'}</span></div>`);
+      }
+      items.push(`<div class="summary-item"><span class="summary-dot" style="background:var(--text-muted);"></span><span>0-6 Months & Trainees: No active volume</span></div>`);
+
+      summaryList.innerHTML = items.join('');
+    }
+
+    function renderBarChart(data) {
+      const ctx = document.getElementById("tenurityBarChart").getContext("2d");
+      const labels = ["1 Year above", "6-12 Months", "0-6 Months", "Trainee"];
+
+      const consultTimes = [
+        data["1 Year above"] ? data["1 Year above"].consult : 0,
+        data["6-12 Months"] ? data["6-12 Months"].consult : 0,
+        data["0-6 Months"] ? data["0-6 Months"].consult : 0,
+        data["Trainee"] ? data["Trainee"].consult : 0
+      ];
+
+      const holdTimes = [
+        data["1 Year above"] ? data["1 Year above"].hold : 0,
+        data["6-12 Months"] ? data["6-12 Months"].hold : 0,
+        data["0-6 Months"] ? data["0-6 Months"].hold : 0,
+        data["Trainee"] ? data["Trainee"].hold : 0
+      ];
+
+      const confTimes = [
+        data["1 Year above"] ? data["1 Year above"].conf : 0,
+        data["6-12 Months"] ? data["6-12 Months"].conf : 0,
+        data["0-6 Months"] ? data["0-6 Months"].conf : 0,
+        data["Trainee"] ? data["Trainee"].conf : 0
+      ];
+
+      if (chartInstance) chartInstance.destroy();
+
+      chartInstance = new Chart(ctx, {
         type: 'bar',
         data: {
           labels: labels,
-          datasets: [{
-            data: dataVals,
-            backgroundColor: ['#14b8a6', '#0d9488', '#0f766e', '#115e59'],
-            borderRadius: 6,
-            maxBarThickness: 38
-          }]
+          datasets: [
+            {
+              label: 'Consult Time',
+              data: consultTimes,
+              backgroundColor: '#06b6d4',
+              borderRadius: 6,
+              categoryPercentage: 0.78,
+              barPercentage: 0.9,
+              maxBarThickness: 52
+            },
+            {
+              label: 'Hold Time',
+              data: holdTimes,
+              backgroundColor: '#fde047',
+              borderRadius: 6,
+              categoryPercentage: 0.78,
+              barPercentage: 0.9,
+              maxBarThickness: 52
+            },
+            {
+              label: 'Conference Time',
+              data: confTimes,
+              backgroundColor: '#34d399',
+              borderRadius: 6,
+              categoryPercentage: 0.78,
+              barPercentage: 0.9,
+              maxBarThickness: 52
+            }
+          ]
         },
         options: {
           responsive: true,
           maintainAspectRatio: false,
-          layout: { padding: { top: 25, bottom: 5, left: 5, right: 5 } },
+          layout: { padding: { top: 40, bottom: 4, left: 6, right: 6 } },
           plugins: {
-            legend: { display: false },
+            legend: {
+              position: 'top',
+              align: 'center',
+              labels: {
+                boxWidth: 12,
+                boxHeight: 12,
+                font: { family: 'Plus Jakarta Sans', weight: '800', size: 10.5 },
+                color: '#334155',
+                padding: 14
+              },
+              onClick: function(e, legendItem, legend) {
+                const index = legendItem.datasetIndex;
+                const ci = legend.chart;
+                if (ci.isDatasetVisible(index)) {
+                  ci.hide(index);
+                  legendItem.hidden = true;
+                } else {
+                  ci.show(index);
+                  legendItem.hidden = false;
+                }
+              }
+            },
             datalabels: {
               anchor: 'end',
               align: 'top',
-              font: { family: 'JetBrains Mono', weight: '800', size: 10.5 },
-              color: '#0f766e',
-              formatter: (v) => `${v} Agents`
+              offset: 4,
+              font: { family: 'JetBrains Mono', weight: '800', size: 11 },
+              color: '#0f172a',
+              formatter: (val) => val > 0 ? timeSecToHMS(val) : ''
             }
           },
           scales: {
-            x: { grid: { display: false }, ticks: { font: { family: 'Plus Jakarta Sans', size: 10, weight: '700' }, color: '#64748b' } },
-            y: { grid: { color: '#f1f5f9' }, ticks: { font: { family: 'JetBrains Mono', size: 9 }, color: '#64748b' } }
+            x: {
+              grid: { display: false },
+              ticks: { font: { family: 'Plus Jakarta Sans', size: 10.5, weight: '800' }, color: '#334155' }
+            },
+            y: {
+              min: 0,
+              grid: { color: '#f1f5f9' },
+              ticks: {
+                stepSize: 60,
+                callback: (val) => timeSecToHMS(val),
+                font: { family: 'JetBrains Mono', size: 10 },
+                color: '#64748b'
+              }
+            }
           }
         }
       });
     }
 
-    function uploadTenureReport(e) {
+    function timeStrToSeconds(str) {
+      if (!str || str === '-') return 0;
+      if (typeof str === 'number') return Math.round(str * 86400);
+      const parts = String(str).trim().split(':');
+      if (parts.length === 3) return (+parts[0])*3600 + (+parts[1])*60 + (+parts[2]);
+      if (parts.length === 2) return (+parts[0])*60 + (+parts[1]);
+      return 0;
+    }
+
+    function getTenureBucket(dohStr, refDateStr) {
+      if (!dohStr) return null;
+      const doh = new Date(dohStr);
+      const ref = new Date(refDateStr);
+      const diffDays = (ref - doh) / (1000 * 3600 * 24);
+      if (diffDays < 45) return "Trainee";
+
+      if (diffDays >= 365) return "1 Year above";
+      if (diffDays >= 180) return "6-12 Months";
+      return "0-6 Months";
+    }
+
+    function normalizeName(str) {
+      return String(str || '')
+        .toLowerCase()
+        .replace(/_[a-z0-9-]+/g, '')
+        .replace(/[^a-z0-9 ]/g, ' ')
+        .replace(/\s+/g, ' ')
+        .trim();
+    }
+
+    function findAgentInRoster(agentName) {
+      if (!agentName) return null;
+      let clean = normalizeName(agentName);
+      if (!clean) return null;
+
+      if (clean === "christian quimno" || clean === "christiann quimno") clean = "christian quimno";
+      if (clean === "hazel bongalos" || clean === "hazell bongalos") clean = "hazel bongalos";
+      if (clean === "roi lumato" || clean === "roi lumtao") clean = "roi lumato";
+
+      for (let r of dohRoster) {
+        let rClean = normalizeName(r.name);
+        if (rClean === "christian quimno" || rClean === "christiann quimno") rClean = "christian quimno";
+        if (rClean === "hazel bongalos" || rClean === "hazell bongalos") rClean = "hazel bongalos";
+        if (rClean === "roi lumato" || rClean === "roi lumtao") rClean = "roi lumato";
+        if (rClean === clean) return r;
+      }
+
+      const tokens = clean.split(' ').filter(Boolean);
+      const reversed = [...tokens].reverse().join(' ');
+      for (let r of dohRoster) {
+        if (normalizeName(r.name) === reversed) return r;
+      }
+
+      return null;
+    }
+
+    function handleUnifiedUpload(e) {
       const file = e.target.files[0];
       if (!file) return;
 
@@ -560,24 +1447,167 @@
       reader.onload = function(evt) {
         const data = new Uint8Array(evt.target.result);
         const wb = XLSX.read(data, { type: 'array' });
-        const sheet = wb.Sheets[wb.SheetNames[0]];
-        const json = XLSX.utils.sheet_to_json(sheet);
 
-        const parsedAgents = [];
-        json.forEach(row => {
-          const name = row['Agent Name'] || row['Name'] || row['Agent'] || 'Unknown Agent';
-          const tenure = Number(row['Tenure (Months)'] || row['TenureMonths'] || row['Tenure'] || 0);
-          parsedAgents.push({ name, tenureMonths: tenure });
+        const monthNameMap = {
+          'january': '01', 'jan': '01', 'february': '02', 'feb': '02', 'march': '03', 'mar': '03',
+          'april': '04', 'apr': '04', 'may': '05', 'june': '06', 'jun': '06', 'july': '07', 'jul': '07',
+          'august': '08', 'aug': '08', 'september': '09', 'sep': '09', 'october': '10', 'oct': '10',
+          'november': '11', 'nov': '11', 'december': '12', 'dec': '12'
+        };
+
+        const detectedMonthsData = {};
+        let defaultYear = "2026";
+        let detectedEndDay = 31;
+
+        const sheetName = wb.SheetNames[0];
+        const sheet = wb.Sheets[sheetName];
+        const json = XLSX.utils.sheet_to_json(sheet, { header: 1 });
+
+        for (let r = 0; r < Math.min(15, json.length); r++) {
+          const rowStr = JSON.stringify(json[r]);
+          if (rowStr.includes("Start:")) {
+            const yrMatch = rowStr.match(/20\d\d/);
+            if (yrMatch) defaultYear = yrMatch[0];
+          }
+          if (rowStr.includes("End:")) {
+            const endMatch = rowStr.match(/([A-Za-z]+)\s+(\d{1,2}),\s+(\d{4})/);
+            if (endMatch) detectedEndDay = parseInt(endMatch[2], 10);
+          }
+        }
+
+        let startRow = -1;
+        let colMap = { month: -1, name: 2, aht: 4, consult: 5, hold: 6, conf: 7, calls: 8 };
+
+        for (let r = 0; r < Math.min(25, json.length); r++) {
+          const row = json[r] || [];
+          row.forEach((cell, idx) => {
+            const str = String(cell).toUpperCase();
+            if (str === "MONTH") colMap.month = idx;
+            if (str.includes("AGENT NAME")) { colMap.name = idx; startRow = r + 1; }
+            if (str.includes("HANDLE TIME")) colMap.aht = idx;
+            if (str.includes("CONSULT")) colMap.consult = idx;
+            if (str.includes("HOLD")) colMap.hold = idx;
+            if (str.includes("CONFERENCE")) colMap.conf = idx;
+            if (str.includes("CALL ID")) colMap.calls = idx;
+          });
+          if (startRow !== -1) break;
+        }
+
+        if (startRow === -1) startRow = 13;
+
+        for (let r = startRow; r < json.length; r++) {
+          const row = json[r];
+          if (!row || !row[colMap.name] || !row[colMap.aht]) continue;
+
+          let rowMonthName = "September";
+          if (colMap.month !== -1 && row[colMap.month]) {
+            rowMonthName = String(row[colMap.month]).trim();
+          }
+
+          const mClean = rowMonthName.toLowerCase();
+          const monthNum = monthNameMap[mClean];
+          if (!monthNum) continue;
+
+          const monthKey = `${defaultYear}-${monthNum}`;
+          const formattedTitle = `${rowMonthName.charAt(0).toUpperCase() + rowMonthName.slice(1).toLowerCase()} - ${defaultYear}`;
+          const maxDayForMonth = (mClean.startsWith("sep") && detectedEndDay === 31) ? 9 : detectedEndDay;
+
+          const buildBuckets = () => ({
+            "1 Year above": { totalTime: 0, totalCalls: 0, consult: [], hold: [], conf: [] },
+            "6-12 Months": { totalTime: 0, totalCalls: 0, consult: [], hold: [], conf: [] },
+            "0-6 Months": { totalTime: 0, totalCalls: 0, consult: [], hold: [], conf: [] },
+            "Trainee": { totalTime: 0, totalCalls: 0, consult: [], hold: [], conf: [] }
+          });
+
+          if (!detectedMonthsData[monthKey]) {
+            detectedMonthsData[monthKey] = {
+              name: formattedTitle,
+              maxDay: maxDayForMonth,
+              buckets: buildBuckets(),
+              coverageBuckets: buildBuckets()
+            };
+          }
+
+          const agentName = String(row[colMap.name]).trim();
+          const rosterEntry = findAgentInRoster(agentName);
+          if (!rosterEntry || rosterEntry.role !== "Tech Support Rep") continue;
+
+          const bucket = getTenureBucket(rosterEntry.doh, monthKey + "-01");
+          if (!bucket) continue;
+
+          const ahtSec = timeStrToSeconds(row[colMap.aht]);
+          const consultSec = timeStrToSeconds(row[colMap.consult]);
+          const holdSec = timeStrToSeconds(row[colMap.hold]);
+          const confSec = timeStrToSeconds(row[colMap.conf]);
+          const calls = parseFloat(row[colMap.calls]) || 1;
+
+          if (ahtSec > 0) {
+            detectedMonthsData[monthKey].buckets[bucket].totalTime += ahtSec * calls;
+            detectedMonthsData[monthKey].buckets[bucket].totalCalls += calls;
+            detectedMonthsData[monthKey].buckets[bucket].consult.push(consultSec);
+            detectedMonthsData[monthKey].buckets[bucket].hold.push(holdSec);
+            detectedMonthsData[monthKey].buckets[bucket].conf.push(confSec);
+
+            detectedMonthsData[monthKey].coverageBuckets[bucket].totalTime += ahtSec * calls;
+            detectedMonthsData[monthKey].coverageBuckets[bucket].totalCalls += calls;
+            detectedMonthsData[monthKey].coverageBuckets[bucket].consult.push(consultSec);
+            detectedMonthsData[monthKey].coverageBuckets[bucket].hold.push(holdSec);
+            detectedMonthsData[monthKey].coverageBuckets[bucket].conf.push(confSec);
+          }
+        }
+
+        const calcAvg = (arr) => arr.length ? Math.round(arr.reduce((a, b) => a + b, 0) / arr.length) : null;
+
+        Object.keys(detectedMonthsData).forEach(mKey => {
+          const item = detectedMonthsData[mKey];
+          
+          const formatBucketGroup = (source) => {
+            const res = {};
+            ["1 Year above", "6-12 Months", "0-6 Months", "Trainee"].forEach(bKey => {
+              const bData = source[bKey];
+              const weightedAHT = bData.totalCalls > 0 ? Math.round(bData.totalTime / bData.totalCalls) : null;
+              const count = bData.totalCalls > 0 ? bData.totalCalls : 0;
+
+              if (weightedAHT !== null && weightedAHT > 0) {
+                res[bKey] = {
+                  aht: weightedAHT,
+                  consult: calcAvg(bData.consult),
+                  hold: calcAvg(bData.hold),
+                  conf: calcAvg(bData.conf),
+                  count: count
+                };
+              } else {
+                res[bKey] = null;
+              }
+            });
+            return res;
+          };
+
+          const fullSummary = formatBucketGroup(item.buckets);
+          const covSummary = formatBucketGroup(item.coverageBuckets);
+
+          monthlyDataStore[mKey] = {
+            name: item.name,
+            maxDay: item.maxDay,
+            ...fullSummary,
+            coverage: covSummary
+          };
         });
 
-        const monthKey = file.name.replace(/\.[^/.]+$/, "") || "Uploaded Roster";
-        tenureAppState.months[monthKey] = parsedAgents;
-        tenureAppState.currentMonth = monthKey;
-
-        document.getElementById("tenureStatus").innerText = `Synced (${file.name.slice(0, 10)}...)`;
         saveToCloud();
-        updateMonthDropdown();
-        renderTenureDashboard(monthKey);
+        document.getElementById("unifiedUploadStatus").innerText = `Loaded ${Object.keys(detectedMonthsData).length} Month(s)`;
+
+        updateDropdownOptions();
+        const availableMonths = Object.keys(detectedMonthsData).sort().reverse();
+        if (availableMonths.length >= 2) {
+          document.getElementById("targetMonthSelect").value = availableMonths[1];
+          document.getElementById("compMonthSelect").value = availableMonths[0];
+          document.getElementById("activeMonthSelect").value = availableMonths[0];
+        } else if (availableMonths.length === 1) {
+          document.getElementById("activeMonthSelect").value = availableMonths[0];
+        }
+
+        onMonthChange();
       };
       reader.readAsArrayBuffer(file);
     }
