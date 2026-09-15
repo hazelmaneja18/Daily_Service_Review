@@ -568,60 +568,43 @@
       { hour: "23:00", calls: 7, ahtSec: 1027, sla: 0.92 }
     ];
 
-    const rawDates = JSON.parse(localStorage.getItem('PETRO_ABANDON_DATES') || 'null') || {
-      "2026-08-20": {
-        intervals: defaultIntervals,
-        absences: 1,
-        drivers: [
-          { name: "POS Issue", count: 174 },
-          { name: "Pump Issue", count: 141 },
-          { name: "DCR Issue", count: 103 }
-        ]
-      }
-    };
-
     const appState = {
-      dates: rawDates,
-      casesByDate: JSON.parse(localStorage.getItem('PETRO_CASES_BY_DATE') || '{}'),
-      commentsByDate: JSON.parse(localStorage.getItem('PETRO_COMMENTS_BY_DATE') || '{}'),
-      currentDate: localStorage.getItem('PETRO_ACTIVE_DATE') || "2026-08-20"
+      dates: {
+        "2026-08-20": {
+          intervals: defaultIntervals,
+          absences: 1,
+          drivers: [
+            { name: "POS Issue", count: 174 },
+            { name: "Pump Issue", count: 141 },
+            { name: "DCR Issue", count: 103 }
+          ]
+        }
+      },
+      casesByDate: {},
+      commentsByDate: {},
+      currentDate: "2026-08-20"
     };
 
     function saveState() {
-      localStorage.setItem('PETRO_ABANDON_DATES', JSON.stringify(appState.dates));
-      localStorage.setItem('PETRO_CASES_BY_DATE', JSON.stringify(appState.casesByDate));
-      localStorage.setItem('PETRO_COMMENTS_BY_DATE', JSON.stringify(appState.commentsByDate));
-      localStorage.setItem('PETRO_ACTIVE_DATE', appState.currentDate);
-
       db.collection('petro_abandon').doc('review_data').set({
         dates: appState.dates,
         casesByDate: appState.casesByDate,
         commentsByDate: appState.commentsByDate,
         currentDate: appState.currentDate,
         updatedAt: new Date()
-      }).catch(err => console.error("Firebase sync error:", err));
+      }).then(() => {
+        console.log("Abandon data saved to Firebase.");
+      }).catch(err => console.error("Firebase save error:", err));
     }
 
     function loadFromCloud() {
       db.collection('petro_abandon').doc('review_data').get().then(doc => {
         if (doc.exists) {
           const remote = doc.data();
-          if (remote.dates) {
-            appState.dates = remote.dates;
-            localStorage.setItem('PETRO_ABANDON_DATES', JSON.stringify(appState.dates));
-          }
-          if (remote.casesByDate) {
-            appState.casesByDate = remote.casesByDate;
-            localStorage.setItem('PETRO_CASES_BY_DATE', JSON.stringify(appState.casesByDate));
-          }
-          if (remote.commentsByDate) {
-            appState.commentsByDate = remote.commentsByDate;
-            localStorage.setItem('PETRO_COMMENTS_BY_DATE', JSON.stringify(appState.commentsByDate));
-          }
-          if (remote.currentDate) {
-            appState.currentDate = remote.currentDate;
-            localStorage.setItem('PETRO_ACTIVE_DATE', appState.currentDate);
-          }
+          if (remote.dates) appState.dates = remote.dates;
+          if (remote.casesByDate) appState.casesByDate = remote.casesByDate;
+          if (remote.commentsByDate) appState.commentsByDate = remote.commentsByDate;
+          if (remote.currentDate) appState.currentDate = remote.currentDate;
 
           document.getElementById("dsrStatus").innerText = "Loaded (Cloud Sync)";
           document.getElementById("sfStatus").innerText = "Loaded (Cloud Sync)";
@@ -1043,10 +1026,6 @@
       updateDateDropdown();
       renderDashboard(appState.currentDate);
       loadFromCloud();
-      setTimeout(() => {
-        updateDateDropdown();
-        renderDashboard(appState.currentDate);
-      }, 800);
     });
   </script>
 </body>
