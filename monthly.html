@@ -650,6 +650,8 @@
       const comp1 = document.getElementById('monthComp1');
       const comp2 = document.getElementById('monthComp2');
 
+      if (!m1) return;
+
       const curM1 = m1.value, curC1 = comp1.value, curC2 = comp2.value;
       m1.innerHTML = ''; comp1.innerHTML = ''; comp2.innerHTML = '';
 
@@ -676,7 +678,8 @@
       let maxDayLimit = 31;
 
       if (activeMode === 'single') {
-        const mKey = document.getElementById('monthSelect1').value;
+        const mKey = document.getElementById('monthSelect1')?.value;
+        if (!mKey) return;
         monthKeys = [mKey];
         if (rawAHTRows) {
           const cleanName = mKey.split(' - ')[0].trim();
@@ -690,8 +693,9 @@
           });
         }
       } else {
-        const m1Key = document.getElementById('monthComp1').value;
-        const m2Key = document.getElementById('monthComp2').value;
+        const m1Key = document.getElementById('monthComp1')?.value;
+        const m2Key = document.getElementById('monthComp2')?.value;
+        if (!m1Key || !m2Key) return;
         monthKeys = [m1Key, m2Key];
         maxDayLimit = getPrimaryMonthMaxDay(m1Key);
       }
@@ -926,32 +930,39 @@
     }
 
     // Save to Firebase Firestore Cloud
-    function saveToCloud(collectionName, docId, dataObject) {
-      db.collection(collectionName).doc(docId).set({ data: dataObject, updatedAt: new Date() })
-        .then(() => console.log(`${collectionName} saved to Firebase Firestore.`))
-        .catch(err => console.error("Firebase save error:", err));
+    function saveToCloud() {
+      localStorage.setItem('PETRO_RAW_AHT_STORE', JSON.stringify(rawAHTRows));
+      localStorage.setItem('PETRO_RAW_DSR_STORE', JSON.stringify(rawDSRRows));
+
+      db.collection('petro_reports').doc('monthly_master').set({
+        rawAHTRows: rawAHTRows,
+        rawDSRRows: rawDSRRows,
+        updatedAt: new Date()
+      }).then(() => {
+        console.log("Monthly data saved to Firebase Firestore.");
+      }).catch(err => console.error("Firebase save error:", err));
     }
 
     // Load from Firebase Firestore Cloud + local cache fallback
     function loadFromCloud() {
-      db.collection('petro_reports').doc('aht_data').get().then(doc => {
+      db.collection('petro_reports').doc('monthly_master').get().then(doc => {
         if (doc.exists) {
-          rawAHTRows = doc.data().data;
-          localStorage.setItem('PETRO_RAW_AHT_STORE', JSON.stringify(rawAHTRows));
+          const remote = doc.data();
+          if (remote.rawAHTRows) {
+            rawAHTRows = remote.rawAHTRows;
+            localStorage.setItem('PETRO_RAW_AHT_STORE', JSON.stringify(rawAHTRows));
+          }
+          if (remote.rawDSRRows) {
+            rawDSRRows = remote.rawDSRRows;
+            localStorage.setItem('PETRO_RAW_DSR_STORE', JSON.stringify(rawDSRRows));
+          }
+
           document.getElementById('ahtUploadStatus').innerText = 'Loaded (Cloud Sync)';
+          document.getElementById('dsrUploadStatus').innerText = 'Loaded (Cloud Sync)';
           initMonthDropdowns();
           renderActiveView();
         }
-      }).catch(err => console.log("AHT Cloud fetch note:", err));
-
-      db.collection('petro_reports').doc('dsr_data').get().then(doc => {
-        if (doc.exists) {
-          rawDSRRows = doc.data().data;
-          localStorage.setItem('PETRO_RAW_DSR_STORE', JSON.stringify(rawDSRRows));
-          document.getElementById('dsrUploadStatus').innerText = 'Loaded (Cloud Sync)';
-          renderActiveView();
-        }
-      }).catch(err => console.log("DSR Cloud fetch note:", err));
+      }).catch(err => console.log("Cloud fetch note:", err));
     }
 
     function handleAHTUpload(e) {
@@ -966,8 +977,7 @@
         const json = XLSX.utils.sheet_to_json(rawSheet);
 
         rawAHTRows = json;
-        localStorage.setItem('PETRO_RAW_AHT_STORE', JSON.stringify(json));
-        saveToCloud('petro_reports', 'aht_data', json);
+        saveToCloud();
 
         document.getElementById('ahtUploadStatus').innerText = `Synced (${file.name.slice(0, 10)}...)`;
         initMonthDropdowns();
@@ -999,8 +1009,7 @@
         }
 
         rawDSRRows = parsedRows;
-        localStorage.setItem('PETRO_RAW_DSR_STORE', JSON.stringify(parsedRows));
-        saveToCloud('petro_reports', 'dsr_data', parsedRows);
+        saveToCloud();
 
         document.getElementById('dsrUploadStatus').innerText = `Synced (${file.name.slice(0, 10)}...)`;
         renderActiveView();
