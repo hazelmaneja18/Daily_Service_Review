@@ -1018,7 +1018,7 @@
     }
 
     window.addEventListener("DOMContentLoaded", () => {
-      // 1. Instant local cache load so data stays visible immediately on refresh
+      // 1. Instant local cache load so data stays visible immediately on refresh/tab switch
       rawAHTRows = JSON.parse(localStorage.getItem('PETRO_RAW_AHT_STORE') || 'null');
       rawDSRRows = JSON.parse(localStorage.getItem('PETRO_RAW_DSR_STORE') || 'null');
 
