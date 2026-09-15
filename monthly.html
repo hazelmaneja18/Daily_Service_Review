@@ -5,30 +5,26 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Monthly Performance Intelligence - PETRO MNL</title>
   <link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@600;700;800&family=Plus+Jakarta+Sans:wght@500;600;700;800;900&display=swap" rel="stylesheet">
-  <!-- Chart.js, Datalabels Plugin, and SheetJS -->
+  <!-- Chart.js, Datalabels Plugin, SheetJS, and Firebase SDKs -->
   <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.1/dist/chart.umd.min.js"></script>
   <script src="https://cdn.jsdelivr.net/npm/chartjs-plugin-datalabels@2.2.0/dist/chartjs-plugin-datalabels.min.js"></script>
   <script src="https://cdn.jsdelivr.net/npm/xlsx@0.18.5/dist/xlsx.full.min.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-app-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore-compat.js"></script>
   <style>
     :root {
       --bg: #f8fafc;
       --card-bg: #ffffff;
       --border-subtle: #e2e8f0;
-      --border-focus: #0f766e;
       --teal-primary: #0f766e;
       --teal-light: #14b8a6;
       --teal-glow: #f0fdfa;
-      --comp-color: #6366f1;
-      --comp-light: #e0e7ff;
       --text-main: #0f172a;
       --text-muted: #64748b;
-      --text-soft: #94a3b8;
       --emerald: #10b981;
       --emerald-bg: #ecfdf5;
       --rose: #f43f5e;
       --rose-bg: #fff1f2;
-      --amber: #f59e0b;
-      --amber-bg: #fffbeb;
       --shadow-sm: 0 1px 3px rgba(0,0,0,0.03), 0 1px 2px rgba(0,0,0,0.02);
       --shadow-card: 0 4px 12px -2px rgba(15, 23, 42, 0.04), 0 2px 6px -1px rgba(15, 23, 42, 0.02);
     }
@@ -212,7 +208,6 @@
       min-height: 0;
     }
 
-    /* Enhanced Card Container */
     .chart-card {
       background: var(--card-bg);
       border: 1px solid var(--border-subtle);
@@ -326,13 +321,11 @@
     </div>
 
     <div class="toolbar-right">
-      <!-- Single Month Selector -->
       <div id="singleSelectorGroup" style="display: flex; align-items: center; gap: 0.4rem;">
         <span class="label-tag">Month:</span>
         <select id="monthSelect1" class="dropdown" onchange="renderActiveView()"></select>
       </div>
 
-      <!-- Comparison Selectors -->
       <div id="compSelectorGroup" style="display: none; align-items: center; gap: 0.4rem;">
         <span class="label-tag">Compare:</span>
         <select id="monthComp1" class="dropdown" onchange="renderActiveView()"></select>
@@ -442,7 +435,7 @@
   <div class="modal-overlay" id="settingsModal" onclick="if(event.target === this) toggleModal(false)">
     <div class="modal-box">
       <div class="modal-header">
-        <div class="modal-title">⚙ Upload Operational Reports</div>
+        <div class="modal-title">⚙ Upload Operational Reports (Cloud Sync)</div>
         <button class="close-btn" onclick="toggleModal(false)">&times;</button>
       </div>
 
@@ -450,7 +443,7 @@
         <label>1. Monthly AHT & Survey Report (.xlsx)</label>
         <label for="ahtFileInput" class="upload-btn-label">
           <span>📊 Select AHT & Survey File</span>
-          <span class="upload-status" id="ahtUploadStatus">Ready</span>
+          <span class="upload-status" id="ahtUploadStatus">Checking Cloud...</span>
         </label>
         <input type="file" id="ahtFileInput" accept=".xlsx,.xls,.csv" onchange="handleAHTUpload(event)">
       </div>
@@ -459,18 +452,33 @@
         <label>2. DSR Abandon & SLA Report (.xlsx)</label>
         <label for="dsrFileInput" class="upload-btn-label">
           <span>📂 Select Abandon DSR File</span>
-          <span class="upload-status" id="dsrUploadStatus">Ready</span>
+          <span class="upload-status" id="dsrUploadStatus">Checking Cloud...</span>
         </label>
         <input type="file" id="dsrFileInput" accept=".xlsx,.xls,.csv" onchange="handleDSRUpload(event)">
       </div>
 
       <div style="font-size: 0.7rem; color: var(--text-muted); line-height: 1.45; margin-top: 0.2rem;">
-        Reports are persisted across tabs and sessions via parent window memory & localStorage.
+        Data is securely synchronized to your Firebase Firestore cloud database and persists permanently.
       </div>
     </div>
   </div>
 
   <script>
+    // TODO: Replace with your actual Firebase project configuration credentials
+    const firebaseConfig = {
+      apiKey: "YOUR_FIREBASE_API_KEY",
+      authDomain: "YOUR_PROJECT_ID.firebaseapp.com",
+      projectId: "YOUR_PROJECT_ID",
+      storageBucket: "YOUR_PROJECT_ID.appspot.com",
+      messagingSenderId: "YOUR_MESSAGING_SENDER_ID",
+      appId: "YOUR_APP_ID"
+    };
+
+    if (!firebase.apps.length) {
+      firebase.initializeApp(firebaseConfig);
+    }
+    const db = firebase.firestore();
+
     Chart.register(ChartDataLabels);
 
     const monthOrderMap = {
@@ -491,34 +499,8 @@
       return yNum * 100 + mNum;
     }
 
-    // Ultra-robust storage handler bridging localStorage AND parent window memory (bypassing file:/// restrictions)
-    function getPersistentStore(key) {
-      try {
-        if (window.parent && window.parent !== window && window.parent.sharedPetroStore && window.parent.sharedPetroStore[key]) {
-          return window.parent.sharedPetroStore[key];
-        }
-      } catch(e) {}
-      try {
-        const val = localStorage.getItem(key);
-        if (val) return JSON.parse(val);
-      } catch (e) {}
-      return null;
-    }
-
-    function setPersistentStore(key, data) {
-      try {
-        if (window.parent && window.parent !== window) {
-          if (!window.parent.sharedPetroStore) window.parent.sharedPetroStore = {};
-          window.parent.sharedPetroStore[key] = data;
-        }
-      } catch(e) {}
-      try {
-        localStorage.setItem(key, JSON.stringify(data));
-      } catch (e) {}
-    }
-
-    let rawAHTRows = getPersistentStore('PETRO_RAW_AHT_STORE');
-    let rawDSRRows = getPersistentStore('PETRO_RAW_DSR_STORE');
+    let rawAHTRows = null;
+    let rawDSRRows = null;
 
     let activeMode = 'single';
     let chartInstances = {};
@@ -934,6 +916,33 @@
       });
     }
 
+    // Save to Firebase Firestore Cloud
+    function saveToCloud(collectionName, docId, dataObject) {
+      db.collection(collectionName).doc(docId).set({ data: dataObject, updatedAt: new Date() })
+        .then(() => console.log(`${collectionName} saved to Firebase Firestore.`))
+        .catch(err => console.error("Firebase save error:", err));
+    }
+
+    // Load from Firebase Firestore Cloud on startup
+    function loadFromCloud() {
+      db.collection('petro_reports').doc('aht_data').get().then(doc => {
+        if (doc.exists) {
+          rawAHTRows = doc.data().data;
+          document.getElementById('ahtUploadStatus').innerText = 'Loaded (Cloud Sync)';
+          initMonthDropdowns();
+          renderActiveView();
+        }
+      }).catch(err => console.log("AHT Cloud fetch note:", err));
+
+      db.collection('petro_reports').doc('dsr_data').get().then(doc => {
+        if (doc.exists) {
+          rawDSRRows = doc.data().data;
+          document.getElementById('dsrUploadStatus').innerText = 'Loaded (Cloud Sync)';
+          renderActiveView();
+        }
+      }).catch(err => console.log("DSR Cloud fetch note:", err));
+    }
+
     function handleAHTUpload(e) {
       const file = e.target.files[0];
       if (!file) return;
@@ -946,9 +955,9 @@
         const json = XLSX.utils.sheet_to_json(rawSheet);
 
         rawAHTRows = json;
-        setPersistentStore('PETRO_RAW_AHT_STORE', json);
+        saveToCloud('petro_reports', 'aht_data', json);
 
-        document.getElementById('ahtUploadStatus').innerText = `Loaded (${file.name.slice(0, 12)}...)`;
+        document.getElementById('ahtUploadStatus').innerText = `Synced (${file.name.slice(0, 10)}...)`;
         initMonthDropdowns();
         renderActiveView();
       };
@@ -978,23 +987,18 @@
         }
 
         rawDSRRows = parsedRows;
-        setPersistentStore('PETRO_RAW_DSR_STORE', parsedRows);
+        saveToCloud('petro_reports', 'dsr_data', parsedRows);
 
-        document.getElementById('dsrUploadStatus').innerText = `Loaded (${file.name.slice(0, 12)}...)`;
+        document.getElementById('dsrUploadStatus').innerText = `Synced (${file.name.slice(0, 10)}...)`;
         renderActiveView();
       };
       reader.readAsArrayBuffer(file);
     }
 
     window.addEventListener("DOMContentLoaded", () => {
-      if (rawAHTRows && rawAHTRows.length > 0) {
-        document.getElementById('ahtUploadStatus').innerText = `Loaded (Saved)`;
-      }
-      if (rawDSRRows && rawDSRRows.length > 0) {
-        document.getElementById('dsrUploadStatus').innerText = `Loaded (Saved)`;
-      }
       initMonthDropdowns();
       renderActiveView();
+      loadFromCloud(); // Automatically fetch latest synced records from Firebase
     });
   </script>
 </body>
