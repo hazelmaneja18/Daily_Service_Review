@@ -2,229 +2,1033 @@
 <html lang="en">
 <head>
   <meta charset="UTF-8">
-  <title>Abandon Section</title>
-  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Abandon & Service Level Review - PETRO MNL</title>
+  <link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@600;700;800&family=Plus+Jakarta+Sans:wght@500;600;700;800;900&display=swap" rel="stylesheet">
+  <!-- Chart.js, Datalabels Plugin, & SheetJS -->
+  <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.1/dist/chart.umd.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/chartjs-plugin-datalabels@2.2.0/dist/chartjs-plugin-datalabels.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/xlsx@0.18.5/dist/xlsx.full.min.js"></script>
   <style>
     :root {
-      --bg: #0b0f19;
-      --card: #131c2e;
-      --border: #1e293b;
-      --text: #f9fafb;
-      --muted: #94a3b8;
+      --bg: #f8fafc;
+      --card: #ffffff;
+      --border: #e2e8f0;
+      --teal-dark: #0f766e;
+      --teal-primary: #0d9488;
+      --teal-subtle: #f0fdfa;
+      --teal-border: #ccfbf1;
+      --text-main: #0f172a;
+      --text-muted: #64748b;
+      --red: #f43f5e;
+      --red-bg: #fff1f2;
       --green: #10b981;
+      --green-bg: #ecfdf5;
       --yellow: #f59e0b;
-      --red: #ef4444;
+      --yellow-bg: #fffbeb;
+      --shadow: 0 1px 3px rgba(0,0,0,0.04), 0 1px 2px rgba(0,0,0,0.02);
     }
-    * { box-sizing: border-box; margin: 0; padding: 0; font-family: 'Inter', sans-serif; }
-    body { background-color: var(--bg); color: var(--text); padding: 1.5rem; }
 
-    /* Top Grid / KPI Cards */
-    .kpi-grid {
+    * { box-sizing: border-box; margin: 0; padding: 0; font-family: 'Plus Jakarta Sans', sans-serif; }
+    html, body {
+      background-color: var(--bg);
+      color: var(--text-main);
+      min-height: 100vh;
+      width: 100%;
+      overflow-x: hidden;
+    }
+    body {
+      display: flex;
+      flex-direction: column;
+      padding: clamp(0.75rem, 1.5vw, 1.25rem);
+      gap: 0.75rem;
+    }
+
+    /* Top Action Bar */
+    .top-toolbar {
+      background: var(--card);
+      border: 1px solid var(--border);
+      border-radius: 10px;
+      padding: 0.45rem 0.9rem;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      box-shadow: var(--shadow);
+    }
+    .brand-group { display: flex; align-items: center; gap: 0.5rem; }
+    .brand-dot {
+      width: 9px; height: 9px; border-radius: 50%;
+      background: var(--teal-dark);
+      box-shadow: 0 0 0 3px rgba(15, 118, 110, 0.12);
+    }
+    .brand-title {
+      font-size: 0.92rem;
+      font-weight: 800;
+      color: var(--text-main);
+      letter-spacing: -0.01em;
+    }
+
+    .toolbar-right { display: flex; align-items: center; gap: 0.5rem; }
+    .label-tag { font-size: 0.68rem; font-weight: 800; color: var(--text-muted); text-transform: uppercase; }
+    
+    .dropdown {
+      background: #f1f5f9 url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='10' height='10' fill='%2364748b' viewBox='0 0 16 16'%3E%3Cpath d='M7.247 11.14 2.451 5.658C1.885 5.013 2.345 4 3.204 4h9.592a1 1 0 0 1 .753 1.659l-4.796 5.48a1 1 0 0 1-1.506 0z'/%3E%3C/svg%3E") no-repeat calc(100% - 8px) center;
+      border: 1px solid var(--border);
+      padding: 0.28rem 1.6rem 0.28rem 0.6rem;
+      border-radius: 6px;
+      font-size: 0.74rem;
+      font-weight: 700;
+      color: var(--text-main);
+      font-family: 'JetBrains Mono', monospace;
+      outline: none;
+      appearance: none;
+      cursor: pointer;
+      min-width: 145px;
+    }
+    .dropdown:focus { border-color: var(--teal-dark); }
+
+    .gear-btn {
+      width: 30px; height: 30px;
+      border-radius: 6px;
+      background: #f1f5f9;
+      border: 1px solid var(--border);
+      color: var(--text-muted);
+      display: flex; align-items: center; justify-content: center;
+      cursor: pointer;
+      font-size: 0.95rem;
+      transition: all 0.15s ease;
+    }
+    .gear-btn:hover {
+      background: var(--teal-subtle);
+      border-color: var(--teal-border);
+      color: var(--teal-dark);
+    }
+
+    /* Centered KPI Cards */
+    .kpi-row {
       display: grid;
-      grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
-      gap: 1.25rem;
-      margin-bottom: 1.5rem;
+      grid-template-columns: repeat(5, minmax(0, 1fr));
+      gap: 0.65rem;
+      width: 100%;
     }
     .kpi-card {
       background: var(--card);
       border: 1px solid var(--border);
       border-radius: 10px;
-      padding: 1.25rem;
+      padding: 0.65rem 0.75rem;
+      box-shadow: var(--shadow);
       display: flex;
       flex-direction: column;
-      gap: 0.4rem;
-    }
-    .kpi-title { font-size: 0.75rem; text-transform: uppercase; color: var(--muted); font-weight: 700; letter-spacing: 0.05em; }
-    .kpi-value { font-size: 1.8rem; font-weight: 800; }
-    .kpi-sub { font-size: 0.75rem; color: var(--muted); }
-
-    /* Split Section: Hourly Table & Insights */
-    .dashboard-split {
-      display: grid;
-      grid-template-columns: 2fr 1fr;
-      gap: 1.25rem;
-    }
-    .panel {
-      background: var(--card);
-      border: 1px solid var(--border);
-      border-radius: 10px;
-      padding: 1.25rem;
-    }
-    .panel-header {
-      font-size: 1rem;
-      font-weight: 700;
-      margin-bottom: 1rem;
-      display: flex;
-      justify-content: space-between;
       align-items: center;
+      text-align: center;
+      justify-content: space-between;
+      min-height: 98px;
+    }
+    .kpi-header {
+      font-size: 0.72rem;
+      font-weight: 900;
+      color: #0f172a;
+      letter-spacing: 0.05em;
+      text-transform: uppercase;
+      width: 100%;
+      text-align: center;
+    }
+    .kpi-core {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 0.45rem;
+      margin: 0.12rem 0;
+      width: 100%;
+    }
+    .kpi-icon-wrap {
+      width: 28px; height: 28px;
+      border-radius: 6px;
+      background: var(--teal-subtle);
+      display: flex; align-items: center; justify-content: center;
+      flex-shrink: 0;
+    }
+    .kpi-icon-wrap svg { width: 15px; height: 15px; fill: var(--teal-dark); }
+    .kpi-val {
+      font-size: clamp(1.25rem, 1.8vw, 1.65rem);
+      font-weight: 800;
+      font-family: 'JetBrains Mono', monospace;
+      color: var(--teal-dark);
+      line-height: 1;
+      letter-spacing: -0.03em;
     }
 
-    /* Table Styles */
-    table { width: 100%; border-collapse: collapse; font-size: 0.82rem; }
-    th { text-align: left; padding: 0.6rem 0.75rem; color: var(--muted); border-bottom: 1px solid var(--border); font-weight: 600; }
-    td { padding: 0.65rem 0.75rem; border-bottom: 1px solid #1e293b55; }
-    tr:hover td { background-color: #1a2438; }
+    .kpi-subtext {
+      font-size: 0.65rem;
+      color: var(--text-muted);
+      font-weight: 600;
+      width: 100%;
+      text-align: center;
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+      border-top: 1px solid #f1f5f9;
+      padding-top: 0.35rem;
+    }
 
-    /* Badges & Status */
-    .badge { padding: 0.2rem 0.5rem; border-radius: 4px; font-weight: 700; font-size: 0.75rem; }
-    .badge-red { background: rgba(239, 68, 68, 0.15); color: var(--red); border: 1px solid rgba(239, 68, 68, 0.3); }
-    .badge-green { background: rgba(16, 185, 129, 0.15); color: var(--green); border: 1px solid rgba(16, 185, 129, 0.3); }
-
-    /* Drivers list */
+    /* Top Call Drivers */
+    .drivers-stack {
+      width: 100%;
+      display: flex;
+      flex-direction: column;
+      gap: 0.12rem;
+      margin: 0.08rem 0;
+    }
     .driver-row {
       display: flex;
       justify-content: space-between;
-      padding: 0.75rem 0;
-      border-bottom: 1px solid var(--border);
+      align-items: center;
+      font-size: 0.7rem;
+      font-weight: 600;
+      color: #0f172a;
+      padding: 0 0.45rem;
     }
-    .driver-name { font-weight: 600; color: #e2e8f0; }
-    .driver-count { background: #1e293b; padding: 0.2rem 0.6rem; border-radius: 6px; font-weight: 700; }
+    .driver-num {
+      font-family: 'JetBrains Mono', monospace;
+      color: #0f172a;
+      font-weight: 700;
+    }
+
+    .absence-field {
+      width: 48px;
+      border: 1px dashed var(--teal-border);
+      background: var(--teal-subtle);
+      color: var(--teal-dark);
+      border-radius: 6px;
+      font-size: 1.35rem;
+      font-weight: 800;
+      font-family: 'JetBrains Mono', monospace;
+      text-align: center;
+      outline: none;
+      padding: 0.08rem;
+    }
+    .absence-field:focus { border-color: var(--teal-dark); background: #ffffff; }
+
+    /* Dashboard Layout */
+    .dashboard-layout {
+      display: grid;
+      grid-template-columns: minmax(0, 1fr) 245px;
+      gap: 0.75rem;
+      flex: 1;
+      align-items: stretch;
+      min-height: 0;
+    }
+
+    .chart-panel {
+      background: var(--card);
+      border: 1px solid var(--border);
+      border-radius: 10px;
+      padding: 0.85rem 1rem 0.5rem;
+      box-shadow: var(--shadow);
+      display: flex;
+      flex-direction: column;
+      min-height: 0;
+    }
+    .chart-heading {
+      font-size: 0.88rem;
+      font-weight: 800;
+      color: var(--text-main);
+      margin-bottom: 0.35rem;
+    }
+    .chart-viewport {
+      position: relative;
+      width: 100%;
+      flex: 1;
+      min-height: clamp(380px, 52vh, 580px);
+    }
+
+    .summary-panel {
+      background: var(--card);
+      border: 1px solid var(--border);
+      border-radius: 10px;
+      padding: 0.75rem;
+      box-shadow: var(--shadow);
+      display: flex;
+      flex-direction: column;
+      justify-content: space-between;
+      gap: 0.5rem;
+    }
+    .summary-title {
+      font-size: 0.72rem;
+      font-weight: 800;
+      color: var(--text-main);
+      padding-bottom: 0.35rem;
+      border-bottom: 1px solid var(--border);
+      text-transform: uppercase;
+      letter-spacing: 0.04em;
+    }
+    .insight-card {
+      padding: 0.45rem 0.6rem;
+      border-radius: 6px;
+      display: flex;
+      flex-direction: column;
+      gap: 0.05rem;
+    }
+    .card-green { background: var(--green-bg); border-left: 3px solid var(--green); }
+    .card-red { background: var(--red-bg); border-left: 3px solid var(--red); }
+    .card-yellow { background: var(--yellow-bg); border-left: 3px solid var(--yellow); }
+
+    .insight-label { font-size: 0.6rem; font-weight: 800; text-transform: uppercase; color: var(--text-muted); }
+    .insight-primary { font-size: 0.95rem; font-weight: 800; font-family: 'JetBrains Mono', monospace; }
+    .insight-sub { font-size: 0.65rem; color: var(--text-muted); }
+
+    .analysis-card {
+      background: #f8fafc;
+      border: 1px solid var(--border);
+      border-radius: 6px;
+      padding: 0.55rem 0.65rem;
+      display: flex;
+      flex-direction: column;
+      gap: 0.35rem;
+    }
+    .analysis-hours {
+      font-size: 0.72rem;
+      font-weight: 700;
+      display: flex;
+      flex-direction: column;
+      gap: 0.35rem;
+      line-height: 1.45;
+      font-family: 'JetBrains Mono', monospace;
+    }
+    .hr-crit { color: #dc2626; }
+    .hr-peak { color: #16a34a; }
+
+    .comment-panel {
+      background: var(--card);
+      border: 1px solid var(--border);
+      border-radius: 10px;
+      padding: 0.6rem 0.85rem;
+      box-shadow: var(--shadow);
+    }
+    .comment-title {
+      font-size: 0.65rem;
+      font-weight: 800;
+      color: var(--teal-dark);
+      text-transform: uppercase;
+      letter-spacing: 0.04em;
+      margin-bottom: 0.25rem;
+    }
+    .comment-textarea {
+      width: 100%;
+      min-height: 42px;
+      max-height: 80px;
+      border: 1px solid var(--border);
+      border-radius: 6px;
+      padding: 0.4rem 0.6rem;
+      font-size: 0.76rem;
+      color: var(--text-main);
+      background: #f8fafc;
+      resize: vertical;
+      outline: none;
+    }
+    .comment-textarea:focus { border-color: var(--teal-dark); background: #ffffff; }
+
+    /* Settings Modal */
+    .modal-overlay {
+      position: fixed;
+      top: 0; left: 0; width: 100%; height: 100%;
+      background: rgba(15, 23, 42, 0.45);
+      backdrop-filter: blur(2px);
+      display: none;
+      align-items: center;
+      justify-content: center;
+      z-index: 1000;
+    }
+    .modal-box {
+      background: var(--card);
+      border: 1px solid var(--border);
+      border-radius: 12px;
+      width: min(92vw, 460px);
+      padding: 1.25rem;
+      box-shadow: 0 10px 25px -5px rgba(0, 0, 0, 0.1);
+    }
+    .modal-title-row {
+      display: flex; justify-content: space-between; align-items: center;
+      margin-bottom: 1rem; padding-bottom: 0.5rem; border-bottom: 1px solid var(--border);
+    }
+    .modal-title { font-size: 0.92rem; font-weight: 800; color: var(--text-main); }
+    .close-btn { background: none; border: none; font-size: 1.2rem; color: var(--text-muted); cursor: pointer; }
+    .upload-field { margin-bottom: 0.9rem; display: flex; flex-direction: column; gap: 0.25rem; }
+    .upload-field label { font-size: 0.7rem; font-weight: 700; color: var(--text-muted); text-transform: uppercase; }
+    .file-select-btn {
+      border: 1px dashed var(--teal-border);
+      background: var(--teal-subtle);
+      color: var(--teal-dark);
+      padding: 0.55rem 0.75rem;
+      border-radius: 6px;
+      font-size: 0.76rem;
+      font-weight: 700;
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+    }
+    .upload-status { font-size: 0.68rem; color: var(--green); font-weight: 600; }
+    input[type="file"] { display: none; }
   </style>
 </head>
 <body>
 
-  <!-- KPI SUMMARY (BASELINE DATA) -->
-  <div class="kpi-grid">
-    <div class="kpi-card">
-      <span class="kpi-title">Total Received Calls</span>
-      <span class="kpi-value" style="color: #60a5fa;">393</span>
-      <span class="kpi-sub">Reference Date: Aug 24, 2026</span>
+  <!-- Top Action Bar -->
+  <div class="top-toolbar">
+    <div class="brand-group">
+      <div class="brand-dot"></div>
+      <div class="brand-title">Abandon & Service Level Review</div>
     </div>
-    <div class="kpi-card">
-      <span class="kpi-title">Service Level (SLA)</span>
-      <span class="kpi-value" style="color: var(--red);">35.9%</span>
-      <span class="kpi-sub">Target Threshold: ≥ 85.0%</span>
-    </div>
-    <div class="kpi-card">
-      <span class="kpi-title">Average Handle Time</span>
-      <span class="kpi-value">00:18:56</span>
-      <span class="kpi-sub">Sumproduct Weight: ~1,135s</span>
-    </div>
-    <div class="kpi-card">
-      <span class="kpi-title">Total Abandon Calls</span>
-      <span class="kpi-value" style="color: #fbbf24;">84</span>
-      <span class="kpi-sub">Peak Surge: 02:00 & 06:00 intervals</span>
+
+    <div class="toolbar-right">
+      <span class="label-tag">Date:</span>
+      <select id="dateDropdown" class="dropdown" onchange="onDateSelectionChanged()"></select>
+      <button class="gear-btn" title="Upload Settings" onclick="toggleSettingsModal(true)">⚙</button>
     </div>
   </div>
 
-  <!-- DETAILS SPLIT -->
-  <div class="dashboard-split">
-    <!-- Hourly Telemetry Breakdown -->
-    <div class="panel">
-      <div class="panel-header">
-        <span>Hourly Interval Performance</span>
-        <span style="font-size: 0.75rem; color: var(--muted); font-weight: normal;">Interval: 00:00 - 07:00</span>
+  <!-- Centered KPI Cards -->
+  <div class="kpi-row">
+    <div class="kpi-card">
+      <div class="kpi-header">TOTAL RECEIVED CALLS</div>
+      <div class="kpi-core">
+        <div class="kpi-icon-wrap">
+          <svg viewBox="0 0 24 24"><path d="M20.01 15.38c-1.23 0-2.42-.2-3.53-.56a.977.977 0 0 0-1.01.24l-1.57 1.97c-2.83-1.44-5.15-3.75-6.59-6.59l1.97-1.57c.28-.28.37-.68.25-1.02A11.36 11.36 0 0 1 8.5 4.31c0-.55-.45-1-1-1H4.11c-.55 0-1 .45-1 1 0 9.39 7.61 17 17 17 .55 0 1-.45 1-1v-3.39c0-.54-.45-.99-1-.99z"/></svg>
+        </div>
+        <div class="kpi-val" id="dispCalls">1,415</div>
       </div>
-      <table>
-        <thead>
-          <tr>
-            <th>Hour</th>
-            <th>Staff Count</th>
-            <th>Received Calls</th>
-            <th>AHT</th>
-            <th>SLA %</th>
-            <th>Abandon Calls</th>
-          </tr>
-        </thead>
-        <tbody>
-          <tr>
-            <td>00:00</td>
-            <td>6</td>
-            <td>11</td>
-            <td>00:20:59</td>
-            <td><span class="badge badge-red">0.0%</span></td>
-            <td><strong>5</strong></td>
-          </tr>
-          <tr>
-            <td>01:00</td>
-            <td>1</td>
-            <td>6</td>
-            <td>00:21:00</td>
-            <td><span class="badge badge-red">0.0%</span></td>
-            <td><strong>5</strong></td>
-          </tr>
-          <tr>
-            <td>02:00</td>
-            <td>19</td>
-            <td>47</td>
-            <td>00:19:29</td>
-            <td><span class="badge badge-red">2.1%</span></td>
-            <td><strong style="color: var(--red);">28</strong></td>
-          </tr>
-          <tr>
-            <td>03:00</td>
-            <td>45</td>
-            <td>51</td>
-            <td>00:19:51</td>
-            <td><span class="badge badge-red">14.0%</span></td>
-            <td><strong>6</strong></td>
-          </tr>
-          <tr>
-            <td>04:00</td>
-            <td>50</td>
-            <td>53</td>
-            <td>00:18:57</td>
-            <td><span class="badge badge-green">90.4%</span></td>
-            <td><strong>1</strong></td>
-          </tr>
-          <tr>
-            <td>05:00</td>
-            <td>78</td>
-            <td>80</td>
-            <td>00:18:28</td>
-            <td><span class="badge badge-green">86.1%</span></td>
-            <td><strong>1</strong></td>
-          </tr>
-          <tr>
-            <td>06:00</td>
-            <td>92</td>
-            <td>111</td>
-            <td>00:20:53</td>
-            <td><span class="badge badge-red">9.9%</span></td>
-            <td><strong style="color: var(--red);">19</strong></td>
-          </tr>
-          <tr>
-            <td>07:00</td>
-            <td>20</td>
-            <td>34</td>
-            <td>00:10:23</td>
-            <td><span class="badge badge-red">14.7%</span></td>
-            <td><strong>14</strong></td>
-          </tr>
-        </tbody>
-      </table>
+      <div class="kpi-subtext">Cumulative shift volume</div>
     </div>
 
-    <!-- Call Drivers & Staffing Correlation -->
-    <div class="panel">
-      <div class="panel-header">
-        <span>Top Call Drivers</span>
-        <span style="font-size: 0.75rem; color: var(--muted);">Recorded Incidents</span>
+    <div class="kpi-card">
+      <div class="kpi-header">SERVICE LEVEL</div>
+      <div class="kpi-core">
+        <div class="kpi-icon-wrap">
+          <svg viewBox="0 0 24 24"><path d="M2 20h20v2H2zm2-8h3v7H4zm6-5h3v12h-3zm6-4h3v16h-3z"/></svg>
+        </div>
+        <div class="kpi-val" id="dispSLA">3%</div>
       </div>
-      <div>
-        <div class="driver-row">
-          <span class="driver-name">Pump Issue</span>
-          <span class="driver-count">40</span>
+      <div class="kpi-subtext">Target: &ge; 80% threshold</div>
+    </div>
+
+    <div class="kpi-card">
+      <div class="kpi-header">AVERAGE HANDLE TIME</div>
+      <div class="kpi-core">
+        <div class="kpi-icon-wrap">
+          <svg viewBox="0 0 24 24"><path d="M12 1a9 9 0 0 0-9 9v7c0 1.66 1.34 3 3 3h3v-8H5v-2c0-3.87 3.13-7 7-7s7 3.13 7 7v2h-4v8h3c1.66 0 3-1.34 3-3v-7a9 9 0 0 0-9-9z"/></svg>
         </div>
-        <div class="driver-row">
-          <span class="driver-name">POS Issue</span>
-          <span class="driver-count">40</span>
-        </div>
-        <div class="driver-row">
-          <span class="driver-name">DCR Issue</span>
-          <span class="driver-count">27</span>
-        </div>
+        <div class="kpi-val" id="dispAHT">0:20:34</div>
+      </div>
+      <div class="kpi-subtext">Weighted duration avg</div>
+    </div>
+
+    <div class="kpi-card">
+      <div class="kpi-header">CALL DRIVERS</div>
+      <div class="drivers-stack" id="dispDrivers">
+        <div class="driver-row"><span>POS Issue</span><span class="driver-num">174</span></div>
+        <div class="driver-row"><span>Pump Issue</span><span class="driver-num">141</span></div>
+        <div class="driver-row"><span>DCR Issue</span><span class="driver-num">103</span></div>
+      </div>
+      <div class="kpi-subtext">Top incident categories</div>
+    </div>
+
+    <div class="kpi-card">
+      <div class="kpi-header">ABSENCES</div>
+      <div class="kpi-core" style="justify-content: center;">
+        <input type="number" id="absenceInput" class="absence-field" value="1" min="0" onchange="onAbsenceChanged(this.value)">
+      </div>
+      <div class="kpi-subtext">Unplanned exceptions</div>
+    </div>
+  </div>
+
+  <!-- Dashboard Split -->
+  <div class="dashboard-layout">
+    <div class="chart-panel">
+      <div class="chart-heading">Service Level % by Hourly Interval</div>
+      <div class="chart-viewport">
+        <canvas id="slaBarChart"></canvas>
+      </div>
+    </div>
+
+    <div class="summary-panel">
+      <div class="summary-title">Summary</div>
+
+      <div class="insight-card card-green">
+        <div class="insight-label">Peak Performance</div>
+        <div class="insight-primary" id="sumPeak">100%</div>
+        <div class="insight-sub" id="sumPeakHr">at 22:00</div>
       </div>
 
-      <div class="panel-header" style="margin-top: 2rem;">
-        <span>Staffing Outages</span>
+      <div class="insight-card card-red">
+        <div class="insight-label">Critical Drop</div>
+        <div class="insight-primary" id="sumLow">0%</div>
+        <div class="insight-sub" id="sumLowHr">Lowest point</div>
       </div>
-      <div class="driver-row">
-        <span class="driver-name">Unplanned Absences</span>
-        <span class="driver-count" style="color: #f87171;">1</span>
+
+      <div class="insight-card card-yellow">
+        <div class="insight-label">Recovery Point</div>
+        <div class="insight-primary" id="sumRecover">04:00 (69%)</div>
+        <div class="insight-sub" id="sumRecoverSub">Turnaround point</div>
+      </div>
+
+      <div class="analysis-card">
+        <div class="insight-label" style="margin-bottom: 2px;">Hours Overview</div>
+        <div class="analysis-hours">
+          <span class="hr-crit" id="guideCrit">Critical : 00:00 - 03:00, 08:00 - 21:00</span>
+          <span class="hr-peak" id="guidePeak">Peak : 04:00 - 07:00, 22:00 - 23:00</span>
+        </div>
       </div>
     </div>
   </div>
 
+  <!-- Compact Comment Section -->
+  <div class="comment-panel">
+    <div class="comment-title">Shift Commentary & Operational Remarks</div>
+    <textarea id="shiftComment" class="comment-textarea" placeholder="Add brief notes regarding spikes, outages, or staffing exceptions for this day..." oninput="saveComment(this.value)"></textarea>
+  </div>
+
+  <!-- Settings Modal -->
+  <div class="modal-overlay" id="settingsModal" onclick="if(event.target === this) toggleSettingsModal(false)">
+    <div class="modal-box">
+      <div class="modal-title-row">
+        <div class="modal-title">⚙ Upload Telemetry & Case Reports</div>
+        <button class="close-btn" onclick="toggleSettingsModal(false)">&times;</button>
+      </div>
+
+      <div class="upload-field">
+        <label>1. Abandon DSR Sheet (.xlsx)</label>
+        <label for="dsrInputModal" class="file-select-btn">
+          <span>📊 Select Abandon DSR File</span>
+          <span class="upload-status" id="dsrStatus">Saved in Browser</span>
+        </label>
+        <input type="file" id="dsrInputModal" accept=".xlsx,.xls,.csv" onchange="uploadDSR(event)">
+      </div>
+
+      <div class="upload-field">
+        <label>2. Salesforce Case Reports (.xlsx)</label>
+        <label for="sfInputModal" class="file-select-btn">
+          <span>📂 Select Cases Report File</span>
+          <span class="upload-status" id="sfStatus">Saved in Browser</span>
+        </label>
+        <input type="file" id="sfInputModal" accept=".xlsx,.xls,.csv" onchange="uploadSF(event)">
+      </div>
+
+      <div style="font-size: 0.7rem; color: var(--text-muted); line-height: 1.4; margin-top: 0.5rem;">
+        Uploaded file data is saved in your browser and automatically reconnects every time you switch tabs or refresh.
+      </div>
+    </div>
+  </div>
+
+  <script>
+    Chart.register(ChartDataLabels);
+
+    const defaultIntervals = [
+      { hour: "00:00", calls: 8, ahtSec: 1228, sla: 0.10 },
+      { hour: "01:00", calls: 6, ahtSec: 615,  sla: 0.50 },
+      { hour: "02:00", calls: 20, ahtSec: 1015, sla: 0.37 },
+      { hour: "03:00", calls: 73, ahtSec: 252,  sla: 0.44 },
+      { hour: "04:00", calls: 61, ahtSec: 311,  sla: 0.89 },
+      { hour: "05:00", calls: 103, ahtSec: 310,  sla: 0.97 },
+      { hour: "06:00", calls: 155, ahtSec: 774,  sla: 0.75 },
+      { hour: "07:00", calls: 177, ahtSec: 1088, sla: 0.67 },
+      { hour: "08:00", calls: 136, ahtSec: 1370, sla: 0.07 },
+      { hour: "09:00", calls: 159, ahtSec: 1242, sla: 0.10 },
+      { hour: "10:00", calls: 146, ahtSec: 1388, sla: 0.13 },
+      { hour: "11:00", calls: 144, ahtSec: 1352, sla: 0.10 },
+      { hour: "12:00", calls: 111, ahtSec: 1314, sla: 0.03 },
+      { hour: "13:00", calls: 99, ahtSec: 1449, sla: 0.09 },
+      { hour: "14:00", calls: 65, ahtSec: 1275, sla: 0.01 },
+      { hour: "15:00", calls: 77, ahtSec: 1479, sla: 0.03 },
+      { hour: "16:00", calls: 58, ahtSec: 1169, sla: 0.02 },
+      { hour: "17:00", calls: 41, ahtSec: 1504, sla: 0.00 },
+      { hour: "18:00", calls: 36, ahtSec: 1234, sla: 0.00 },
+      { hour: "19:00", calls: 25, ahtSec: 855,  sla: 0.00 },
+      { hour: "20:00", calls: 16, ahtSec: 1001, sla: 0.00 },
+      { hour: "21:00", calls: 6, ahtSec: 838,  sla: 0.29 },
+      { hour: "22:00", calls: 10, ahtSec: 784,  sla: 1.00 },
+      { hour: "23:00", calls: 7, ahtSec: 1027, sla: 0.92 }
+    ];
+
+    // Load Persistent Storage and sanitize any duplicate intervals
+    const rawDates = JSON.parse(localStorage.getItem('PETRO_ABANDON_DATES') || 'null') || {
+      "2026-08-20": {
+        intervals: defaultIntervals,
+        absences: 1,
+        drivers: [
+          { name: "POS Issue", count: 174 },
+          { name: "Pump Issue", count: 141 },
+          { name: "DCR Issue", count: 103 }
+        ]
+      }
+    };
+
+    // Auto-deduplicate any existing stored intervals to exactly 24 unique hours
+    Object.keys(rawDates).forEach(dt => {
+      const seen = new Set();
+      rawDates[dt].intervals = (rawDates[dt].intervals || []).filter(item => {
+        if (!item || !item.hour || seen.has(item.hour)) return false;
+        seen.add(item.hour);
+        return true;
+      }).sort((a, b) => a.hour.localeCompare(b.hour));
+    });
+
+    const appState = {
+      dates: rawDates,
+      casesByDate: JSON.parse(localStorage.getItem('PETRO_CASES_BY_DATE') || '{}'),
+      commentsByDate: JSON.parse(localStorage.getItem('PETRO_COMMENTS_BY_DATE') || '{}'),
+      currentDate: localStorage.getItem('PETRO_ACTIVE_DATE') || "2026-08-20"
+    };
+
+    function saveState() {
+      localStorage.setItem('PETRO_ABANDON_DATES', JSON.stringify(appState.dates));
+      localStorage.setItem('PETRO_CASES_BY_DATE', JSON.stringify(appState.casesByDate));
+      localStorage.setItem('PETRO_COMMENTS_BY_DATE', JSON.stringify(appState.commentsByDate));
+      localStorage.setItem('PETRO_ACTIVE_DATE', appState.currentDate);
+    }
+
+    const sfFormulaRules = {
+      "POS Issue": ["register", "plu", "department", "ebt", "remote service", "scanner", "touchscreen pos", "age", "suspend void", "site settlement", "mop", "receipt"],
+      "Pump Issue": ["pump", "fuel", "fp", "prepay", "dispense", "post", "preset"],
+      "DCR Issue": ["dcr", "pay inside", "sales coming", "crind"],
+      "Network Issue": ["network", "outage", "offline", "decline", "unable to process cards inside and outside", "unable to process card after day close", "70"],
+      "Report": ["report", "batch", "aeod", "payroll", "close end", "day", "monthly", "shift", "daily", "month", "close", "yearly"],
+      "Pinpad issue": ["pop", "pinpad", "contactless inside"],
+      "Pair POS": ["pair", "pairing"],
+      "Transaction Stop": ["stop", "stopped", "transaction stopped", "totals declined"],
+      "C-SITE ISSUE": ["onboarding", "mapping", "c-site", "onboard", "no longer connected"],
+      "Password Reset": ["password reset"]
+    };
+
+    let slaChartInstance = null;
+
+    function toggleSettingsModal(open) {
+      document.getElementById("settingsModal").style.display = open ? "flex" : "none";
+    }
+
+    function formatDisplayDate(isoDateStr) {
+      if (!isoDateStr) return "";
+      const parts = isoDateStr.split('-');
+      if (parts.length !== 3) return isoDateStr;
+      const d = new Date(parseInt(parts[0], 10), parseInt(parts[1], 10) - 1, parseInt(parts[2], 10));
+      const days = ["Sun", "Mon", "Tue", "Wed", "Thu", "Fri", "Sat"];
+      const dayName = days[d.getDay()];
+      const mm = parts[1];
+      const dd = parts[2];
+      const yy = parts[0].slice(-2);
+      return `${mm}-${dd}-${yy} (${dayName})`;
+    }
+
+    function toISODate(val) {
+      if (!val) return "";
+      if (typeof val === 'number') {
+        const d = new Date(Math.round((val - 25569)*86400*1000));
+        return d.toISOString().slice(0, 10);
+      }
+      const str = String(val).trim().replace(/\//g, '-');
+      const match = str.match(/\d{4}-\d{2}-\d{2}/);
+      if (match) return match[0];
+      return str.slice(0, 10);
+    }
+
+    function timeToSeconds(t) {
+      if (!t) return 0;
+      if (typeof t === 'number') return Math.round(t * 86400);
+      const parts = String(t).trim().split(':');
+      if (parts.length === 3) return (+parts[0])*3600 + (+parts[1])*60 + (+parts[2]);
+      if (parts.length === 2) return (+parts[0])*60 + (+parts[1]);
+      return 0;
+    }
+
+    function secondsToHMS(sec) {
+      const h = Math.floor(sec / 3600);
+      const m = Math.floor((sec % 3600) / 60);
+      const s = Math.floor(sec % 60);
+      return `${h}:${String(m).padStart(2,'0')}:${String(s).padStart(2,'0')}`;
+    }
+
+    function saveComment(val) {
+      appState.commentsByDate[appState.currentDate] = val;
+      saveState();
+    }
+
+    function formatDashRanges(hoursList) {
+      if (!hoursList || hoursList.length === 0) return "None";
+      const sorted = [...new Set(hoursList)].sort((a, b) => a - b);
+      const blocks = [];
+      let start = sorted[0];
+      let prev = sorted[0];
+
+      for (let i = 1; i <= sorted.length; i++) {
+        if (i < sorted.length && sorted[i] === prev + 1) {
+          prev = sorted[i];
+        } else {
+          const sStr = String(start).padStart(2, '0') + ":00";
+          const eStr = String(prev).padStart(2, '0') + ":00";
+          if (start === prev) blocks.push(sStr);
+          else blocks.push(`${sStr} - ${eStr}`);
+          if (i < sorted.length) { start = sorted[i]; prev = sorted[i]; }
+        }
+      }
+      return blocks.join(', ');
+    }
+
+    function updateDateDropdown() {
+      const dropdown = document.getElementById("dateDropdown");
+      dropdown.innerHTML = "";
+      const dates = Object.keys(appState.dates).sort().reverse();
+      
+      dates.forEach(dateStr => {
+        const opt = document.createElement("option");
+        opt.value = dateStr;
+        opt.textContent = formatDisplayDate(dateStr);
+        dropdown.appendChild(opt);
+      });
+
+      if (!dates.includes(appState.currentDate) && dates.length > 0) {
+        appState.currentDate = dates[0];
+      }
+      dropdown.value = appState.currentDate;
+    }
+
+    function onDateSelectionChanged() {
+      const dt = document.getElementById("dateDropdown").value;
+      appState.currentDate = dt;
+      saveState();
+      renderDashboard(dt);
+    }
+
+    function onAbsenceChanged(val) {
+      if (appState.dates[appState.currentDate]) {
+        appState.dates[appState.currentDate].absences = Number(val) || 0;
+        saveState();
+      }
+    }
+
+    function renderDashboard(dt) {
+      const record = appState.dates[dt];
+      if (!record) return;
+
+      const intervals = record.intervals;
+      let totalCalls = 0;
+      let sumprodAHT = 0;
+      let sumprodSLA = 0;
+
+      let peakObj = intervals[0];
+      let lowObj = intervals[0];
+      let recoveryObj = null;
+
+      const redHourIndices = [];
+      const greenOrangeHourIndices = [];
+
+      intervals.forEach(i => {
+        totalCalls += i.calls;
+        sumprodAHT += (i.calls * i.ahtSec);
+        sumprodSLA += (i.calls * i.sla);
+
+        const hrNum = parseInt(i.hour.split(':')[0], 10);
+
+        if (i.sla > peakObj.sla) peakObj = i;
+        if (i.sla < lowObj.sla) lowObj = i;
+
+        if (i.sla < 0.60) {
+          redHourIndices.push(hrNum);
+        } else {
+          greenOrangeHourIndices.push(hrNum);
+        }
+
+        if (!recoveryObj && i.sla >= 0.50) {
+          recoveryObj = i;
+        }
+      });
+
+      const weightedAHT = totalCalls > 0 ? Math.round(sumprodAHT / totalCalls) : 0;
+      const weightedSLA = totalCalls > 0 ? (sumprodSLA / totalCalls) : 0;
+
+      // Update Top KPI Cards
+      document.getElementById("dispCalls").innerText = totalCalls.toLocaleString();
+      document.getElementById("dispSLA").innerText = Math.round(weightedSLA * 100) + "%";
+      document.getElementById("dispAHT").innerText = secondsToHMS(weightedAHT);
+      document.getElementById("absenceInput").value = record.absences ?? 1;
+
+      // Render Top 3 Call Drivers
+      const driversContainer = document.getElementById("dispDrivers");
+      driversContainer.innerHTML = "";
+      const currentDrivers = (appState.casesByDate[dt] && appState.casesByDate[dt].length > 0)
+        ? appState.casesByDate[dt]
+        : record.drivers;
+
+      (currentDrivers || []).slice(0, 3).forEach(d => {
+        const div = document.createElement("div");
+        div.className = "driver-row";
+        div.innerHTML = `<span>${d.name}</span><span class="driver-num">${d.count}</span>`;
+        driversContainer.appendChild(div);
+      });
+
+      // Update Summary Cards
+      document.getElementById("sumPeak").innerText = Math.round(peakObj.sla * 100) + "%";
+      document.getElementById("sumPeakHr").innerText = `at ${peakObj.hour}`;
+
+      document.getElementById("sumLow").innerText = Math.round(lowObj.sla * 100) + "%";
+      document.getElementById("sumLowHr").innerText = `Lowest point`;
+
+      if (recoveryObj) {
+        document.getElementById("sumRecover").innerText = `${recoveryObj.hour} (${Math.round(recoveryObj.sla * 100)}%)`;
+        document.getElementById("sumRecoverSub").innerText = `Turnaround`;
+      } else {
+        document.getElementById("sumRecover").innerText = "None (<50%)";
+        document.getElementById("sumRecoverSub").innerText = `Queue sustained`;
+      }
+
+      document.getElementById("guideCrit").innerText = `Critical : ${formatDashRanges(redHourIndices)}`;
+      document.getElementById("guidePeak").innerText = `Peak : ${formatDashRanges(greenOrangeHourIndices)}`;
+
+      document.getElementById("shiftComment").value = appState.commentsByDate[dt] || "";
+
+      renderSLABarChart(intervals);
+    }
+
+    function renderSLABarChart(intervals) {
+      const ctx = document.getElementById("slaBarChart").getContext("2d");
+      const labels = intervals.map(i => i.hour);
+      const slaValues = intervals.map(i => Math.round(i.sla * 100));
+
+      const barColors = slaValues.map(v => {
+        if (v >= 80) return '#10b981';
+        if (v >= 60) return '#f59e0b';
+        return '#f43f5e';
+      });
+
+      const borderColors = slaValues.map(v => {
+        if (v >= 80) return '#059669';
+        if (v >= 60) return '#d97706';
+        return '#e11d48';
+      });
+
+      if (slaChartInstance) slaChartInstance.destroy();
+
+      slaChartInstance = new Chart(ctx, {
+        type: 'bar',
+        data: {
+          labels: labels,
+          datasets: [
+            {
+              data: slaValues,
+              backgroundColor: barColors,
+              borderColor: borderColors,
+              borderWidth: 1.5,
+              borderRadius: 5,
+              maxBarThickness: 28,
+              categoryPercentage: 0.72,
+              barPercentage: 0.85
+            }
+          ]
+        },
+        options: {
+          responsive: true,
+          maintainAspectRatio: false,
+          layout: {
+            padding: { top: 32, bottom: 4, left: 4, right: 4 }
+          },
+          plugins: {
+            legend: { display: false },
+            tooltip: {
+              backgroundColor: '#0f172a',
+              padding: 9,
+              titleFont: { family: 'Plus Jakarta Sans', size: 11, weight: '700' },
+              bodyFont: { family: 'JetBrains Mono', size: 11 },
+              callbacks: {
+                label: (c) => `Service Level: ${c.parsed.y}%`
+              }
+            },
+            datalabels: {
+              anchor: 'end',
+              align: 'top',
+              offset: 3,
+              font: (ctx) => {
+                const val = ctx.dataset.data[ctx.dataIndex];
+                return {
+                  family: 'JetBrains Mono',
+                  weight: val === 0 ? '700' : '800',
+                  size: val === 0 ? 8.5 : 9.5
+                };
+              },
+              color: (ctx) => {
+                const val = ctx.dataset.data[ctx.dataIndex];
+                if (val >= 80) return '#059669';
+                if (val >= 60) return '#b45309';
+                if (val === 0) return '#fda4af'; // Softer red for empty 0% to prevent visual crowding
+                return '#e11d48';
+              },
+              formatter: (val) => `${val}%`
+            }
+          },
+          scales: {
+            x: {
+              grid: { display: false },
+              ticks: {
+                font: { family: 'JetBrains Mono', size: 9.5, weight: '700' },
+                color: '#64748b',
+                autoSkip: false,
+                maxRotation: 45,
+                minRotation: 45
+              }
+            },
+            y: {
+              min: 0,
+              max: 118, // Extra buffer so 100% labels never collide with top chart edge
+              grid: { color: '#f1f5f9' },
+              ticks: {
+                stepSize: 20,
+                font: { family: 'JetBrains Mono', size: 9.5 },
+                color: '#64748b',
+                callback: (val) => (val <= 100 ? `${val}%` : '')
+              },
+              title: {
+                display: true,
+                text: 'Service Level %',
+                font: { size: 9, weight: '700' },
+                color: '#64748b'
+              }
+            }
+          }
+        }
+      });
+    }
+
+    // Dynamic Upload with Strict Hourly Deduplication
+    function uploadDSR(e) {
+      const file = e.target.files[0];
+      if (!file) return;
+
+      const reader = new FileReader();
+      reader.onload = function(evt) {
+        const data = new Uint8Array(evt.target.result);
+        const wb = XLSX.read(data, { type: 'array' });
+        const sheet = wb.Sheets[wb.SheetNames[0]];
+        const json = XLSX.utils.sheet_to_json(sheet, { header: 1 });
+
+        let startRow = -1;
+        let colMap = { date: 0, hour: 2, calls: 5, aht: 6, sla: 7 };
+
+        for (let r = 0; r < Math.min(30, json.length); r++) {
+          const row = json[r] || [];
+          row.forEach((c, idx) => {
+            const val = String(c).toUpperCase();
+            if (val === 'DATE') colMap.date = idx;
+            if (val === 'HOUR') { colMap.hour = idx; startRow = r + 1; }
+            if (val === 'CALLS') colMap.calls = idx;
+            if (val.includes('HANDLE TIME') || val === 'AHT') colMap.aht = idx;
+            if (val.includes('SERVICE LEVEL') || val.includes('SLA')) colMap.sla = idx;
+          });
+          if (startRow !== -1) break;
+        }
+
+        if (startRow === -1) {
+          alert("Could not detect interval table headers in DSR.");
+          return;
+        }
+
+        // Fresh temporary map ensuring strictly unique hours (00:00 - 23:00) per date
+        const fileIntervalsByDate = {};
+
+        for (let r = startRow; r < json.length; r++) {
+          const row = json[r];
+          if (!row || !row[colMap.hour]) continue;
+
+          const rawDate = row[colMap.date];
+          const isoDate = toISODate(rawDate);
+          const hrVal = String(row[colMap.hour]).trim();
+          if (!hrVal.includes(':')) continue;
+
+          if (!fileIntervalsByDate[isoDate]) {
+            fileIntervalsByDate[isoDate] = new Map();
+          }
+
+          const ahtVal = row[colMap.aht] || "00:00:00";
+          fileIntervalsByDate[isoDate].set(hrVal, {
+            hour: hrVal,
+            calls: Number(row[colMap.calls]) || 0,
+            ahtSec: timeToSeconds(ahtVal),
+            sla: Number(row[colMap.sla]) || 0
+          });
+        }
+
+        // Clean replacement: overwrite dates present in the uploaded file
+        Object.keys(fileIntervalsByDate).forEach(isoDate => {
+          const sortedIntervals = Array.from(fileIntervalsByDate[isoDate].values())
+            .sort((a, b) => a.hour.localeCompare(b.hour));
+
+          if (!appState.dates[isoDate]) {
+            appState.dates[isoDate] = { intervals: sortedIntervals, absences: 1, drivers: [] };
+          } else {
+            appState.dates[isoDate].intervals = sortedIntervals;
+          }
+        });
+
+        document.getElementById("dsrStatus").innerText = `Loaded (${file.name.slice(0, 14)}...)`;
+        const newestDate = Object.keys(appState.dates).sort().pop();
+        appState.currentDate = newestDate;
+        saveState();
+        updateDateDropdown();
+        renderDashboard(newestDate);
+      };
+      reader.readAsArrayBuffer(file);
+    }
+
+    function uploadSF(e) {
+      const file = e.target.files[0];
+      if (!file) return;
+
+      const reader = new FileReader();
+      reader.onload = function(evt) {
+        const data = new Uint8Array(evt.target.result);
+        const wb = XLSX.read(data, { type: 'array' });
+        const sheetName = wb.SheetNames.includes("Data") ? "Data" : wb.SheetNames[0];
+        const json = XLSX.utils.sheet_to_json(wb.Sheets[sheetName]);
+
+        const rowsByDate = {};
+
+        json.forEach(row => {
+          const rawDate = row['Date'] || row['Month'] || row['Date/Time Opened'];
+          const isoDate = toISODate(rawDate);
+          if (!isoDate) return;
+
+          if (!rowsByDate[isoDate]) {
+            rowsByDate[isoDate] = [];
+          }
+          rowsByDate[isoDate].push(String(row['Subject'] || '').toLowerCase());
+        });
+
+        Object.keys(rowsByDate).forEach(dt => {
+          const subjects = rowsByDate[dt];
+          const catCounts = [];
+
+          for (const [catName, kws] of Object.entries(sfFormulaRules)) {
+            let count = 0;
+            for (let i = 0; i < subjects.length; i++) {
+              if (kws.some(kw => subjects[i].includes(kw))) {
+                count++;
+              }
+            }
+            catCounts.push({ name: catName, count });
+          }
+
+          catCounts.sort((a, b) => b.count - a.count);
+          appState.casesByDate[dt] = catCounts;
+        });
+
+        document.getElementById("sfStatus").innerText = `Matched (${Object.keys(rowsByDate).length} Dates)`;
+        saveState();
+        renderDashboard(appState.currentDate);
+      };
+      reader.readAsArrayBuffer(file);
+    }
+
+    window.addEventListener("DOMContentLoaded", () => {
+      updateDateDropdown();
+      renderDashboard(appState.currentDate);
+    });
+  </script>
 </body>
 </html>
