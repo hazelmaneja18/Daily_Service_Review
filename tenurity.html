@@ -896,36 +896,27 @@
       }
     };
 
-    let dohRoster = JSON.parse(localStorage.getItem('PETRO_MNL_DOH_ROSTER_V15') || 'null') || defaultRoster;
-    let monthlyDataStore = JSON.parse(localStorage.getItem('PETRO_MNL_MONTHLY_STORE_V15') || 'null') || defaultMonthlyStore;
+    let dohRoster = defaultRoster;
+    let monthlyDataStore = defaultMonthlyStore;
 
-    // Save state to Firebase Cloud Firestore + local cache
+    // Save state to Firebase Cloud Firestore
     function saveToCloud() {
-      localStorage.setItem('PETRO_MNL_DOH_ROSTER_V15', JSON.stringify(dohRoster));
-      localStorage.setItem('PETRO_MNL_MONTHLY_STORE_V15', JSON.stringify(monthlyDataStore));
-
       db.collection('petro_tenure').doc('roster_data').set({
         dohRoster: dohRoster,
         monthlyDataStore: monthlyDataStore,
         updatedAt: new Date()
       }).then(() => {
         console.log("Tenure state synced to Firebase.");
-      }).catch(err => console.error("Firebase sync error:", err));
+      }).catch(err => console.error("Firebase save error:", err));
     }
 
-    // Load state from Firebase Cloud Firestore + local cache fallback
+    // Load state from Firebase Cloud Firestore on startup
     function loadFromCloud() {
       db.collection('petro_tenure').doc('roster_data').get().then(doc => {
         if (doc.exists) {
           const remote = doc.data();
-          if (remote.dohRoster) {
-            dohRoster = remote.dohRoster;
-            localStorage.setItem('PETRO_MNL_DOH_ROSTER_V15', JSON.stringify(dohRoster));
-          }
-          if (remote.monthlyDataStore) {
-            monthlyDataStore = remote.monthlyDataStore;
-            localStorage.setItem('PETRO_MNL_MONTHLY_STORE_V15', JSON.stringify(monthlyDataStore));
-          }
+          if (remote.dohRoster) dohRoster = remote.dohRoster;
+          if (remote.monthlyDataStore) monthlyDataStore = remote.monthlyDataStore;
 
           document.getElementById("unifiedUploadStatus").innerText = "Loaded (Cloud Sync)";
           updateDropdownOptions();
@@ -1616,23 +1607,7 @@
     }
 
     window.addEventListener("DOMContentLoaded", () => {
-      // 1. Instant local cache load
-      const cachedRoster = JSON.parse(localStorage.getItem('PETRO_MNL_DOH_ROSTER_V15') || 'null');
-      const cachedStore = JSON.parse(localStorage.getItem('PETRO_MNL_MONTHLY_STORE_V15') || 'null');
-      if (cachedRoster) dohRoster = cachedRoster;
-      if (cachedStore) monthlyDataStore = cachedStore;
-
-      updateDropdownOptions();
-      renderDohTable();
-      onMonthChange();
-
-      // 2. Background cloud sync
       loadFromCloud();
-      setTimeout(() => {
-        updateDropdownOptions();
-        renderDohTable();
-        onMonthChange();
-      }, 800);
     });
   </script>
 </body>
