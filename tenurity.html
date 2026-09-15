@@ -787,14 +787,15 @@
   </div>
 
   <script>
-    // TODO: Replace with your actual Firebase project configuration credentials
+    // Firebase Project Configuration
     const firebaseConfig = {
-      apiKey: "YOUR_FIREBASE_API_KEY",
-      authDomain: "YOUR_PROJECT_ID.firebaseapp.com",
-      projectId: "YOUR_PROJECT_ID",
-      storageBucket: "YOUR_PROJECT_ID.appspot.com",
-      messagingSenderId: "YOUR_MESSAGING_SENDER_ID",
-      appId: "YOUR_APP_ID"
+      apiKey: "AIzaSyCO5JOFPIw8YWouzGQ1hVnrar-h85rBUyA",
+      authDomain: "dailyservicereview.firebaseapp.com",
+      projectId: "dailyservicereview",
+      storageBucket: "dailyservicereview.firebasestorage.app",
+      messagingSenderId: "1004019130373",
+      appId: "1:1004019130373:web:8082b16c7570f56fd1fc6c",
+      measurementId: "G-4SMDMW96Q5"
     };
 
     if (!firebase.apps.length) {
@@ -895,11 +896,14 @@
       }
     };
 
-    let dohRoster = defaultRoster;
-    let monthlyDataStore = defaultMonthlyStore;
+    let dohRoster = JSON.parse(localStorage.getItem('PETRO_MNL_DOH_ROSTER_V15') || 'null') || defaultRoster;
+    let monthlyDataStore = JSON.parse(localStorage.getItem('PETRO_MNL_MONTHLY_STORE_V15') || 'null') || defaultMonthlyStore;
 
-    // Save state to Firebase Cloud Firestore
+    // Save state to Firebase Cloud Firestore + local cache
     function saveToCloud() {
+      localStorage.setItem('PETRO_MNL_DOH_ROSTER_V15', JSON.stringify(dohRoster));
+      localStorage.setItem('PETRO_MNL_MONTHLY_STORE_V15', JSON.stringify(monthlyDataStore));
+
       db.collection('petro_tenure').doc('roster_data').set({
         dohRoster: dohRoster,
         monthlyDataStore: monthlyDataStore,
@@ -909,29 +913,26 @@
       }).catch(err => console.error("Firebase sync error:", err));
     }
 
-    // Load state from Firebase Cloud Firestore on startup
+    // Load state from Firebase Cloud Firestore + local cache fallback
     function loadFromCloud() {
       db.collection('petro_tenure').doc('roster_data').get().then(doc => {
         if (doc.exists) {
           const remote = doc.data();
-          if (remote.dohRoster) dohRoster = remote.dohRoster;
-          if (remote.monthlyDataStore) monthlyDataStore = remote.monthlyDataStore;
+          if (remote.dohRoster) {
+            dohRoster = remote.dohRoster;
+            localStorage.setItem('PETRO_MNL_DOH_ROSTER_V15', JSON.stringify(dohRoster));
+          }
+          if (remote.monthlyDataStore) {
+            monthlyDataStore = remote.monthlyDataStore;
+            localStorage.setItem('PETRO_MNL_MONTHLY_STORE_V15', JSON.stringify(monthlyDataStore));
+          }
 
           document.getElementById("unifiedUploadStatus").innerText = "Loaded (Cloud Sync)";
           updateDropdownOptions();
           renderDohTable();
           onMonthChange();
-        } else {
-          updateDropdownOptions();
-          renderDohTable();
-          onMonthChange();
         }
-      }).catch(err => {
-        console.log("Cloud fetch note:", err);
-        updateDropdownOptions();
-        renderDohTable();
-        onMonthChange();
-      });
+      }).catch(err => console.log("Cloud fetch note:", err));
     }
 
     let comparisonMode = 'coverage';
@@ -1109,6 +1110,8 @@
       const activeSel = document.getElementById("activeMonthSelect");
       const targetSel = document.getElementById("targetMonthSelect");
       const compSel = document.getElementById("compMonthSelect");
+
+      if (!activeSel) return;
 
       const currentActive = activeSel.value;
       const currentTarget = targetSel.value;
@@ -1613,7 +1616,23 @@
     }
 
     window.addEventListener("DOMContentLoaded", () => {
+      // 1. Instant local cache load
+      const cachedRoster = JSON.parse(localStorage.getItem('PETRO_MNL_DOH_ROSTER_V15') || 'null');
+      const cachedStore = JSON.parse(localStorage.getItem('PETRO_MNL_MONTHLY_STORE_V15') || 'null');
+      if (cachedRoster) dohRoster = cachedRoster;
+      if (cachedStore) monthlyDataStore = cachedStore;
+
+      updateDropdownOptions();
+      renderDohTable();
+      onMonthChange();
+
+      // 2. Background cloud sync
       loadFromCloud();
+      setTimeout(() => {
+        updateDropdownOptions();
+        renderDohTable();
+        onMonthChange();
+      }, 800);
     });
   </script>
 </body>
