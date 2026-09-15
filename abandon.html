@@ -5,10 +5,12 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Abandon & Service Level Review - PETRO MNL</title>
   <link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@600;700;800&family=Plus+Jakarta+Sans:wght@500;600;700;800;900&display=swap" rel="stylesheet">
-  <!-- Chart.js, Datalabels Plugin, & SheetJS -->
+  <!-- Chart.js, Datalabels Plugin, SheetJS, and Firebase SDKs -->
   <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.1/dist/chart.umd.min.js"></script>
   <script src="https://cdn.jsdelivr.net/npm/chartjs-plugin-datalabels@2.2.0/dist/chartjs-plugin-datalabels.min.js"></script>
   <script src="https://cdn.jsdelivr.net/npm/xlsx@0.18.5/dist/xlsx.full.min.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-app-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore-compat.js"></script>
   <style>
     :root {
       --bg: #f8fafc;
@@ -500,7 +502,7 @@
         <label>1. Abandon DSR Sheet (.xlsx)</label>
         <label for="dsrInputModal" class="file-select-btn">
           <span>📊 Select Abandon DSR File</span>
-          <span class="upload-status" id="dsrStatus">Saved in Browser</span>
+          <span class="upload-status" id="dsrStatus">Checking Cloud...</span>
         </label>
         <input type="file" id="dsrInputModal" accept=".xlsx,.xls,.csv" onchange="uploadDSR(event)">
       </div>
@@ -509,18 +511,33 @@
         <label>2. Salesforce Case Reports (.xlsx)</label>
         <label for="sfInputModal" class="file-select-btn">
           <span>📂 Select Cases Report File</span>
-          <span class="upload-status" id="sfStatus">Saved in Browser</span>
+          <span class="upload-status" id="sfStatus">Checking Cloud...</span>
         </label>
         <input type="file" id="sfInputModal" accept=".xlsx,.xls,.csv" onchange="uploadSF(event)">
       </div>
 
       <div style="font-size: 0.7rem; color: var(--text-muted); line-height: 1.4; margin-top: 0.5rem;">
-        Uploaded file data is saved in your browser and automatically reconnects every time you switch tabs or refresh.
+        Data is securely synchronized to your Firebase Firestore cloud database and persists permanently.
       </div>
     </div>
   </div>
 
   <script>
+    // TODO: Replace with your actual Firebase project configuration credentials
+    const firebaseConfig = {
+      apiKey: "YOUR_FIREBASE_API_KEY",
+      authDomain: "YOUR_PROJECT_ID.firebaseapp.com",
+      projectId: "YOUR_PROJECT_ID",
+      storageBucket: "YOUR_PROJECT_ID.appspot.com",
+      messagingSenderId: "YOUR_MESSAGING_SENDER_ID",
+      appId: "YOUR_APP_ID"
+    };
+
+    if (!firebase.apps.length) {
+      firebase.initializeApp(firebaseConfig);
+    }
+    const db = firebase.firestore();
+
     Chart.register(ChartDataLabels);
 
     const defaultIntervals = [
@@ -550,41 +567,53 @@
       { hour: "23:00", calls: 7, ahtSec: 1027, sla: 0.92 }
     ];
 
-    // Load Persistent Storage and sanitize any duplicate intervals
-    const rawDates = JSON.parse(localStorage.getItem('PETRO_ABANDON_DATES') || 'null') || {
-      "2026-08-20": {
-        intervals: defaultIntervals,
-        absences: 1,
-        drivers: [
-          { name: "POS Issue", count: 174 },
-          { name: "Pump Issue", count: 141 },
-          { name: "DCR Issue", count: 103 }
-        ]
-      }
+    let appState = {
+      dates: {
+        "2026-08-20": {
+          intervals: defaultIntervals,
+          absences: 1,
+          drivers: [
+            { name: "POS Issue", count: 174 },
+            { name: "Pump Issue", count: 141 },
+            { name: "DCR Issue", count: 103 }
+          ]
+        }
+      },
+      casesByDate: {},
+      commentsByDate: {},
+      currentDate: "2026-08-20"
     };
 
-    // Auto-deduplicate any existing stored intervals to exactly 24 unique hours
-    Object.keys(rawDates).forEach(dt => {
-      const seen = new Set();
-      rawDates[dt].intervals = (rawDates[dt].intervals || []).filter(item => {
-        if (!item || !item.hour || seen.has(item.hour)) return false;
-        seen.add(item.hour);
-        return true;
-      }).sort((a, b) => a.hour.localeCompare(b.hour));
-    });
+    // Save state to Firebase Cloud Firestore
+    function saveToCloud() {
+      db.collection('petro_abandon').doc('review_data').set({
+        dates: appState.dates,
+        casesByDate: appState.casesByDate,
+        commentsByDate: appState.commentsByDate,
+        currentDate: appState.currentDate,
+        updatedAt: new Date()
+      }).then(() => {
+        console.log("Abandon state synced to Firebase.");
+      }).catch(err => console.error("Firebase sync error:", err));
+    }
 
-    const appState = {
-      dates: rawDates,
-      casesByDate: JSON.parse(localStorage.getItem('PETRO_CASES_BY_DATE') || '{}'),
-      commentsByDate: JSON.parse(localStorage.getItem('PETRO_COMMENTS_BY_DATE') || '{}'),
-      currentDate: localStorage.getItem('PETRO_ACTIVE_DATE') || "2026-08-20"
-    };
+    // Load state from Firebase Cloud Firestore on startup
+    function loadFromCloud() {
+      db.collection('petro_abandon').doc('review_data').get().then(doc => {
+        if (doc.exists) {
+          const remote = doc.data();
+          if (remote.dates) appState.dates = remote.dates;
+          if (remote.casesByDate) appState.casesByDate = remote.casesByDate;
+          if (remote.commentsByDate) appState.commentsByDate = remote.commentsByDate;
+          if (remote.currentDate) appState.currentDate = remote.currentDate;
 
-    function saveState() {
-      localStorage.setItem('PETRO_ABANDON_DATES', JSON.stringify(appState.dates));
-      localStorage.setItem('PETRO_CASES_BY_DATE', JSON.stringify(appState.casesByDate));
-      localStorage.setItem('PETRO_COMMENTS_BY_DATE', JSON.stringify(appState.commentsByDate));
-      localStorage.setItem('PETRO_ACTIVE_DATE', appState.currentDate);
+          document.getElementById("dsrStatus").innerText = "Loaded (Cloud Sync)";
+          document.getElementById("sfStatus").innerText = "Loaded (Cloud Sync)";
+
+          updateDateDropdown();
+          renderDashboard(appState.currentDate);
+        }
+      }).catch(err => console.log("Cloud fetch note:", err));
     }
 
     const sfFormulaRules = {
@@ -649,7 +678,7 @@
 
     function saveComment(val) {
       appState.commentsByDate[appState.currentDate] = val;
-      saveState();
+      saveToCloud();
     }
 
     function formatDashRanges(hoursList) {
@@ -694,14 +723,14 @@
     function onDateSelectionChanged() {
       const dt = document.getElementById("dateDropdown").value;
       appState.currentDate = dt;
-      saveState();
+      saveToCloud();
       renderDashboard(dt);
     }
 
     function onAbsenceChanged(val) {
       if (appState.dates[appState.currentDate]) {
         appState.dates[appState.currentDate].absences = Number(val) || 0;
-        saveState();
+        saveToCloud();
       }
     }
 
@@ -745,13 +774,11 @@
       const weightedAHT = totalCalls > 0 ? Math.round(sumprodAHT / totalCalls) : 0;
       const weightedSLA = totalCalls > 0 ? (sumprodSLA / totalCalls) : 0;
 
-      // Update Top KPI Cards
       document.getElementById("dispCalls").innerText = totalCalls.toLocaleString();
       document.getElementById("dispSLA").innerText = Math.round(weightedSLA * 100) + "%";
       document.getElementById("dispAHT").innerText = secondsToHMS(weightedAHT);
       document.getElementById("absenceInput").value = record.absences ?? 1;
 
-      // Render Top 3 Call Drivers
       const driversContainer = document.getElementById("dispDrivers");
       driversContainer.innerHTML = "";
       const currentDrivers = (appState.casesByDate[dt] && appState.casesByDate[dt].length > 0)
@@ -765,7 +792,6 @@
         driversContainer.appendChild(div);
       });
 
-      // Update Summary Cards
       document.getElementById("sumPeak").innerText = Math.round(peakObj.sla * 100) + "%";
       document.getElementById("sumPeakHr").innerText = `at ${peakObj.hour}`;
 
@@ -811,25 +837,21 @@
         type: 'bar',
         data: {
           labels: labels,
-          datasets: [
-            {
-              data: slaValues,
-              backgroundColor: barColors,
-              borderColor: borderColors,
-              borderWidth: 1.5,
-              borderRadius: 5,
-              maxBarThickness: 28,
-              categoryPercentage: 0.72,
-              barPercentage: 0.85
-            }
-          ]
+          datasets: [{
+            data: slaValues,
+            backgroundColor: barColors,
+            borderColor: borderColors,
+            borderWidth: 1.5,
+            borderRadius: 5,
+            maxBarThickness: 28,
+            categoryPercentage: 0.72,
+            barPercentage: 0.85
+          }]
         },
         options: {
           responsive: true,
           maintainAspectRatio: false,
-          layout: {
-            padding: { top: 32, bottom: 4, left: 4, right: 4 }
-          },
+          layout: { padding: { top: 32, bottom: 4, left: 4, right: 4 } },
           plugins: {
             legend: { display: false },
             tooltip: {
@@ -837,9 +859,7 @@
               padding: 9,
               titleFont: { family: 'Plus Jakarta Sans', size: 11, weight: '700' },
               bodyFont: { family: 'JetBrains Mono', size: 11 },
-              callbacks: {
-                label: (c) => `Service Level: ${c.parsed.y}%`
-              }
+              callbacks: { label: (c) => `Service Level: ${c.parsed.y}%` }
             },
             datalabels: {
               anchor: 'end',
@@ -847,17 +867,13 @@
               offset: 3,
               font: (ctx) => {
                 const val = ctx.dataset.data[ctx.dataIndex];
-                return {
-                  family: 'JetBrains Mono',
-                  weight: val === 0 ? '700' : '800',
-                  size: val === 0 ? 8.5 : 9.5
-                };
+                return { family: 'JetBrains Mono', weight: val === 0 ? '700' : '800', size: val === 0 ? 8.5 : 9.5 };
               },
               color: (ctx) => {
                 const val = ctx.dataset.data[ctx.dataIndex];
                 if (val >= 80) return '#059669';
                 if (val >= 60) return '#b45309';
-                if (val === 0) return '#fda4af'; // Softer red for empty 0% to prevent visual crowding
+                if (val === 0) return '#fda4af';
                 return '#e11d48';
               },
               formatter: (val) => `${val}%`
@@ -866,37 +882,20 @@
           scales: {
             x: {
               grid: { display: false },
-              ticks: {
-                font: { family: 'JetBrains Mono', size: 9.5, weight: '700' },
-                color: '#64748b',
-                autoSkip: false,
-                maxRotation: 45,
-                minRotation: 45
-              }
+              ticks: { font: { family: 'JetBrains Mono', size: 9.5, weight: '700' }, color: '#64748b', autoSkip: false, maxRotation: 45, minRotation: 45 }
             },
             y: {
               min: 0,
-              max: 118, // Extra buffer so 100% labels never collide with top chart edge
+              max: 118,
               grid: { color: '#f1f5f9' },
-              ticks: {
-                stepSize: 20,
-                font: { family: 'JetBrains Mono', size: 9.5 },
-                color: '#64748b',
-                callback: (val) => (val <= 100 ? `${val}%` : '')
-              },
-              title: {
-                display: true,
-                text: 'Service Level %',
-                font: { size: 9, weight: '700' },
-                color: '#64748b'
-              }
+              ticks: { stepSize: 20, font: { family: 'JetBrains Mono', size: 9.5 }, color: '#64748b', callback: (val) => (val <= 100 ? `${val}%` : '') },
+              title: { display: true, text: 'Service Level %', font: { size: 9, weight: '700' }, color: '#64748b' }
             }
           }
         }
       });
     }
 
-    // Dynamic Upload with Strict Hourly Deduplication
     function uploadDSR(e) {
       const file = e.target.files[0];
       if (!file) return;
@@ -929,7 +928,6 @@
           return;
         }
 
-        // Fresh temporary map ensuring strictly unique hours (00:00 - 23:00) per date
         const fileIntervalsByDate = {};
 
         for (let r = startRow; r < json.length; r++) {
@@ -954,7 +952,6 @@
           });
         }
 
-        // Clean replacement: overwrite dates present in the uploaded file
         Object.keys(fileIntervalsByDate).forEach(isoDate => {
           const sortedIntervals = Array.from(fileIntervalsByDate[isoDate].values())
             .sort((a, b) => a.hour.localeCompare(b.hour));
@@ -966,10 +963,11 @@
           }
         });
 
-        document.getElementById("dsrStatus").innerText = `Loaded (${file.name.slice(0, 14)}...)`;
+        document.getElementById("dsrStatus").innerText = `Synced (${file.name.slice(0, 10)}...)`;
         const newestDate = Object.keys(appState.dates).sort().pop();
         appState.currentDate = newestDate;
-        saveState();
+        
+        saveToCloud();
         updateDateDropdown();
         renderDashboard(newestDate);
       };
@@ -1018,16 +1016,15 @@
           appState.casesByDate[dt] = catCounts;
         });
 
-        document.getElementById("sfStatus").innerText = `Matched (${Object.keys(rowsByDate).length} Dates)`;
-        saveState();
+        document.getElementById("sfStatus").innerText = `Synced (${Object.keys(rowsByDate).length} Dates)`;
+        saveToCloud();
         renderDashboard(appState.currentDate);
       };
       reader.readAsArrayBuffer(file);
     }
 
     window.addEventListener("DOMContentLoaded", () => {
-      updateDateDropdown();
-      renderDashboard(appState.currentDate);
+      loadFromCloud(); // Automatically sync and retrieve data from Firebase on startup
     });
   </script>
 </body>
