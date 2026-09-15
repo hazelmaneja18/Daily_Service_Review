@@ -931,9 +931,6 @@
 
     // Save to Firebase Firestore Cloud
     function saveToCloud() {
-      localStorage.setItem('PETRO_RAW_AHT_STORE', JSON.stringify(rawAHTRows));
-      localStorage.setItem('PETRO_RAW_DSR_STORE', JSON.stringify(rawDSRRows));
-
       db.collection('petro_reports').doc('monthly_master').set({
         rawAHTRows: rawAHTRows,
         rawDSRRows: rawDSRRows,
@@ -943,19 +940,13 @@
       }).catch(err => console.error("Firebase save error:", err));
     }
 
-    // Load from Firebase Firestore Cloud + local cache fallback
+    // Load from Firebase Firestore Cloud on startup
     function loadFromCloud() {
       db.collection('petro_reports').doc('monthly_master').get().then(doc => {
         if (doc.exists) {
           const remote = doc.data();
-          if (remote.rawAHTRows) {
-            rawAHTRows = remote.rawAHTRows;
-            localStorage.setItem('PETRO_RAW_AHT_STORE', JSON.stringify(rawAHTRows));
-          }
-          if (remote.rawDSRRows) {
-            rawDSRRows = remote.rawDSRRows;
-            localStorage.setItem('PETRO_RAW_DSR_STORE', JSON.stringify(rawDSRRows));
-          }
+          if (remote.rawAHTRows) rawAHTRows = remote.rawAHTRows;
+          if (remote.rawDSRRows) rawDSRRows = remote.rawDSRRows;
 
           document.getElementById('ahtUploadStatus').innerText = 'Loaded (Cloud Sync)';
           document.getElementById('dsrUploadStatus').innerText = 'Loaded (Cloud Sync)';
@@ -1018,26 +1009,8 @@
     }
 
     window.addEventListener("DOMContentLoaded", () => {
-      // 1. Instant local cache load
-      rawAHTRows = JSON.parse(localStorage.getItem('PETRO_RAW_AHT_STORE') || 'null');
-      rawDSRRows = JSON.parse(localStorage.getItem('PETRO_RAW_DSR_STORE') || 'null');
-
-      if (rawAHTRows && rawAHTRows.length > 0) {
-        document.getElementById('ahtUploadStatus').innerText = `Loaded (Saved)`;
-      }
-      if (rawDSRRows && rawDSRRows.length > 0) {
-        document.getElementById('dsrUploadStatus').innerText = `Loaded (Saved)`;
-      }
-
-      initMonthDropdowns();
-      renderActiveView();
-
-      // 2. Background cloud sync
+      // Fetch directly from Firebase on startup
       loadFromCloud();
-      setTimeout(() => {
-        initMonthDropdowns();
-        renderActiveView();
-      }, 800);
     });
   </script>
 </body>
