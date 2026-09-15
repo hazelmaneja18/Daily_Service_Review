@@ -508,8 +508,10 @@
       return yNum * 100 + mNum;
     }
 
-    let summaryAHTRows = JSON.parse(localStorage.getItem('PETRO_SUMMARY_AHT_STORE') || 'null');
-    let rawDSRRows = JSON.parse(localStorage.getItem('PETRO_RAW_DSR_STORE') || 'null');
+    // monthlyAHTStore: { "September - 2026": { ahtSec, consultSec, holdSec, confSec, surveyScore, responded, totalCalls } }
+    // monthlySlaStore: { "September - 2026": 19 }  (weighted SLA % for that month)
+    let monthlyAHTStore = JSON.parse(localStorage.getItem('PETRO_MONTHLY_AHT_STORE') || 'null') || {};
+    let monthlySlaStore = JSON.parse(localStorage.getItem('PETRO_MONTHLY_SLA_STORE') || 'null') || {};
 
     let activeMode = 'single';
     let chartInstances = {};
@@ -559,87 +561,36 @@
       return null;
     }
 
-    function getAggregatedMetricsForMonth(monthName, maxDayLimit = 31) {
-      const cleanName = monthName.split(' - ')[0].trim().toLowerCase();
+    function getAggregatedMetricsForMonth(monthKey) {
+      const hasAnyData = Object.keys(monthlyAHTStore).length > 0 || Object.keys(monthlySlaStore).length > 0;
+      const ahtData = monthlyAHTStore[monthKey];
+      const slaPercent = monthlySlaStore[monthKey];
 
-      if (!summaryAHTRows || summaryAHTRows.length === 0) {
-        return { ahtSec: 1190, consultSec: 291, holdSec: 84, confSec: 221, surveyScore: 4.64, responded: 222, slaPercent: 19, totalCalls: 3005, maxDay: maxDayLimit };
-      }
-
-      const rows = summaryAHTRows.filter(r => {
-        const m = String(getRowVal(r, ['MONTH', 'Month', 'Period', 'Date']) || '').trim().toLowerCase();
-        return m.includes(cleanName);
-      });
-
-      let totalCalls = 0;
-      let sumprodAHT = 0, sumprodConsult = 0, sumprodHold = 0, sumprodConf = 0;
-      let surveyArr = [], respondedCount = 0;
-
-      rows.forEach(r => {
-        const calls = Number(getRowVal(r, ['CALLS', 'Calls', 'Total Calls', 'Total Handled', 'Handled Calls', 'Volume'])) || 1;
-        const ht = parseSecOrNull(getRowVal(r, ['HANDLE TIME', 'AHT', 'Average Handle Time']));
-        const cs = parseSecOrNull(getRowVal(r, ['CONSULT TIME', 'Consult']));
-        const hd = parseSecOrNull(getRowVal(r, ['HOLD TIME', 'Hold']));
-        const cf = parseSecOrNull(getRowVal(r, ['CONFERENCE TIME', 'Conference']));
-        const sq = Number(getRowVal(r, ['Survey Q1', 'CSAT', 'Score', 'Survey']) || 0);
-
-        totalCalls += calls;
-        if (ht !== null) sumprodAHT += (ht * calls);
-        if (cs !== null) sumprodConsult += (cs * calls);
-        if (hd !== null) sumprodHold += (hd * calls);
-        if (cf !== null) sumprodConf += (cf * calls);
-        if (sq > 0) {
-          surveyArr.push(sq * calls);
-          respondedCount += calls;
+      if (!ahtData && slaPercent === undefined) {
+        if (!hasAnyData) {
+          // Nothing uploaded yet anywhere - show illustrative sample data
+          return { ahtSec: 1190, consultSec: 291, holdSec: 84, confSec: 221, surveyScore: 4.64, responded: 222, slaPercent: 19, totalCalls: 3005 };
         }
-      });
-
-      const calcWAvg = (sumprod, total) => total > 0 ? Math.round(sumprod / total) : 0;
-      const calcFloatWAvg = (sumArr, total) => total > 0 ? +(sumArr.reduce((a, b) => a + b, 0) / total).toFixed(2) : 0;
-
-      let matchedSla = cleanName === 'august' ? 19 : 8;
-      if (rawDSRRows && rawDSRRows.length > 0) {
-        let callsSum = 0, weightedSlaSum = 0;
-        rawDSRRows.forEach(dsr => {
-          const dtStr = String(dsr['DATE'] || '');
-          if (dtStr.includes('/')) {
-            const parts = dtStr.split('/');
-            const mPart = parseInt(parts[0], 10);
-            const dPart = parseInt(parts[1], 10);
-            const targetMNum = monthOrderMap[cleanName] || 9;
-            if (mPart === targetMNum && (!maxDayLimit || dPart <= maxDayLimit)) {
-              const c = Number(dsr['CALLS']) || 0;
-              const s = Number(dsr['SLA']) || 0;
-              if (c > 0) { callsSum += c; weightedSlaSum += (c * s); }
-            }
-          }
-        });
-        if (callsSum > 0) matchedSla = Math.round((weightedSlaSum / callsSum) * 100);
+        // Data has been uploaded for other months, but not this one
+        return { ahtSec: 0, consultSec: 0, holdSec: 0, confSec: 0, surveyScore: 0, responded: 0, slaPercent: 0, totalCalls: 0 };
       }
 
       return {
-        ahtSec: calcWAvg(sumprodAHT, totalCalls),
-        consultSec: calcWAvg(sumprodConsult, totalCalls),
-        holdSec: calcWAvg(sumprodHold, totalCalls),
-        confSec: calcWAvg(sumprodConf, totalCalls),
-        surveyScore: calcFloatWAvg(surveyArr, respondedCount),
-        responded: respondedCount || rows.length,
-        slaPercent: matchedSla,
-        totalCalls: totalCalls || rows.length,
-        maxDay: maxDayLimit
+        ahtSec: ahtData ? ahtData.ahtSec : 0,
+        consultSec: ahtData ? ahtData.consultSec : 0,
+        holdSec: ahtData ? ahtData.holdSec : 0,
+        confSec: ahtData ? ahtData.confSec : 0,
+        surveyScore: ahtData ? ahtData.surveyScore : 0,
+        responded: ahtData ? ahtData.responded : 0,
+        totalCalls: ahtData ? ahtData.totalCalls : 0,
+        slaPercent: slaPercent !== undefined ? slaPercent : 0
       };
     }
 
     function getAvailableMonths() {
-      if (!summaryAHTRows || summaryAHTRows.length === 0) return ["September - 2026", "August - 2026", "July - 2026"];
-      const set = new Set();
-      summaryAHTRows.forEach(r => {
-        const m = getRowVal(r, ['MONTH', 'Month', 'Period', 'Date']);
-        if (m) set.add(`${String(m).trim()} - 2026`);
-      });
-      const arr = Array.from(set);
-      if (arr.length === 0) return ["September - 2026"];
-      return arr.sort((a, b) => parseMonthYearSortKey(b) - parseMonthYearSortKey(a));
+      const set = new Set([...Object.keys(monthlyAHTStore), ...Object.keys(monthlySlaStore)]);
+      if (set.size === 0) return ["September - 2026", "August - 2026", "July - 2026"];
+      return Array.from(set).sort((a, b) => parseMonthYearSortKey(b) - parseMonthYearSortKey(a));
     }
 
     function initMonthDropdowns() {
@@ -673,7 +624,6 @@
     function renderActiveView() {
       destroyCharts();
       let monthKeys = [];
-      let maxDayLimit = 31;
 
       if (activeMode === 'single') {
         const mKey = document.getElementById('monthSelect1')?.value;
@@ -688,7 +638,7 @@
 
       const activeDataMap = {};
       monthKeys.forEach((mKey) => {
-        activeDataMap[mKey] = getAggregatedMetricsForMonth(mKey, maxDayLimit);
+        activeDataMap[mKey] = getAggregatedMetricsForMonth(mKey);
       });
 
       updateKPIStrip(monthKeys, activeDataMap);
@@ -917,15 +867,15 @@
 
     // Save to Firebase Cloud & Local Cache
     function saveToCloud() {
-      localStorage.setItem('PETRO_SUMMARY_AHT_STORE', JSON.stringify(summaryAHTRows));
-      localStorage.setItem('PETRO_RAW_DSR_STORE', JSON.stringify(rawDSRRows));
+      localStorage.setItem('PETRO_MONTHLY_AHT_STORE', JSON.stringify(monthlyAHTStore));
+      localStorage.setItem('PETRO_MONTHLY_SLA_STORE', JSON.stringify(monthlySlaStore));
 
       db.collection('petro_reports').doc('monthly_summary_master').set({
-        summaryAHTRows: summaryAHTRows,
-        rawDSRRows: rawDSRRows,
+        monthlyAHTStore: monthlyAHTStore,
+        monthlySlaStore: monthlySlaStore,
         updatedAt: new Date()
       }).then(() => {
-        console.log("Agent Summary monthly data saved to Firebase Firestore successfully.");
+        console.log("Monthly summary data saved to Firebase Firestore successfully.");
       }).catch(err => console.error("Firebase save error:", err));
     }
 
@@ -934,20 +884,20 @@
       db.collection('petro_reports').doc('monthly_summary_master').get().then(doc => {
         if (doc.exists) {
           const remote = doc.data();
-          if (remote.summaryAHTRows) {
-            summaryAHTRows = remote.summaryAHTRows;
-            localStorage.setItem('PETRO_SUMMARY_AHT_STORE', JSON.stringify(summaryAHTRows));
+          if (remote.monthlyAHTStore) {
+            monthlyAHTStore = remote.monthlyAHTStore;
+            localStorage.setItem('PETRO_MONTHLY_AHT_STORE', JSON.stringify(monthlyAHTStore));
           }
-          if (remote.rawDSRRows) {
-            rawDSRRows = remote.rawDSRRows;
-            localStorage.setItem('PETRO_RAW_DSR_STORE', JSON.stringify(rawDSRRows));
+          if (remote.monthlySlaStore) {
+            monthlySlaStore = remote.monthlySlaStore;
+            localStorage.setItem('PETRO_MONTHLY_SLA_STORE', JSON.stringify(monthlySlaStore));
           }
 
-          document.getElementById('ahtUploadStatus').innerText = 'Loaded (Cloud Sync)';
-          document.getElementById('dsrUploadStatus').innerText = 'Loaded (Cloud Sync)';
+          if (Object.keys(monthlyAHTStore).length > 0) document.getElementById('ahtUploadStatus').innerText = 'Loaded (Cloud Sync)';
+          if (Object.keys(monthlySlaStore).length > 0) document.getElementById('dsrUploadStatus').innerText = 'Loaded (Cloud Sync)';
           initMonthDropdowns();
           renderActiveView();
-          
+
           toggleModal(false);
           setTimeout(() => {
             window.dispatchEvent(new Event('resize'));
@@ -962,23 +912,124 @@
 
       const reader = new FileReader();
       reader.onload = function(evt) {
-        const data = new Uint8Array(evt.target.result);
-        const wb = XLSX.read(data, { type: 'array' });
-        const targetSheetName = wb.SheetNames.find(n => n.toLowerCase().includes('agent summary')) || wb.SheetNames[0];
-        const sheet = wb.Sheets[targetSheetName];
-        const json = XLSX.utils.sheet_to_json(sheet);
+        try {
+          const data = new Uint8Array(evt.target.result);
+          const wb = XLSX.read(data, { type: 'array' });
+          const targetSheetName = wb.SheetNames.find(n => n.toLowerCase().includes('agent summary')) || wb.SheetNames[0];
+          const sheet = wb.Sheets[targetSheetName];
 
-        summaryAHTRows = json;
-        saveToCloud();
+          // Read as raw rows first - this template's real header row is NOT row 1,
+          // and the month is a single cell value, not a per-row column.
+          const raw = XLSX.utils.sheet_to_json(sheet, { header: 1, raw: true });
 
-        document.getElementById('ahtUploadStatus').innerText = `Synced (${file.name.slice(0, 10)}...)`;
-        initMonthDropdowns();
-        renderActiveView();
-        
-        toggleModal(false);
-        setTimeout(() => {
-          window.dispatchEvent(new Event('resize'));
-        }, 200);
+          // 1) Find the month label anywhere in the first few rows (e.g. "Show cumulative data through month: September")
+          let monthLabel = null;
+          for (let r = 0; r < Math.min(8, raw.length) && !monthLabel; r++) {
+            const row = raw[r] || [];
+            for (const cell of row) {
+              const s = String(cell || '').trim();
+              if (monthOrderMap[s.toLowerCase()]) { monthLabel = s; break; }
+            }
+          }
+          if (!monthLabel) monthLabel = "September";
+
+          // 2) Find the real header row (contains "Agent Name")
+          let headerRowIdx = -1;
+          const colIdx = { name: -1, aht: -1, calls: -1, survey: -1, responses: -1, consult: -1, hold: -1, conf: -1 };
+          for (let r = 0; r < Math.min(15, raw.length); r++) {
+            const row = raw[r] || [];
+            row.forEach((cell, idx) => {
+              const s = String(cell || '').toUpperCase();
+              if (s.includes('AGENT NAME')) { colIdx.name = idx; headerRowIdx = r; }
+              if (s.includes('HANDLE TIME')) colIdx.aht = idx;
+              if (s.includes('HANDLED CALLS')) colIdx.calls = idx;
+              if (s.includes('SURVEY SCORE')) colIdx.survey = idx;
+              if (s.includes('SURVEY RESPONSES')) colIdx.responses = idx;
+              if (s.includes('CONSULT')) colIdx.consult = idx;
+              if (s.includes('HOLD')) colIdx.hold = idx;
+              if (s.includes('CONFERENCE')) colIdx.conf = idx;
+            });
+            if (headerRowIdx !== -1) break;
+          }
+
+          if (headerRowIdx === -1) {
+            alert("Could not find the 'Agent Name' header row in the Agent Summary sheet. Please check the file format.");
+            return;
+          }
+
+          // 3) Separate the "ALL AGENTS (Overall)" row from individual agent rows
+          let overallRow = null;
+          const agentRows = [];
+          for (let r = headerRowIdx + 1; r < raw.length; r++) {
+            const row = raw[r];
+            if (!row || row[colIdx.name] === undefined || row[colIdx.name] === null || row[colIdx.name] === '') continue;
+            if (/all agents/i.test(String(row[colIdx.name]))) {
+              overallRow = row;
+            } else {
+              agentRows.push(row);
+            }
+          }
+
+          const toSec = (v) => parseSecOrNull(v) || 0;
+          let monthMetrics;
+
+          if (overallRow) {
+            // Use the sheet's own pre-computed overall row directly
+            monthMetrics = {
+              ahtSec: toSec(overallRow[colIdx.aht]),
+              consultSec: toSec(overallRow[colIdx.consult]),
+              holdSec: toSec(overallRow[colIdx.hold]),
+              confSec: toSec(overallRow[colIdx.conf]),
+              surveyScore: Number(overallRow[colIdx.survey]) || 0,
+              responded: Number(overallRow[colIdx.responses]) || 0,
+              totalCalls: Number(overallRow[colIdx.calls]) || 0
+            };
+          } else {
+            // Fallback: call-weighted aggregate from individual agent rows
+            let totalCalls = 0, sumAHT = 0, sumConsult = 0, sumHold = 0, sumConf = 0, surveySum = 0, respSum = 0;
+            agentRows.forEach(row => {
+              const calls = Number(row[colIdx.calls]) || 0;
+              totalCalls += calls;
+              sumAHT += toSec(row[colIdx.aht]) * calls;
+              sumConsult += toSec(row[colIdx.consult]) * calls;
+              sumHold += toSec(row[colIdx.hold]) * calls;
+              sumConf += toSec(row[colIdx.conf]) * calls;
+              const sq = Number(row[colIdx.survey]) || 0;
+              const resp = Number(row[colIdx.responses]) || 0;
+              if (sq > 0 && resp > 0) { surveySum += sq * resp; respSum += resp; }
+            });
+            monthMetrics = {
+              ahtSec: totalCalls ? Math.round(sumAHT / totalCalls) : 0,
+              consultSec: totalCalls ? Math.round(sumConsult / totalCalls) : 0,
+              holdSec: totalCalls ? Math.round(sumHold / totalCalls) : 0,
+              confSec: totalCalls ? Math.round(sumConf / totalCalls) : 0,
+              surveyScore: respSum ? +(surveySum / respSum).toFixed(2) : 0,
+              responded: respSum,
+              totalCalls: totalCalls
+            };
+          }
+
+          const yearGuess = 2026;
+          const monthKey = `${monthLabel.charAt(0).toUpperCase() + monthLabel.slice(1).toLowerCase()} - ${yearGuess}`;
+
+          monthlyAHTStore[monthKey] = monthMetrics;
+          saveToCloud();
+
+          document.getElementById('ahtUploadStatus').innerText = `Synced (${monthKey})`;
+          initMonthDropdowns();
+          // Jump the single-month selector to the month we just uploaded
+          const m1 = document.getElementById('monthSelect1');
+          if (m1 && Array.from(m1.options).some(o => o.value === monthKey)) m1.value = monthKey;
+          renderActiveView();
+
+          toggleModal(false);
+          setTimeout(() => {
+            window.dispatchEvent(new Event('resize'));
+          }, 200);
+        } catch (err) {
+          console.error("AHT upload parse error:", err);
+          alert("There was a problem reading this file. Please confirm it matches the Monthly AHT & Survey template.");
+        }
       };
       reader.readAsArrayBuffer(file);
     }
@@ -989,45 +1040,92 @@
 
       const reader = new FileReader();
       reader.onload = function(evt) {
-        const data = new Uint8Array(evt.target.result);
-        const wb = XLSX.read(data, { type: 'array' });
-        const sheet = wb.Sheets[wb.SheetNames[0]];
-        const json = XLSX.utils.sheet_to_json(sheet, { header: 1 });
+        try {
+          const data = new Uint8Array(evt.target.result);
+          const wb = XLSX.read(data, { type: 'array' });
+          const sheet = wb.Sheets[wb.SheetNames[0]];
+          const raw = XLSX.utils.sheet_to_json(sheet, { header: 1 });
 
-        const parsedRows = [];
-        for (let r = 17; r < json.length; r++) {
-          const row = json[r];
-          if (!row || !row[0] || !String(row[0]).includes('/')) continue;
-          parsedRows.push({
-            DATE: row[0],
-            CALLS: Number(row[5]) || 0,
-            SLA: Number(row[7]) || 0
+          // Locate header row dynamically (this template has it around row 17, but detect it to be safe)
+          let headerRowIdx = -1;
+          const colIdx = { date: 0, calls: 5, sla: 7 };
+          for (let r = 0; r < Math.min(30, raw.length); r++) {
+            const row = raw[r] || [];
+            row.forEach((c, idx) => {
+              const s = String(c || '').toUpperCase();
+              if (s === 'DATE') colIdx.date = idx;
+              if (s === 'HOUR') headerRowIdx = r;
+              if (s === 'CALLS') colIdx.calls = idx;
+              if (s.includes('SERVICE LEVEL')) colIdx.sla = idx;
+            });
+            if (headerRowIdx !== -1) break;
+          }
+          if (headerRowIdx === -1) headerRowIdx = 16;
+
+          // Dates in this report come as "YYYY/MM/DD" - aggregate call-weighted SLA per month directly here
+          const perMonthAgg = {};
+          for (let r = headerRowIdx + 1; r < raw.length; r++) {
+            const row = raw[r];
+            if (!row || !row[colIdx.date]) continue;
+            const dtStr = String(row[colIdx.date]);
+            if (!dtStr.includes('/')) continue;
+            const parts = dtStr.split('/');
+            if (parts.length !== 3) continue;
+
+            const yNum = parseInt(parts[0], 10);
+            const mNum = parseInt(parts[1], 10);
+            if (!mNum || mNum < 1 || mNum > 12) continue;
+
+            const monthName = Object.keys(monthOrderMap).find(k => monthOrderMap[k] === mNum);
+            if (!monthName) continue;
+            const monthKey = `${monthName.charAt(0).toUpperCase() + monthName.slice(1)} - ${yNum}`;
+
+            const calls = Number(row[colIdx.calls]) || 0;
+            const sla = Number(row[colIdx.sla]) || 0;
+
+            if (!perMonthAgg[monthKey]) perMonthAgg[monthKey] = { callsSum: 0, weightedSlaSum: 0 };
+            perMonthAgg[monthKey].callsSum += calls;
+            perMonthAgg[monthKey].weightedSlaSum += calls * sla;
+          }
+
+          const monthsFound = Object.keys(perMonthAgg);
+          if (monthsFound.length === 0) {
+            alert("Could not detect any dated interval rows in this DSR file. Please confirm the file format.");
+            return;
+          }
+
+          monthsFound.forEach(mk => {
+            const agg = perMonthAgg[mk];
+            monthlySlaStore[mk] = agg.callsSum > 0 ? Math.round((agg.weightedSlaSum / agg.callsSum) * 100) : 0;
           });
+
+          saveToCloud();
+
+          document.getElementById('dsrUploadStatus').innerText = `Synced (${monthsFound.join(', ')})`;
+          initMonthDropdowns();
+          renderActiveView();
+
+          toggleModal(false);
+          setTimeout(() => {
+            window.dispatchEvent(new Event('resize'));
+          }, 200);
+        } catch (err) {
+          console.error("DSR upload parse error:", err);
+          alert("There was a problem reading this file. Please confirm it matches the DSR Abandon report format.");
         }
-
-        rawDSRRows = parsedRows;
-        saveToCloud();
-
-        document.getElementById('dsrUploadStatus').innerText = `Synced (${file.name.slice(0, 10)}...)`;
-        renderActiveView();
-        
-        toggleModal(false);
-        setTimeout(() => {
-          window.dispatchEvent(new Event('resize'));
-        }, 200);
       };
       reader.readAsArrayBuffer(file);
     }
 
     window.addEventListener("DOMContentLoaded", () => {
       // 1. Instant local cache load so graphs display immediately
-      summaryAHTRows = JSON.parse(localStorage.getItem('PETRO_SUMMARY_AHT_STORE') || 'null');
-      rawDSRRows = JSON.parse(localStorage.getItem('PETRO_RAW_DSR_STORE') || 'null');
+      monthlyAHTStore = JSON.parse(localStorage.getItem('PETRO_MONTHLY_AHT_STORE') || 'null') || {};
+      monthlySlaStore = JSON.parse(localStorage.getItem('PETRO_MONTHLY_SLA_STORE') || 'null') || {};
 
-      if (summaryAHTRows && summaryAHTRows.length > 0) {
+      if (Object.keys(monthlyAHTStore).length > 0) {
         document.getElementById('ahtUploadStatus').innerText = `Loaded (Saved)`;
       }
-      if (rawDSRRows && rawDSRRows.length > 0) {
+      if (Object.keys(monthlySlaStore).length > 0) {
         document.getElementById('dsrUploadStatus').innerText = `Loaded (Saved)`;
       }
 
