@@ -5,7 +5,10 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Updates - PETRO MNL</title>
   <link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@600;700;800&family=Plus+Jakarta+Sans:wght@500;600;700;800;900&display=swap" rel="stylesheet">
+  <!-- SheetJS and Firebase SDKs -->
   <script src="https://cdn.jsdelivr.net/npm/xlsx@0.18.5/dist/xlsx.full.min.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-app-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore-compat.js"></script>
   <style>
     :root {
       --bg: #f8fafc;
@@ -36,10 +39,7 @@
       gap: 1rem;
     }
 
-    /* Top Action Bar completely removed since navigation buttons were requested to be deleted */
-    .top-toolbar {
-      display: none;
-    }
+    .top-toolbar { display: none; }
 
     /* Secondary Header Row */
     .section-header-bar {
@@ -152,7 +152,6 @@
     .action-icon-btn.edit:hover { background: #f0fdfa; color: var(--teal-dark); border-color: var(--teal-primary); }
     .action-icon-btn.delete:hover { background: #fef2f2; color: #ef4444; border-color: #fee2e2; }
 
-    /* Rendered body formatting */
     .update-body {
       font-size: 0.96rem;
       font-weight: 500;
@@ -174,7 +173,6 @@
       font-weight: 700;
     }
 
-    /* Supporting Image Container placed below text */
     .update-image-container {
       width: 100%;
       max-width: 640px;
@@ -252,7 +250,6 @@
     .form-input:focus, .form-textarea:focus { border-color: var(--teal-primary); background: #ffffff; box-shadow: 0 0 0 3px rgba(13, 148, 136, 0.1); }
     .form-textarea { resize: vertical; min-height: 110px; font-family: 'Plus Jakarta Sans', sans-serif; }
 
-    /* Clean Format Toolbar */
     .editor-toolbar {
       display: flex;
       gap: 0.35rem;
@@ -337,21 +334,18 @@
   <div class="section-header-bar">
     <div class="section-header-left">
       <div class="section-badge">UPDATES</div>
-      <span class="section-sub">Operational Broadcast & Notices</span>
+      <span class="section-sub" id="syncStatus">Operational Broadcast & Notices</span>
     </div>
     <button class="header-action-btn" onclick="openUpdateModal()">+ Post New Update</button>
   </div>
 
   <!-- Main Content Container -->
   <div class="updates-main-container">
-    
-    <!-- Flexible Main Updates Board -->
     <div class="client-post-card">
       <div id="updatesListContainer" style="display: flex; flex-direction: column; gap: 1.5rem; width: 100%;">
         <!-- Dynamically rendered updates list will appear here -->
       </div>
     </div>
-
   </div>
 
   <!-- Modal for Creating/Editing Updates -->
@@ -397,25 +391,68 @@
   </div>
 
   <script>
-    let updatesList = JSON.parse(localStorage.getItem('PETRO_MNL_CLIENT_UPDATES_V20') || 'null');
-    
-    if (!updatesList) {
-      updatesList = [
-        {
-          id: 1,
-          title: "ABSENCES",
-          body: "Jan Neri – 2 days absent due to sickness.<br>Felisha Sy – 3 days absent due to illness.",
-          image: "",
-          timestamp: "September 10, 2026 - 05:20 PM (Edited)"
-        }
-      ];
-      localStorage.setItem('PETRO_MNL_CLIENT_UPDATES_V20', JSON.stringify(updatesList));
+    // TODO: Replace with your actual Firebase project configuration credentials
+    const firebaseConfig = {
+      apiKey: "YOUR_FIREBASE_API_KEY",
+      authDomain: "YOUR_PROJECT_ID.firebaseapp.com",
+      projectId: "YOUR_PROJECT_ID",
+      storageBucket: "YOUR_PROJECT_ID.appspot.com",
+      messagingSenderId: "YOUR_MESSAGING_SENDER_ID",
+      appId: "YOUR_APP_ID"
+    };
+
+    if (!firebase.apps.length) {
+      firebase.initializeApp(firebaseConfig);
     }
+    const db = firebase.firestore();
+
+    let updatesList = [
+      {
+        id: 1,
+        title: "ABSENCES",
+        body: "Jan Neri – 2 days absent due to sickness.<br>Felisha Sy – 3 days absent due to illness.",
+        image: "",
+        timestamp: "September 10, 2026 - 05:20 PM"
+      }
+    ];
 
     let selectedImageDataUrl = "";
 
-    function saveStorage() {
-      localStorage.setItem('PETRO_MNL_CLIENT_UPDATES_V20', JSON.stringify(updatesList));
+    // Save updates to Firebase Cloud Firestore
+    function saveToCloud() {
+      document.getElementById('syncStatus').innerText = 'Syncing to Cloud...';
+      db.collection('petro_updates').doc('notices_data').set({
+        updatesList: updatesList,
+        updatedAt: new Date()
+      }).then(() => {
+        console.log("Updates synced to Firebase.");
+        document.getElementById('syncStatus').innerText = 'Operational Broadcast & Notices (Cloud Synced)';
+      }).catch(err => {
+        console.error("Firebase sync error:", err);
+        document.getElementById('syncStatus').innerText = 'Cloud Sync Failed';
+      });
+    }
+
+    // Load updates from Firebase Cloud Firestore on startup
+    function loadFromCloud() {
+      document.getElementById('syncStatus').innerText = 'Connecting to Cloud...';
+      db.collection('petro_updates').doc('notices_data').get().then(doc => {
+        if (doc.exists) {
+          const remote = doc.data();
+          if (remote.updatesList && Array.isArray(remote.updatesList)) {
+            updatesList = remote.updatesList;
+          }
+          document.getElementById('syncStatus').innerText = 'Operational Broadcast & Notices (Cloud Synced)';
+          renderUpdatesDashboard();
+        } else {
+          document.getElementById('syncStatus').innerText = 'Operational Broadcast & Notices';
+          renderUpdatesDashboard();
+        }
+      }).catch(err => {
+        console.log("Cloud fetch note:", err);
+        document.getElementById('syncStatus').innerText = 'Operational Broadcast & Notices';
+        renderUpdatesDashboard();
+      });
     }
 
     function insertFormat(tagOpen, tagClose) {
@@ -510,7 +547,7 @@
         updatesList.unshift(newPost);
       }
 
-      saveStorage();
+      saveToCloud();
       closeUpdateModal();
       renderUpdatesDashboard();
     }
@@ -518,7 +555,7 @@
     function deleteUpdate(id) {
       if (confirm("Delete this update section?")) {
         updatesList = updatesList.filter(u => u.id !== id);
-        saveStorage();
+        saveToCloud();
         renderUpdatesDashboard();
       }
     }
@@ -564,7 +601,7 @@
     }
 
     window.addEventListener("DOMContentLoaded", () => {
-      renderUpdatesDashboard();
+      loadFromCloud();
     });
   </script>
 </body>
