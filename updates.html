@@ -5,7 +5,7 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Updates - PETRO MNL</title>
   <link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@600;700;800&family=Plus+Jakarta+Sans:wght@500;600;700;800;900&display=swap" rel="stylesheet">
-  <!-- SheetJS and Firebase SDKs -->
+  <!-- SheetJS, Firebase SDKs -->
   <script src="https://cdn.jsdelivr.net/npm/xlsx@0.18.5/dist/xlsx.full.min.js"></script>
   <script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-app-compat.js"></script>
   <script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore-compat.js"></script>
@@ -391,14 +391,15 @@
   </div>
 
   <script>
-    // TODO: Replace with your actual Firebase project configuration credentials
+    // Firebase Project Configuration
     const firebaseConfig = {
-      apiKey: "YOUR_FIREBASE_API_KEY",
-      authDomain: "YOUR_PROJECT_ID.firebaseapp.com",
-      projectId: "YOUR_PROJECT_ID",
-      storageBucket: "YOUR_PROJECT_ID.appspot.com",
-      messagingSenderId: "YOUR_MESSAGING_SENDER_ID",
-      appId: "YOUR_APP_ID"
+      apiKey: "AIzaSyCO5JOFPIw8YWouzGQ1hVnrar-h85rBUyA",
+      authDomain: "dailyservicereview.firebaseapp.com",
+      projectId: "dailyservicereview",
+      storageBucket: "dailyservicereview.firebasestorage.app",
+      messagingSenderId: "1004019130373",
+      appId: "1:1004019130373:web:8082b16c7570f56fd1fc6c",
+      measurementId: "G-4SMDMW96Q5"
     };
 
     if (!firebase.apps.length) {
@@ -406,7 +407,7 @@
     }
     const db = firebase.firestore();
 
-    let updatesList = [
+    let updatesList = JSON.parse(localStorage.getItem('PETRO_MNL_CLIENT_UPDATES_V20') || 'null') || [
       {
         id: 1,
         title: "ABSENCES",
@@ -418,8 +419,9 @@
 
     let selectedImageDataUrl = "";
 
-    // Save updates to Firebase Cloud Firestore
+    // Save updates to Firebase Cloud Firestore + local cache
     function saveToCloud() {
+      localStorage.setItem('PETRO_MNL_CLIENT_UPDATES_V20', JSON.stringify(updatesList));
       document.getElementById('syncStatus').innerText = 'Syncing to Cloud...';
       db.collection('petro_updates').doc('notices_data').set({
         updatesList: updatesList,
@@ -433,7 +435,7 @@
       });
     }
 
-    // Load updates from Firebase Cloud Firestore on startup
+    // Load updates from Firebase Cloud Firestore + local cache fallback
     function loadFromCloud() {
       document.getElementById('syncStatus').innerText = 'Connecting to Cloud...';
       db.collection('petro_updates').doc('notices_data').get().then(doc => {
@@ -441,6 +443,7 @@
           const remote = doc.data();
           if (remote.updatesList && Array.isArray(remote.updatesList)) {
             updatesList = remote.updatesList;
+            localStorage.setItem('PETRO_MNL_CLIENT_UPDATES_V20', JSON.stringify(updatesList));
           }
           document.getElementById('syncStatus').innerText = 'Operational Broadcast & Notices (Cloud Synced)';
           renderUpdatesDashboard();
@@ -601,6 +604,14 @@
     }
 
     window.addEventListener("DOMContentLoaded", () => {
+      // 1. Instant local cache load
+      const cachedUpdates = JSON.parse(localStorage.getItem('PETRO_MNL_CLIENT_UPDATES_V20') || 'null');
+      if (cachedUpdates && Array.isArray(cachedUpdates)) {
+        updatesList = cachedUpdates;
+      }
+      renderUpdatesDashboard();
+
+      // 2. Background cloud sync
       loadFromCloud();
     });
   </script>
