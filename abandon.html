@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Abandon & Service Level Review - PETRO MNL</title>
+  <title>Monthly Performance Intelligence - PETRO MNL</title>
   <link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@600;700;800&family=Plus+Jakarta+Sans:wght@500;600;700;800;900&display=swap" rel="stylesheet">
   <!-- Chart.js, Datalabels Plugin, SheetJS, and Firebase SDKs -->
   <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.1/dist/chart.umd.min.js"></script>
@@ -14,363 +14,303 @@
   <style>
     :root {
       --bg: #f8fafc;
-      --card: #ffffff;
-      --border: #e2e8f0;
-      --teal-dark: #0f766e;
-      --teal-primary: #0d9488;
-      --teal-subtle: #f0fdfa;
-      --teal-border: #ccfbf1;
+      --card-bg: #ffffff;
+      --border-subtle: #e2e8f0;
+      --border-focus: #0f766e;
+      --teal-primary: #0f766e;
+      --teal-light: #14b8a6;
+      --teal-glow: #f0fdfa;
+      --comp-color: #6366f1;
+      --comp-light: #e0e7ff;
       --text-main: #0f172a;
       --text-muted: #64748b;
-      --red: #f43f5e;
-      --red-bg: #fff1f2;
-      --green: #10b981;
-      --green-bg: #ecfdf5;
-      --yellow: #f59e0b;
-      --yellow-bg: #fffbeb;
-      --shadow: 0 1px 3px rgba(0,0,0,0.04), 0 1px 2px rgba(0,0,0,0.02);
+      --text-soft: #94a3b8;
+      --emerald: #10b981;
+      --emerald-bg: #ecfdf5;
+      --rose: #f43f5e;
+      --rose-bg: #fff1f2;
+      --amber: #f59e0b;
+      --amber-bg: #fffbeb;
+      --shadow-sm: 0 1px 3px rgba(0,0,0,0.03), 0 1px 2px rgba(0,0,0,0.02);
+      --shadow-card: 0 4px 12px -2px rgba(15, 23, 42, 0.04), 0 2px 6px -1px rgba(15, 23, 42, 0.02);
     }
 
     * { box-sizing: border-box; margin: 0; padding: 0; font-family: 'Plus Jakarta Sans', sans-serif; }
     html, body {
+      height: 100vh;
+      width: 100%;
       background-color: var(--bg);
       color: var(--text-main);
-      min-height: 100vh;
-      width: 100%;
-      overflow-x: hidden;
+      overflow: hidden;
     }
     body {
       display: flex;
       flex-direction: column;
-      padding: clamp(0.75rem, 1.5vw, 1.25rem);
-      gap: 0.75rem;
+      padding: clamp(0.5vh, 1vh, 1rem) clamp(0.75rem, 1.2vw, 1.25rem);
+      gap: 0.6rem;
     }
 
-    /* Top Action Bar */
+    /* Executive Top Action Bar */
     .top-toolbar {
-      background: var(--card);
-      border: 1px solid var(--border);
+      background: var(--card-bg);
+      border: 1px solid var(--border-subtle);
       border-radius: 10px;
-      padding: 0.45rem 0.9rem;
+      padding: 0.45rem 0.95rem;
       display: flex;
       justify-content: space-between;
       align-items: center;
-      box-shadow: var(--shadow);
+      box-shadow: var(--shadow-sm);
+      flex-shrink: 0;
     }
-    .brand-group { display: flex; align-items: center; gap: 0.5rem; }
-    .brand-dot {
-      width: 9px; height: 9px; border-radius: 50%;
-      background: var(--teal-dark);
-      box-shadow: 0 0 0 3px rgba(15, 118, 110, 0.12);
-    }
-    .brand-title {
-      font-size: 0.92rem;
+    .brand-group { display: flex; align-items: center; gap: 1rem; }
+    .brand-badge {
+      background: linear-gradient(135deg, #0f766e 0%, #0d9488 100%);
+      color: #ffffff;
+      padding: 0.3rem 0.75rem;
+      border-radius: 7px;
+      font-size: 0.75rem;
       font-weight: 800;
-      color: var(--text-main);
-      letter-spacing: -0.01em;
+      letter-spacing: 0.04em;
+      box-shadow: 0 2px 4px rgba(15, 118, 110, 0.2);
     }
 
-    .toolbar-right { display: flex; align-items: center; gap: 0.5rem; }
-    .label-tag { font-size: 0.68rem; font-weight: 800; color: var(--text-muted); text-transform: uppercase; }
+    /* Modern Mode Switcher */
+    .view-mode-toggle {
+      display: flex;
+      background: #f1f5f9;
+      border: 1px solid var(--border-subtle);
+      border-radius: 8px;
+      padding: 2.5px;
+      gap: 2px;
+    }
+    .mode-btn {
+      background: transparent;
+      border: none;
+      color: var(--text-muted);
+      font-size: 0.72rem;
+      font-weight: 800;
+      padding: 0.28rem 0.75rem;
+      border-radius: 6px;
+      cursor: pointer;
+      transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+      white-space: nowrap;
+    }
+    .mode-btn:hover { color: var(--text-main); }
+    .mode-btn.active {
+      background: #ffffff;
+      color: var(--teal-primary);
+      box-shadow: 0 1px 4px rgba(0,0,0,0.08);
+    }
+
+    .toolbar-right { display: flex; align-items: center; gap: 0.6rem; }
+    .label-tag { font-size: 0.68rem; font-weight: 800; color: var(--text-muted); text-transform: uppercase; letter-spacing: 0.03em; }
     
     .dropdown {
-      background: #f1f5f9 url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='10' height='10' fill='%2364748b' viewBox='0 0 16 16'%3E%3Cpath d='M7.247 11.14 2.451 5.658C1.885 5.013 2.345 4 3.204 4h9.592a1 1 0 0 1 .753 1.659l-4.796 5.48a1 1 0 0 1-1.506 0z'/%3E%3C/svg%3E") no-repeat calc(100% - 8px) center;
-      border: 1px solid var(--border);
-      padding: 0.28rem 1.6rem 0.28rem 0.6rem;
-      border-radius: 6px;
-      font-size: 0.74rem;
+      background: #f8fafc url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='10' height='10' fill='%2364748b' viewBox='0 0 16 16'%3E%3Cpath d='M7.247 11.14 2.451 5.658C1.885 5.013 2.345 4 3.204 4h9.592a1 1 0 0 1 .753 1.659l-4.796 5.48a1 1 0 0 1-1.506 0z'/%3E%3C/svg%3E") no-repeat calc(100% - 10px) center;
+      border: 1px solid var(--border-subtle);
+      padding: 0.32rem 1.8rem 0.32rem 0.75rem;
+      border-radius: 7px;
+      font-size: 0.76rem;
       font-weight: 700;
       color: var(--text-main);
-      font-family: 'JetBrains Mono', monospace;
       outline: none;
       appearance: none;
       cursor: pointer;
       min-width: 145px;
+      transition: border-color 0.15s ease;
     }
-    .dropdown:focus { border-color: var(--teal-dark); }
+    .dropdown:focus { border-color: var(--teal-primary); }
 
     .gear-btn {
-      width: 30px; height: 30px;
-      border-radius: 6px;
-      background: #f1f5f9;
-      border: 1px solid var(--border);
+      width: 32px; height: 32px;
+      border-radius: 7px;
+      background: #f8fafc;
+      border: 1px solid var(--border-subtle);
       color: var(--text-muted);
       display: flex; align-items: center; justify-content: center;
       cursor: pointer;
-      font-size: 0.95rem;
+      font-size: 1rem;
       transition: all 0.15s ease;
     }
     .gear-btn:hover {
-      background: var(--teal-subtle);
-      border-color: var(--teal-border);
-      color: var(--teal-dark);
+      background: var(--teal-glow);
+      border-color: var(--teal-primary);
+      color: var(--teal-primary);
     }
 
-    /* Centered KPI Cards */
-    .kpi-row {
+    /* KPI Quick Strip */
+    .kpi-strip {
       display: grid;
-      grid-template-columns: repeat(5, minmax(0, 1fr));
-      gap: 0.65rem;
-      width: 100%;
-    }
-    .kpi-card {
-      background: var(--card);
-      border: 1px solid var(--border);
-      border-radius: 10px;
-      padding: 0.65rem 0.75rem;
-      box-shadow: var(--shadow);
-      display: flex;
-      flex-direction: column;
-      align-items: center;
-      text-align: center;
-      justify-content: space-between;
-      min-height: 98px;
-    }
-    .kpi-header {
-      font-size: 0.72rem;
-      font-weight: 900;
-      color: #0f172a;
-      letter-spacing: 0.05em;
-      text-transform: uppercase;
-      width: 100%;
-      text-align: center;
-    }
-    .kpi-core {
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      gap: 0.45rem;
-      margin: 0.12rem 0;
-      width: 100%;
-    }
-    .kpi-icon-wrap {
-      width: 28px; height: 28px;
-      border-radius: 6px;
-      background: var(--teal-subtle);
-      display: flex; align-items: center; justify-content: center;
+      grid-template-columns: repeat(4, 1fr);
+      gap: 0.6rem;
       flex-shrink: 0;
     }
-    .kpi-icon-wrap svg { width: 15px; height: 15px; fill: var(--teal-dark); }
-    .kpi-val {
-      font-size: clamp(1.25rem, 1.8vw, 1.65rem);
-      font-weight: 800;
-      font-family: 'JetBrains Mono', monospace;
-      color: var(--teal-dark);
-      line-height: 1;
-      letter-spacing: -0.03em;
-    }
-
-    .kpi-subtext {
-      font-size: 0.65rem;
-      color: var(--text-muted);
-      font-weight: 600;
-      width: 100%;
-      text-align: center;
-      white-space: nowrap;
-      overflow: hidden;
-      text-overflow: ellipsis;
-      border-top: 1px solid #f1f5f9;
-      padding-top: 0.35rem;
-    }
-
-    /* Top Call Drivers */
-    .drivers-stack {
-      width: 100%;
+    .kpi-card {
+      background: var(--card-bg);
+      border: 1px solid var(--border-subtle);
+      border-radius: 10px;
+      padding: 0.55rem 0.85rem;
+      box-shadow: var(--shadow-sm);
       display: flex;
       flex-direction: column;
-      gap: 0.12rem;
-      margin: 0.08rem 0;
+      justify-content: space-between;
+      min-height: 80px;
+      position: relative;
     }
-    .driver-row {
+    .kpi-title-row {
       display: flex;
       justify-content: space-between;
       align-items: center;
-      font-size: 0.7rem;
-      font-weight: 600;
-      color: #0f172a;
-      padding: 0 0.45rem;
     }
-    .driver-num {
-      font-family: 'JetBrains Mono', monospace;
-      color: #0f172a;
-      font-weight: 700;
-    }
-
-    .absence-field {
-      width: 48px;
-      border: 1px dashed var(--teal-border);
-      background: var(--teal-subtle);
-      color: var(--teal-dark);
-      border-radius: 6px;
-      font-size: 1.35rem;
+    .kpi-title {
+      font-size: 0.68rem;
       font-weight: 800;
-      font-family: 'JetBrains Mono', monospace;
-      text-align: center;
-      outline: none;
-      padding: 0.08rem;
-    }
-    .absence-field:focus { border-color: var(--teal-dark); background: #ffffff; }
-
-    /* Dashboard Layout */
-    .dashboard-layout {
-      display: grid;
-      grid-template-columns: minmax(0, 1fr) 245px;
-      gap: 0.75rem;
-      flex: 1;
-      align-items: stretch;
-      min-height: 0;
-    }
-
-    .chart-panel {
-      background: var(--card);
-      border: 1px solid var(--border);
-      border-radius: 10px;
-      padding: 0.85rem 1rem 0.5rem;
-      box-shadow: var(--shadow);
-      display: flex;
-      flex-direction: column;
-      min-height: 0;
-    }
-    .chart-heading {
-      font-size: 0.88rem;
-      font-weight: 800;
-      color: var(--text-main);
-      margin-bottom: 0.35rem;
-    }
-    .chart-viewport {
-      position: relative;
-      width: 100%;
-      flex: 1;
-      min-height: clamp(380px, 52vh, 580px);
-    }
-
-    .summary-panel {
-      background: var(--card);
-      border: 1px solid var(--border);
-      border-radius: 10px;
-      padding: 0.75rem;
-      box-shadow: var(--shadow);
-      display: flex;
-      flex-direction: column;
-      justify-content: space-between;
-      gap: 0.5rem;
-    }
-    .summary-title {
-      font-size: 0.72rem;
-      font-weight: 800;
-      color: var(--text-main);
-      padding-bottom: 0.35rem;
-      border-bottom: 1px solid var(--border);
+      color: var(--text-muted);
       text-transform: uppercase;
       letter-spacing: 0.04em;
     }
-    .insight-card {
-      padding: 0.45rem 0.6rem;
-      border-radius: 6px;
-      display: flex;
-      flex-direction: column;
-      gap: 0.05rem;
-    }
-    .card-green { background: var(--green-bg); border-left: 3px solid var(--green); }
-    .card-red { background: var(--red-bg); border-left: 3px solid var(--red); }
-    .card-yellow { background: var(--yellow-bg); border-left: 3px solid var(--yellow); }
-
-    .insight-label { font-size: 0.6rem; font-weight: 800; text-transform: uppercase; color: var(--text-muted); }
-    .insight-primary { font-size: 0.95rem; font-weight: 800; font-family: 'JetBrains Mono', monospace; }
-    .insight-sub { font-size: 0.65rem; color: var(--text-muted); }
-
-    .analysis-card {
-      background: #f8fafc;
-      border: 1px solid var(--border);
-      border-radius: 6px;
-      padding: 0.55rem 0.65rem;
-      display: flex;
-      flex-direction: column;
-      gap: 0.35rem;
-    }
-    .analysis-hours {
-      font-size: 0.72rem;
-      font-weight: 700;
-      display: flex;
-      flex-direction: column;
-      gap: 0.35rem;
-      line-height: 1.45;
+    .kpi-pill {
+      font-size: 0.62rem;
+      font-weight: 800;
       font-family: 'JetBrains Mono', monospace;
+      padding: 0.1rem 0.4rem;
+      border-radius: 12px;
     }
-    .hr-crit { color: #dc2626; }
-    .hr-peak { color: #16a34a; }
+    .pill-green { background: var(--emerald-bg); color: var(--emerald); }
+    .pill-rose { background: var(--rose-bg); color: var(--rose); }
+    .pill-teal { background: var(--teal-glow); color: var(--teal-primary); }
+    
+    .kpi-val-row {
+      display: flex;
+      align-items: baseline;
+      gap: 0.5rem;
+      margin: 0.15rem 0;
+    }
+    .kpi-val {
+      font-size: clamp(1.25rem, 1.7vw, 1.65rem);
+      font-weight: 900;
+      font-family: 'JetBrains Mono', monospace;
+      color: var(--teal-primary);
+      line-height: 1;
+    }
+    .kpi-sub {
+      font-size: 0.66rem;
+      color: var(--text-muted);
+      font-weight: 600;
+    }
 
-    .comment-panel {
-      background: var(--card);
-      border: 1px solid var(--border);
-      border-radius: 10px;
-      padding: 0.6rem 0.85rem;
-      box-shadow: var(--shadow);
+    /* Main Chart Grid */
+    .dashboard-grid {
+      display: grid;
+      grid-template-columns: 1.8fr 1.15fr;
+      gap: 0.65rem;
+      flex: 1;
+      min-height: 0;
     }
-    .comment-title {
+    .col-stack {
+      display: flex;
+      flex-direction: column;
+      gap: 0.65rem;
+      min-height: 0;
+    }
+
+    .chart-card {
+      background: var(--card-bg);
+      border: 1px solid var(--border-subtle);
+      border-radius: 11px;
+      padding: 0.75rem 1rem 0.5rem;
+      box-shadow: var(--shadow-card);
+      display: flex;
+      flex-direction: column;
+      flex: 1;
+      min-height: 0;
+    }
+    .chart-card-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 0.35rem;
+      flex-shrink: 0;
+    }
+    .chart-card-title {
+      font-size: 0.76rem;
+      font-weight: 900;
+      color: var(--text-main);
+      text-transform: uppercase;
+      letter-spacing: 0.04em;
+    }
+    .chart-card-badge {
       font-size: 0.65rem;
       font-weight: 800;
-      color: var(--teal-dark);
-      text-transform: uppercase;
-      letter-spacing: 0.04em;
-      margin-bottom: 0.25rem;
+      color: var(--teal-primary);
+      background: var(--teal-glow);
+      padding: 0.15rem 0.5rem;
+      border-radius: 5px;
+      font-family: 'JetBrains Mono', monospace;
     }
-    .comment-textarea {
+
+    .dual-chart-row {
+      display: grid;
+      grid-template-columns: 1fr 1.3fr;
+      gap: 0.75rem;
+      flex: 1;
+      min-height: 0;
       width: 100%;
-      min-height: 42px;
-      max-height: 80px;
-      border: 1px solid var(--border);
-      border-radius: 6px;
-      padding: 0.4rem 0.6rem;
-      font-size: 0.76rem;
-      color: var(--text-main);
-      background: #f8fafc;
-      resize: vertical;
-      outline: none;
     }
-    .comment-textarea:focus { border-color: var(--teal-dark); background: #ffffff; }
+    .chart-box {
+      position: relative;
+      width: 100%;
+      height: 100%;
+      min-height: 0;
+    }
 
     /* Settings Modal */
     .modal-overlay {
       position: fixed;
       top: 0; left: 0; width: 100%; height: 100%;
       background: rgba(15, 23, 42, 0.45);
-      backdrop-filter: blur(2px);
+      backdrop-filter: blur(3px);
       display: none;
       align-items: center;
       justify-content: center;
       z-index: 1000;
     }
     .modal-box {
-      background: var(--card);
-      border: 1px solid var(--border);
+      background: var(--card-bg);
+      border: 1px solid var(--border-subtle);
       border-radius: 12px;
-      width: min(92vw, 460px);
+      width: min(92vw, 520px);
       padding: 1.25rem;
-      box-shadow: 0 10px 25px -5px rgba(0, 0, 0, 0.1);
+      box-shadow: 0 15px 30px -5px rgba(0, 0, 0, 0.15);
+      display: flex;
+      flex-direction: column;
+      gap: 0.85rem;
     }
-    .modal-title-row {
+    .modal-header {
       display: flex; justify-content: space-between; align-items: center;
-      margin-bottom: 1rem; padding-bottom: 0.5rem; border-bottom: 1px solid var(--border);
+      padding-bottom: 0.5rem; border-bottom: 1px solid var(--border-subtle);
     }
-    .modal-title { font-size: 0.92rem; font-weight: 800; color: var(--text-main); }
+    .modal-title { font-size: 0.95rem; font-weight: 800; color: var(--text-main); }
     .close-btn { background: none; border: none; font-size: 1.2rem; color: var(--text-muted); cursor: pointer; }
-    .upload-field { margin-bottom: 0.9rem; display: flex; flex-direction: column; gap: 0.25rem; }
-    .upload-field label { font-size: 0.7rem; font-weight: 700; color: var(--text-muted); text-transform: uppercase; }
-    .file-select-btn {
-      border: 1px dashed var(--teal-border);
-      background: var(--teal-subtle);
-      color: var(--teal-dark);
-      padding: 0.55rem 0.75rem;
-      border-radius: 6px;
-      font-size: 0.76rem;
+
+    .upload-field { display: flex; flex-direction: column; gap: 0.3rem; }
+    .upload-field label { font-size: 0.68rem; font-weight: 800; color: var(--teal-primary); text-transform: uppercase; }
+    .upload-btn-label {
+      border: 1px dashed var(--teal-primary);
+      background: var(--teal-glow);
+      color: var(--teal-primary);
+      padding: 0.55rem 0.85rem;
+      border-radius: 7px;
+      font-size: 0.75rem;
       font-weight: 700;
       cursor: pointer;
       display: flex;
       align-items: center;
       justify-content: space-between;
+      transition: all 0.15s ease;
     }
-    .upload-status { font-size: 0.68rem; color: var(--green); font-weight: 600; }
+    .upload-btn-label:hover { background: #ccfbf1; }
+    .upload-status { font-size: 0.68rem; color: var(--emerald); font-weight: 700; }
     input[type="file"] { display: none; }
   </style>
 </head>
@@ -379,158 +319,168 @@
   <!-- Top Action Bar -->
   <div class="top-toolbar">
     <div class="brand-group">
-      <div class="brand-dot"></div>
-      <div class="brand-title">Abandon & Service Level Review</div>
+      <div class="brand-badge">MONTHLY INTELLIGENCE</div>
+      <div class="view-mode-toggle">
+        <button id="btnSingleMode" class="mode-btn active" onclick="setViewMode('single')">Single Month</button>
+        <button id="btnCompMode" class="mode-btn" onclick="setViewMode('comp')">Month Comparison</button>
+      </div>
     </div>
 
     <div class="toolbar-right">
-      <span class="label-tag">Date:</span>
-      <select id="dateDropdown" class="dropdown" onchange="onDateSelectionChanged()"></select>
-      <button class="gear-btn" title="Upload Settings" onclick="toggleSettingsModal(true)">⚙</button>
+      <!-- Single Month Selector -->
+      <div id="singleSelectorGroup" style="display: flex; align-items: center; gap: 0.4rem;">
+        <span class="label-tag">Month:</span>
+        <select id="monthSelect1" class="dropdown" onchange="renderActiveView()"></select>
+      </div>
+
+      <!-- Comparison Selectors -->
+      <div id="compSelectorGroup" style="display: none; align-items: center; gap: 0.4rem;">
+        <span class="label-tag">Compare:</span>
+        <select id="monthComp1" class="dropdown" onchange="renderActiveView()"></select>
+        <span style="font-size: 0.75rem; font-weight: 800; color: var(--text-muted);">vs</span>
+        <select id="monthComp2" class="dropdown" onchange="renderActiveView()"></select>
+      </div>
+
+      <button class="gear-btn" title="Upload Reports & Data Settings" onclick="toggleModal(true)">⚙</button>
     </div>
   </div>
 
-  <!-- Centered KPI Cards -->
-  <div class="kpi-row">
+  <!-- KPI Strip Summary Header -->
+  <div class="kpi-strip">
     <div class="kpi-card">
-      <div class="kpi-header">TOTAL RECEIVED CALLS</div>
-      <div class="kpi-core">
-        <div class="kpi-icon-wrap">
-          <svg viewBox="0 0 24 24"><path d="M20.01 15.38c-1.23 0-2.42-.2-3.53-.56a.977.977 0 0 0-1.01.24l-1.57 1.97c-2.83-1.44-5.15-3.75-6.59-6.59l1.97-1.57c.28-.28.37-.68.25-1.02A11.36 11.36 0 0 1 8.5 4.31c0-.55-.45-1-1-1H4.11c-.55 0-1 .45-1 1 0 9.39 7.61 17 17 17 .55 0 1-.45 1-1v-3.39c0-.54-.45-.99-1-.99z"/></svg>
-        </div>
-        <div class="kpi-val" id="dispCalls">1,415</div>
+      <div class="kpi-title-row">
+        <span class="kpi-title">Inbound Volume</span>
+        <span class="kpi-pill pill-teal" id="kpiCallsPill">Telemetry</span>
       </div>
-      <div class="kpi-subtext">Cumulative shift volume</div>
+      <div class="kpi-val-row">
+        <span class="kpi-val" id="kpiCallsVal">--</span>
+      </div>
+      <span class="kpi-sub" id="kpiCallsSub">Cumulative Inbound Calls</span>
     </div>
 
     <div class="kpi-card">
-      <div class="kpi-header">SERVICE LEVEL</div>
-      <div class="kpi-core">
-        <div class="kpi-icon-wrap">
-          <svg viewBox="0 0 24 24"><path d="M2 20h20v2H2zm2-8h3v7H4zm6-5h3v12h-3zm6-4h3v16h-3z"/></svg>
-        </div>
-        <div class="kpi-val" id="dispSLA">3%</div>
+      <div class="kpi-title-row">
+        <span class="kpi-title">Average Handle Time</span>
+        <span class="kpi-pill pill-green" id="kpiAHTPill">Normalized</span>
       </div>
-      <div class="kpi-subtext">Target: &ge; 80% threshold</div>
+      <div class="kpi-val-row">
+        <span class="kpi-val" id="kpiAHTVal">--</span>
+      </div>
+      <span class="kpi-sub" id="kpiAHTSub">Overall Target &lt; 20:00</span>
     </div>
 
     <div class="kpi-card">
-      <div class="kpi-header">AVERAGE HANDLE TIME</div>
-      <div class="kpi-core">
-        <div class="kpi-icon-wrap">
-          <svg viewBox="0 0 24 24"><path d="M12 1a9 9 0 0 0-9 9v7c0 1.66 1.34 3 3 3h3v-8H5v-2c0-3.87 3.13-7 7-7s7 3.13 7 7v2h-4v8h3c1.66 0 3-1.34 3-3v-7a9 9 0 0 0-9-9z"/></svg>
-        </div>
-        <div class="kpi-val" id="dispAHT">0:20:34</div>
+      <div class="kpi-title-row">
+        <span class="kpi-title">Service Level (SLA)</span>
+        <span class="kpi-pill pill-rose" id="kpiSLAPill">Weighted</span>
       </div>
-      <div class="kpi-subtext">Weighted duration avg</div>
+      <div class="kpi-val-row">
+        <span class="kpi-val" id="kpiSLAVal">--</span>
+      </div>
+      <span class="kpi-sub" id="kpiSLASub">Call-Weighted Five9 %rec</span>
     </div>
 
     <div class="kpi-card">
-      <div class="kpi-header">CALL DRIVERS</div>
-      <div class="drivers-stack" id="dispDrivers">
-        <div class="driver-row"><span>POS Issue</span><span class="driver-num">174</span></div>
-        <div class="driver-row"><span>Pump Issue</span><span class="driver-num">141</span></div>
-        <div class="driver-row"><span>DCR Issue</span><span class="driver-num">103</span></div>
+      <div class="kpi-title-row">
+        <span class="kpi-title">CSAT Satisfaction</span>
+        <span class="kpi-pill pill-green" id="kpiCSATPill">Q1 Average</span>
       </div>
-      <div class="kpi-subtext">Top incident categories</div>
-    </div>
-
-    <div class="kpi-card">
-      <div class="kpi-header">ABSENCES</div>
-      <div class="kpi-core" style="justify-content: center;">
-        <input type="number" id="absenceInput" class="absence-field" value="1" min="0" onchange="onAbsenceChanged(this.value)">
+      <div class="kpi-val-row">
+        <span class="kpi-val" id="kpiCSATVal">--</span>
       </div>
-      <div class="kpi-subtext">Unplanned exceptions</div>
+      <span class="kpi-sub" id="kpiCSATSub">Out of 5.00 Rating Scale</span>
     </div>
   </div>
 
-  <!-- Dashboard Split -->
-  <div class="dashboard-layout">
-    <div class="chart-panel">
-      <div class="chart-heading">Service Level % by Hourly Interval</div>
-      <div class="chart-viewport">
-        <canvas id="slaBarChart"></canvas>
-      </div>
-    </div>
-
-    <div class="summary-panel">
-      <div class="summary-title">Summary</div>
-
-      <div class="insight-card card-green">
-        <div class="insight-label">Peak Performance</div>
-        <div class="insight-primary" id="sumPeak">100%</div>
-        <div class="insight-sub" id="sumPeakHr">at 22:00</div>
+  <!-- Main Chart Grid -->
+  <div class="dashboard-grid">
+    <div class="col-stack">
+      <div class="chart-card">
+        <div class="chart-card-header">
+          <span class="chart-card-title">Handle Time Composition</span>
+          <span class="chart-card-badge" id="ahtCardBadge">Consult • Hold • Conference</span>
+        </div>
+        <div class="dual-chart-row">
+          <div class="chart-box"><canvas id="ahtSummaryChart"></canvas></div>
+          <div class="chart-box"><canvas id="consultHoldConfChart"></canvas></div>
+        </div>
       </div>
 
-      <div class="insight-card card-red">
-        <div class="insight-label">Critical Drop</div>
-        <div class="insight-primary" id="sumLow">0%</div>
-        <div class="insight-sub" id="sumLowHr">Lowest point</div>
-      </div>
-
-      <div class="insight-card card-yellow">
-        <div class="insight-label">Recovery Point</div>
-        <div class="insight-primary" id="sumRecover">04:00 (69%)</div>
-        <div class="insight-sub" id="sumRecoverSub">Turnaround point</div>
-      </div>
-
-      <div class="analysis-card">
-        <div class="insight-label" style="margin-bottom: 2px;">Hours Overview</div>
-        <div class="analysis-hours">
-          <span class="hr-crit" id="guideCrit">Critical : 00:00 - 03:00, 08:00 - 21:00</span>
-          <span class="hr-peak" id="guidePeak">Peak : 04:00 - 07:00, 22:00 - 23:00</span>
+      <div class="chart-card">
+        <div class="chart-card-header">
+          <span class="chart-card-title">Customer Satisfaction & Survey Volume</span>
+          <span class="chart-card-badge" id="surveyCardBadge">Voice of Customer</span>
+        </div>
+        <div class="dual-chart-row">
+          <div class="chart-box"><canvas id="surveyScoreChart"></canvas></div>
+          <div class="chart-box"><canvas id="surveyRespondedChart"></canvas></div>
         </div>
       </div>
     </div>
+
+    <div class="col-stack">
+      <div class="chart-card" style="flex: 1.15;">
+        <div class="chart-card-header">
+          <span class="chart-card-title">Service Level %</span>
+          <span class="chart-card-badge">Five9 SLA</span>
+        </div>
+        <div class="chart-box" style="padding: 0.35rem 0;">
+          <canvas id="slaChart"></canvas>
+        </div>
+      </div>
+
+      <div class="chart-card" style="flex: 0.85;">
+        <div class="chart-card-header">
+          <span class="chart-card-title">Inbound Volume Distribution</span>
+          <span class="chart-card-badge">Total Calls</span>
+        </div>
+        <div class="chart-box"><canvas id="volumeChart"></canvas></div>
+      </div>
+    </div>
   </div>
 
-  <!-- Compact Comment Section -->
-  <div class="comment-panel">
-    <div class="comment-title">Shift Commentary & Operational Remarks</div>
-    <textarea id="shiftComment" class="comment-textarea" placeholder="Add brief notes regarding spikes, outages, or staffing exceptions for this day..." oninput="saveComment(this.value)"></textarea>
-  </div>
-
-  <!-- Settings Modal -->
-  <div class="modal-overlay" id="settingsModal" onclick="if(event.target === this) toggleSettingsModal(false)">
+  <!-- Settings Modal (File Uploads) -->
+  <div class="modal-overlay" id="settingsModal" onclick="if(event.target === this) toggleModal(false)">
     <div class="modal-box">
-      <div class="modal-title-row">
-        <div class="modal-title">⚙ Upload Telemetry & Case Reports</div>
-        <button class="close-btn" onclick="toggleSettingsModal(false)">&times;</button>
+      <div class="modal-header">
+        <div class="modal-title">⚙ Upload Operational Reports (Cloud Sync)</div>
+        <button class="close-btn" onclick="toggleModal(false)">&times;</button>
       </div>
 
       <div class="upload-field">
-        <label>1. Abandon DSR Sheet (.xlsx)</label>
-        <label for="dsrInputModal" class="file-select-btn">
-          <span>📊 Select Abandon DSR File</span>
-          <span class="upload-status" id="dsrStatus">Checking Cloud...</span>
+        <label>1. Monthly AHT & Survey Report (.xlsx)</label>
+        <label for="ahtFileInput" class="upload-btn-label">
+          <span>📊 Select AHT & Survey File</span>
+          <span class="upload-status" id="ahtUploadStatus">Checking Cloud...</span>
         </label>
-        <input type="file" id="dsrInputModal" accept=".xlsx,.xls,.csv" onchange="uploadDSR(event)">
+        <input type="file" id="ahtFileInput" accept=".xlsx,.xls,.csv" onchange="handleAHTUpload(event)">
       </div>
 
       <div class="upload-field">
-        <label>2. Salesforce Case Reports (.xlsx)</label>
-        <label for="sfInputModal" class="file-select-btn">
-          <span>📂 Select Cases Report File</span>
-          <span class="upload-status" id="sfStatus">Checking Cloud...</span>
+        <label>2. DSR Abandon & SLA Report (.xlsx)</label>
+        <label for="dsrFileInput" class="upload-btn-label">
+          <span>📂 Select Abandon DSR File</span>
+          <span class="upload-status" id="dsrUploadStatus">Checking Cloud...</span>
         </label>
-        <input type="file" id="sfInputModal" accept=".xlsx,.xls,.csv" onchange="uploadSF(event)">
+        <input type="file" id="dsrFileInput" accept=".xlsx,.xls,.csv" onchange="handleDSRUpload(event)">
       </div>
 
-      <div style="font-size: 0.7rem; color: var(--text-muted); line-height: 1.4; margin-top: 0.5rem;">
+      <div style="font-size: 0.7rem; color: var(--text-muted); line-height: 1.45; margin-top: 0.2rem;">
         Data is securely synchronized to your Firebase Firestore cloud database and persists permanently.
       </div>
     </div>
   </div>
 
   <script>
-    // TODO: Replace with your actual Firebase project configuration credentials
+    // Firebase Project Configuration
     const firebaseConfig = {
-      apiKey: "YOUR_FIREBASE_API_KEY",
-      authDomain: "YOUR_PROJECT_ID.firebaseapp.com",
-      projectId: "YOUR_PROJECT_ID",
-      storageBucket: "YOUR_PROJECT_ID.appspot.com",
-      messagingSenderId: "YOUR_MESSAGING_SENDER_ID",
-      appId: "YOUR_APP_ID"
+      apiKey: "AIzaSyCO5JOFPIw8YWouzGQ1hVnrar-h85rBUyA",
+      authDomain: "dailyservicereview.firebaseapp.com",
+      projectId: "dailyservicereview",
+      storageBucket: "dailyservicereview.firebasestorage.app",
+      messagingSenderId: "1004019130373",
+      appId: "1:1004019130373:web:8082b16c7570f56fd1fc6c",
+      measurementId: "G-4SMDMW96Q5"
     };
 
     if (!firebase.apps.length) {
@@ -540,363 +490,493 @@
 
     Chart.register(ChartDataLabels);
 
-    const defaultIntervals = [
-      { hour: "00:00", calls: 8, ahtSec: 1228, sla: 0.10 },
-      { hour: "01:00", calls: 6, ahtSec: 615,  sla: 0.50 },
-      { hour: "02:00", calls: 20, ahtSec: 1015, sla: 0.37 },
-      { hour: "03:00", calls: 73, ahtSec: 252,  sla: 0.44 },
-      { hour: "04:00", calls: 61, ahtSec: 311,  sla: 0.89 },
-      { hour: "05:00", calls: 103, ahtSec: 310,  sla: 0.97 },
-      { hour: "06:00", calls: 155, ahtSec: 774,  sla: 0.75 },
-      { hour: "07:00", calls: 177, ahtSec: 1088, sla: 0.67 },
-      { hour: "08:00", calls: 136, ahtSec: 1370, sla: 0.07 },
-      { hour: "09:00", calls: 159, ahtSec: 1242, sla: 0.10 },
-      { hour: "10:00", calls: 146, ahtSec: 1388, sla: 0.13 },
-      { hour: "11:00", calls: 144, ahtSec: 1352, sla: 0.10 },
-      { hour: "12:00", calls: 111, ahtSec: 1314, sla: 0.03 },
-      { hour: "13:00", calls: 99, ahtSec: 1449, sla: 0.09 },
-      { hour: "14:00", calls: 65, ahtSec: 1275, sla: 0.01 },
-      { hour: "15:00", calls: 77, ahtSec: 1479, sla: 0.03 },
-      { hour: "16:00", calls: 58, ahtSec: 1169, sla: 0.02 },
-      { hour: "17:00", calls: 41, ahtSec: 1504, sla: 0.00 },
-      { hour: "18:00", calls: 36, ahtSec: 1234, sla: 0.00 },
-      { hour: "19:00", calls: 25, ahtSec: 855,  sla: 0.00 },
-      { hour: "20:00", calls: 16, ahtSec: 1001, sla: 0.00 },
-      { hour: "21:00", calls: 6, ahtSec: 838,  sla: 0.29 },
-      { hour: "22:00", calls: 10, ahtSec: 784,  sla: 1.00 },
-      { hour: "23:00", calls: 7, ahtSec: 1027, sla: 0.92 }
-    ];
-
-    let appState = {
-      dates: {
-        "2026-08-20": {
-          intervals: defaultIntervals,
-          absences: 1,
-          drivers: [
-            { name: "POS Issue", count: 174 },
-            { name: "Pump Issue", count: 141 },
-            { name: "DCR Issue", count: 103 }
-          ]
-        }
-      },
-      casesByDate: {},
-      commentsByDate: {},
-      currentDate: "2026-08-20"
+    const monthOrderMap = {
+      "january": 1, "february": 2, "march": 3, "april": 4,
+      "may": 5, "june": 6, "july": 7, "august": 8,
+      "september": 9, "october": 10, "november": 11, "december": 12
     };
 
-    // Save state to Firebase Cloud Firestore
-    function saveToCloud() {
-      db.collection('petro_abandon').doc('review_data').set({
-        dates: appState.dates,
-        casesByDate: appState.casesByDate,
-        commentsByDate: appState.commentsByDate,
-        currentDate: appState.currentDate,
-        updatedAt: new Date()
-      }).then(() => {
-        console.log("Abandon state synced to Firebase.");
-      }).catch(err => console.error("Firebase sync error:", err));
+    function parseMonthYearSortKey(monthStr) {
+      if (!monthStr) return 0;
+      const clean = String(monthStr).toLowerCase().replace(/[^a-z0-9 ]/g, ' ');
+      const tokens = clean.split(/\s+/).filter(Boolean);
+      let mNum = 0; let yNum = 2026;
+      tokens.forEach(t => {
+        if (monthOrderMap[t]) mNum = monthOrderMap[t];
+        else if (/^20\d\d$/.test(t)) yNum = parseInt(t, 10);
+      });
+      return yNum * 100 + mNum;
     }
 
-    // Load state from Firebase Cloud Firestore on startup
-    function loadFromCloud() {
-      db.collection('petro_abandon').doc('review_data').get().then(doc => {
-        if (doc.exists) {
-          const remote = doc.data();
-          if (remote.dates) appState.dates = remote.dates;
-          if (remote.casesByDate) appState.casesByDate = remote.casesByDate;
-          if (remote.commentsByDate) appState.commentsByDate = remote.commentsByDate;
-          if (remote.currentDate) appState.currentDate = remote.currentDate;
+    let rawAHTRows = null;
+    let rawDSRRows = null;
 
-          document.getElementById("dsrStatus").innerText = "Loaded (Cloud Sync)";
-          document.getElementById("sfStatus").innerText = "Loaded (Cloud Sync)";
+    let activeMode = 'single';
+    let chartInstances = {};
 
-          updateDateDropdown();
-          renderDashboard(appState.currentDate);
-        }
-      }).catch(err => console.log("Cloud fetch note:", err));
+    function toggleModal(show) {
+      document.getElementById('settingsModal').style.display = show ? 'flex' : 'none';
     }
 
-    const sfFormulaRules = {
-      "POS Issue": ["register", "plu", "department", "ebt", "remote service", "scanner", "touchscreen pos", "age", "suspend void", "site settlement", "mop", "receipt"],
-      "Pump Issue": ["pump", "fuel", "fp", "prepay", "dispense", "post", "preset"],
-      "DCR Issue": ["dcr", "pay inside", "sales coming", "crind"],
-      "Network Issue": ["network", "outage", "offline", "decline", "unable to process cards inside and outside", "unable to process card after day close", "70"],
-      "Report": ["report", "batch", "aeod", "payroll", "close end", "day", "monthly", "shift", "daily", "month", "close", "yearly"],
-      "Pinpad issue": ["pop", "pinpad", "contactless inside"],
-      "Pair POS": ["pair", "pairing"],
-      "Transaction Stop": ["stop", "stopped", "transaction stopped", "totals declined"],
-      "C-SITE ISSUE": ["onboarding", "mapping", "c-site", "onboard", "no longer connected"],
-      "Password Reset": ["password reset"]
-    };
-
-    let slaChartInstance = null;
-
-    function toggleSettingsModal(open) {
-      document.getElementById("settingsModal").style.display = open ? "flex" : "none";
+    function timeSecToHMS(sec) {
+      if (isNaN(sec) || sec === null || sec === 0) return "0:00:00";
+      const s = Math.round(sec);
+      const hrs = Math.floor(s / 3600);
+      const mins = Math.floor((s % 3600) / 60);
+      const rem = s % 60;
+      return `${hrs}:${String(mins).padStart(2,'0')}:${String(rem).padStart(2,'0')}`;
     }
 
-    function formatDisplayDate(isoDateStr) {
-      if (!isoDateStr) return "";
-      const parts = isoDateStr.split('-');
-      if (parts.length !== 3) return isoDateStr;
-      const d = new Date(parseInt(parts[0], 10), parseInt(parts[1], 10) - 1, parseInt(parts[2], 10));
-      const days = ["Sun", "Mon", "Tue", "Wed", "Thu", "Fri", "Sat"];
-      const dayName = days[d.getDay()];
-      const mm = parts[1];
-      const dd = parts[2];
-      const yy = parts[0].slice(-2);
-      return `${mm}-${dd}-${yy} (${dayName})`;
+    function setViewMode(mode) {
+      activeMode = mode;
+      document.getElementById('btnSingleMode').classList.toggle('active', mode === 'single');
+      document.getElementById('btnCompMode').classList.toggle('active', mode === 'comp');
+      document.getElementById('singleSelectorGroup').style.display = mode === 'single' ? 'flex' : 'none';
+      document.getElementById('compSelectorGroup').style.display = mode === 'comp' ? 'flex' : 'none';
+      renderActiveView();
     }
 
-    function toISODate(val) {
-      if (!val) return "";
-      if (typeof val === 'number') {
-        const d = new Date(Math.round((val - 25569)*86400*1000));
-        return d.toISOString().slice(0, 10);
-      }
-      const str = String(val).trim().replace(/\//g, '-');
-      const match = str.match(/\d{4}-\d{2}-\d{2}/);
-      if (match) return match[0];
-      return str.slice(0, 10);
-    }
-
-    function timeToSeconds(t) {
-      if (!t) return 0;
+    function parseSecOrNull(t) {
+      if (!t || t === '-' || t === '') return null;
       if (typeof t === 'number') return Math.round(t * 86400);
-      const parts = String(t).trim().split(':');
-      if (parts.length === 3) return (+parts[0])*3600 + (+parts[1])*60 + (+parts[2]);
-      if (parts.length === 2) return (+parts[0])*60 + (+parts[1]);
-      return 0;
+      const p = String(t).trim().split(':');
+      if (p.length === 3) return (+p[0])*3600 + (+p[1])*60 + (+p[2]);
+      return null;
     }
 
-    function secondsToHMS(sec) {
-      const h = Math.floor(sec / 3600);
-      const m = Math.floor((sec % 3600) / 60);
-      const s = Math.floor(sec % 60);
-      return `${h}:${String(m).padStart(2,'0')}:${String(s).padStart(2,'0')}`;
-    }
-
-    function saveComment(val) {
-      appState.commentsByDate[appState.currentDate] = val;
-      saveToCloud();
-    }
-
-    function formatDashRanges(hoursList) {
-      if (!hoursList || hoursList.length === 0) return "None";
-      const sorted = [...new Set(hoursList)].sort((a, b) => a - b);
-      const blocks = [];
-      let start = sorted[0];
-      let prev = sorted[0];
-
-      for (let i = 1; i <= sorted.length; i++) {
-        if (i < sorted.length && sorted[i] === prev + 1) {
-          prev = sorted[i];
-        } else {
-          const sStr = String(start).padStart(2, '0') + ":00";
-          const eStr = String(prev).padStart(2, '0') + ":00";
-          if (start === prev) blocks.push(sStr);
-          else blocks.push(`${sStr} - ${eStr}`);
-          if (i < sorted.length) { start = sorted[i]; prev = sorted[i]; }
-        }
-      }
-      return blocks.join(', ');
-    }
-
-    function updateDateDropdown() {
-      const dropdown = document.getElementById("dateDropdown");
-      dropdown.innerHTML = "";
-      const dates = Object.keys(appState.dates).sort().reverse();
-      
-      dates.forEach(dateStr => {
-        const opt = document.createElement("option");
-        opt.value = dateStr;
-        opt.textContent = formatDisplayDate(dateStr);
-        dropdown.appendChild(opt);
-      });
-
-      if (!dates.includes(appState.currentDate) && dates.length > 0) {
-        appState.currentDate = dates[0];
-      }
-      dropdown.value = appState.currentDate;
-    }
-
-    function onDateSelectionChanged() {
-      const dt = document.getElementById("dateDropdown").value;
-      appState.currentDate = dt;
-      saveToCloud();
-      renderDashboard(dt);
-    }
-
-    function onAbsenceChanged(val) {
-      if (appState.dates[appState.currentDate]) {
-        appState.dates[appState.currentDate].absences = Number(val) || 0;
-        saveToCloud();
-      }
-    }
-
-    function renderDashboard(dt) {
-      const record = appState.dates[dt];
-      if (!record) return;
-
-      const intervals = record.intervals;
-      let totalCalls = 0;
-      let sumprodAHT = 0;
-      let sumprodSLA = 0;
-
-      let peakObj = intervals[0];
-      let lowObj = intervals[0];
-      let recoveryObj = null;
-
-      const redHourIndices = [];
-      const greenOrangeHourIndices = [];
-
-      intervals.forEach(i => {
-        totalCalls += i.calls;
-        sumprodAHT += (i.calls * i.ahtSec);
-        sumprodSLA += (i.calls * i.sla);
-
-        const hrNum = parseInt(i.hour.split(':')[0], 10);
-
-        if (i.sla > peakObj.sla) peakObj = i;
-        if (i.sla < lowObj.sla) lowObj = i;
-
-        if (i.sla < 0.60) {
-          redHourIndices.push(hrNum);
-        } else {
-          greenOrangeHourIndices.push(hrNum);
-        }
-
-        if (!recoveryObj && i.sla >= 0.50) {
-          recoveryObj = i;
+    function getPrimaryMonthMaxDay(primaryMonthKey) {
+      if (!rawAHTRows || rawAHTRows.length === 0) return 31;
+      const cleanName = primaryMonthKey.split(' - ')[0].trim().toLowerCase();
+      let trueMax = 0;
+      rawAHTRows.forEach(r => {
+        const m = String(r['MONTH'] || r['Month'] || '').trim().toLowerCase();
+        if (m === cleanName) {
+          const dtVal = r['DATE'] || r['Date'] || r['TIMESTAMP'];
+          if (dtVal) {
+            const dObj = new Date(dtVal);
+            if (!isNaN(dObj.getTime())) {
+              trueMax = Math.max(trueMax, dObj.getDate());
+            }
+          }
         }
       });
+      return trueMax > 0 ? trueMax : 31;
+    }
 
-      const weightedAHT = totalCalls > 0 ? Math.round(sumprodAHT / totalCalls) : 0;
-      const weightedSLA = totalCalls > 0 ? (sumprodSLA / totalCalls) : 0;
+    function getAggregatedMetricsForMonth(monthName, maxDayLimit = 31) {
+      const cleanName = monthName.split(' - ')[0].trim().toLowerCase();
 
-      document.getElementById("dispCalls").innerText = totalCalls.toLocaleString();
-      document.getElementById("dispSLA").innerText = Math.round(weightedSLA * 100) + "%";
-      document.getElementById("dispAHT").innerText = secondsToHMS(weightedAHT);
-      document.getElementById("absenceInput").value = record.absences ?? 1;
+      if (!rawAHTRows || rawAHTRows.length === 0) {
+        return { ahtSec: 1190, consultSec: 291, holdSec: 84, confSec: 221, surveyScore: 4.64, responded: 222, slaPercent: 19, totalCalls: 3005, maxDay: maxDayLimit };
+      }
 
-      const driversContainer = document.getElementById("dispDrivers");
-      driversContainer.innerHTML = "";
-      const currentDrivers = (appState.casesByDate[dt] && appState.casesByDate[dt].length > 0)
-        ? appState.casesByDate[dt]
-        : record.drivers;
-
-      (currentDrivers || []).slice(0, 3).forEach(d => {
-        const div = document.createElement("div");
-        div.className = "driver-row";
-        div.innerHTML = `<span>${d.name}</span><span class="driver-num">${d.count}</span>`;
-        driversContainer.appendChild(div);
+      const rows = rawAHTRows.filter(r => {
+        const m = String(r['MONTH'] || r['Month'] || '').trim().toLowerCase();
+        if (m !== cleanName) return false;
+        if (!maxDayLimit || maxDayLimit >= 31) return true;
+        const dtVal = r['DATE'] || r['Date'] || r['TIMESTAMP'];
+        if (dtVal) {
+          const dObj = new Date(dtVal);
+          if (!isNaN(dObj.getTime())) {
+            return dObj.getDate() <= maxDayLimit;
+          }
+        }
+        return true;
       });
 
-      document.getElementById("sumPeak").innerText = Math.round(peakObj.sla * 100) + "%";
-      document.getElementById("sumPeakHr").innerText = `at ${peakObj.hour}`;
+      let ahtArr = [], consultArr = [], holdArr = [], confArr = [], surveyArr = [];
+      rows.forEach(r => {
+        const ht = parseSecOrNull(r['HANDLE TIME']);
+        const cs = parseSecOrNull(r['CONSULT TIME']);
+        const hd = parseSecOrNull(r['HOLD TIME']);
+        const cf = parseSecOrNull(r['CONFERENCE TIME']);
+        if (ht !== null) ahtArr.push(ht);
+        if (cs !== null) consultArr.push(cs);
+        if (hd !== null) holdArr.push(hd);
+        if (cf !== null) confArr.push(cf);
+        const sq = Number(r['Survey Q1']);
+        if (sq > 0) surveyArr.push(sq);
+      });
 
-      document.getElementById("sumLow").innerText = Math.round(lowObj.sla * 100) + "%";
-      document.getElementById("sumLowHr").innerText = `Lowest point`;
+      const calcAvg = arr => arr.length ? Math.round(arr.reduce((a, b) => a + b, 0) / arr.length) : 0;
+      const calcFloatAvg = arr => arr.length ? +(arr.reduce((a, b) => a + b, 0) / arr.length).toFixed(2) : 0;
 
-      if (recoveryObj) {
-        document.getElementById("sumRecover").innerText = `${recoveryObj.hour} (${Math.round(recoveryObj.sla * 100)}%)`;
-        document.getElementById("sumRecoverSub").innerText = `Turnaround`;
+      let matchedSla = cleanName === 'august' ? 19 : 8;
+      if (rawDSRRows && rawDSRRows.length > 0) {
+        let callsSum = 0, weightedSlaSum = 0;
+        rawDSRRows.forEach(dsr => {
+          const dtStr = String(dsr['DATE'] || '');
+          if (dtStr.includes('/')) {
+            const parts = dtStr.split('/');
+            const mPart = parseInt(parts[0], 10);
+            const dPart = parseInt(parts[1], 10);
+            const targetMNum = monthOrderMap[cleanName] || 9;
+            if (mPart === targetMNum && (!maxDayLimit || dPart <= maxDayLimit)) {
+              const c = Number(dsr['CALLS']) || 0;
+              const s = Number(dsr['SLA']) || 0;
+              if (c > 0) { callsSum += c; weightedSlaSum += (c * s); }
+            }
+          }
+        });
+        if (callsSum > 0) matchedSla = Math.round((weightedSlaSum / callsSum) * 100);
+      }
+
+      return {
+        ahtSec: calcAvg(ahtArr),
+        consultSec: calcAvg(consultArr),
+        holdSec: calcAvg(holdArr),
+        confSec: calcAvg(confArr),
+        surveyScore: calcFloatAvg(surveyArr),
+        responded: surveyArr.length,
+        slaPercent: matchedSla,
+        totalCalls: rows.length,
+        maxDay: maxDayLimit
+      };
+    }
+
+    function getAvailableMonths() {
+      if (!rawAHTRows || rawAHTRows.length === 0) return ["September - 2026", "August - 2026", "July - 2026"];
+      const set = new Set();
+      rawAHTRows.forEach(r => {
+        const m = r['MONTH'] || r['Month'];
+        if (m) set.add(`${String(m).trim()} - 2026`);
+      });
+      return Array.from(set).sort((a, b) => parseMonthYearSortKey(b) - parseMonthYearSortKey(a));
+    }
+
+    function initMonthDropdowns() {
+      const months = getAvailableMonths();
+      const m1 = document.getElementById('monthSelect1');
+      const comp1 = document.getElementById('monthComp1');
+      const comp2 = document.getElementById('monthComp2');
+
+      const curM1 = m1.value, curC1 = comp1.value, curC2 = comp2.value;
+      m1.innerHTML = ''; comp1.innerHTML = ''; comp2.innerHTML = '';
+
+      months.forEach((m) => {
+        m1.add(new Option(m, m));
+        comp1.add(new Option(m, m));
+        comp2.add(new Option(m, m));
+      });
+
+      if (months.includes(curM1)) m1.value = curM1; else if (months.length) m1.value = months[0];
+      if (months.includes(curC1)) comp1.value = curC1; else if (months.length > 0) comp1.selectedIndex = 0;
+      if (months.includes(curC2)) comp2.value = curC2; else if (months.length > 1) comp2.selectedIndex = 1;
+    }
+
+    function destroyCharts() {
+      ['aht', 'breakdown', 'survey', 'responded', 'sla', 'volume'].forEach(id => {
+        if (chartInstances[id]) { chartInstances[id].destroy(); chartInstances[id] = null; }
+      });
+    }
+
+    function renderActiveView() {
+      destroyCharts();
+      let monthKeys = [];
+      let maxDayLimit = 31;
+
+      if (activeMode === 'single') {
+        const mKey = document.getElementById('monthSelect1').value;
+        monthKeys = [mKey];
+        if (rawAHTRows) {
+          const cleanName = mKey.split(' - ')[0].trim();
+          const matchRows = rawAHTRows.filter(r => String(r['MONTH'] || r['Month'] || '').toLowerCase() === cleanName.toLowerCase());
+          matchRows.forEach(r => {
+            const dtVal = r['DATE'] || r['Date'];
+            if (dtVal) {
+              const d = new Date(dtVal);
+              if (!isNaN(d.getTime())) maxDayLimit = Math.max(maxDayLimit, d.getDate());
+            }
+          });
+        }
       } else {
-        document.getElementById("sumRecover").innerText = "None (<50%)";
-        document.getElementById("sumRecoverSub").innerText = `Queue sustained`;
+        const m1Key = document.getElementById('monthComp1').value;
+        const m2Key = document.getElementById('monthComp2').value;
+        monthKeys = [m1Key, m2Key];
+        maxDayLimit = getPrimaryMonthMaxDay(m1Key);
       }
 
-      document.getElementById("guideCrit").innerText = `Critical : ${formatDashRanges(redHourIndices)}`;
-      document.getElementById("guidePeak").innerText = `Peak : ${formatDashRanges(greenOrangeHourIndices)}`;
+      const activeDataMap = {};
+      monthKeys.forEach((mKey) => {
+        activeDataMap[mKey] = getAggregatedMetricsForMonth(mKey, maxDayLimit);
+      });
 
-      document.getElementById("shiftComment").value = appState.commentsByDate[dt] || "";
-
-      renderSLABarChart(intervals);
+      updateKPIStrip(monthKeys, activeDataMap);
+      renderHandleTimeCharts(monthKeys, activeDataMap);
+      renderSurveyCharts(monthKeys, activeDataMap);
+      renderSLAChart(monthKeys, activeDataMap);
+      renderVolumeChart(monthKeys, activeDataMap);
     }
 
-    function renderSLABarChart(intervals) {
-      const ctx = document.getElementById("slaBarChart").getContext("2d");
-      const labels = intervals.map(i => i.hour);
-      const slaValues = intervals.map(i => Math.round(i.sla * 100));
+    function updateKPIStrip(months, dataMap) {
+      const primary = dataMap[months[0]] || {};
+      const secondary = months.length > 1 ? dataMap[months[1]] || {} : null;
 
-      const barColors = slaValues.map(v => {
-        if (v >= 80) return '#10b981';
-        if (v >= 60) return '#f59e0b';
-        return '#f43f5e';
-      });
+      const callsVal = primary.totalCalls || 0;
+      document.getElementById('kpiCallsVal').innerText = callsVal.toLocaleString();
+      if (secondary && secondary.totalCalls) {
+        const delta = callsVal - secondary.totalCalls;
+        document.getElementById('kpiCallsPill').innerText = `${delta >= 0 ? '+' : ''}${delta.toLocaleString()}`;
+        document.getElementById('kpiCallsPill').className = delta >= 0 ? 'kpi-pill pill-green' : 'kpi-pill pill-rose';
+        document.getElementById('kpiCallsSub').innerText = `vs ${months[1]} (Days 1-${primary.maxDay})`;
+      } else {
+        document.getElementById('kpiCallsPill').innerText = 'Telemetry';
+        document.getElementById('kpiCallsPill').className = 'kpi-pill pill-teal';
+        document.getElementById('kpiCallsSub').innerText = 'Cumulative Inbound Calls';
+      }
 
-      const borderColors = slaValues.map(v => {
-        if (v >= 80) return '#059669';
-        if (v >= 60) return '#d97706';
-        return '#e11d48';
-      });
+      const ahtSec = primary.ahtSec || 0;
+      document.getElementById('kpiAHTVal').innerText = timeSecToHMS(ahtSec);
+      if (secondary && secondary.ahtSec) {
+        const delta = ahtSec - secondary.ahtSec;
+        const absM = Math.floor(Math.abs(delta)/60);
+        const absS = Math.abs(delta)%60;
+        document.getElementById('kpiAHTPill').innerText = `${delta <= 0 ? '-' : '+'}${absM}m ${absS}s`;
+        document.getElementById('kpiAHTPill').className = delta <= 0 ? 'kpi-pill pill-green' : 'kpi-pill pill-rose';
+        document.getElementById('kpiAHTSub').innerText = `vs ${months[1]}`;
+      } else {
+        document.getElementById('kpiAHTPill').innerText = ahtSec <= 1200 ? 'On Target' : 'Review';
+        document.getElementById('kpiAHTPill').className = ahtSec <= 1200 ? 'kpi-pill pill-green' : 'kpi-pill pill-rose';
+        document.getElementById('kpiAHTSub').innerText = 'Target < 20:00';
+      }
 
-      if (slaChartInstance) slaChartInstance.destroy();
+      const slaPct = primary.slaPercent || 0;
+      document.getElementById('kpiSLAVal').innerText = `${slaPct}%`;
+      if (secondary && secondary.slaPercent) {
+        const delta = slaPct - secondary.slaPercent;
+        document.getElementById('kpiSLAPill').innerText = `${delta >= 0 ? '+' : ''}${delta}%`;
+        document.getElementById('kpiSLAPill').className = delta >= 0 ? 'kpi-pill pill-green' : 'kpi-pill pill-rose';
+        document.getElementById('kpiSLASub').innerText = `vs ${months[1]}`;
+      } else {
+        document.getElementById('kpiSLAPill').innerText = 'Weighted SLA';
+        document.getElementById('kpiSLAPill').className = slaPct >= 80 ? 'kpi-pill pill-green' : 'kpi-pill pill-rose';
+        document.getElementById('kpiSLASub').innerText = 'Call-Weighted Five9 %rec';
+      }
 
-      slaChartInstance = new Chart(ctx, {
+      const csatVal = primary.surveyScore || 0;
+      document.getElementById('kpiCSATVal').innerText = csatVal ? csatVal.toFixed(2) : '--';
+      if (secondary && secondary.surveyScore) {
+        const delta = (csatVal - secondary.surveyScore).toFixed(2);
+        document.getElementById('kpiCSATPill').innerText = `${delta >= 0 ? '+' : ''}${delta}`;
+        document.getElementById('kpiCSATPill').className = delta >= 0 ? 'kpi-pill pill-green' : 'kpi-pill pill-rose';
+        document.getElementById('kpiCSATSub').innerText = `vs ${months[1]}`;
+      } else {
+        document.getElementById('kpiCSATPill').innerText = 'Q1 Average';
+        document.getElementById('kpiCSATPill').className = 'kpi-pill pill-green';
+        document.getElementById('kpiCSATSub').innerText = 'Scale: 1.0 - 5.0';
+      }
+    }
+
+    function renderHandleTimeCharts(months, dataMap) {
+      const ahtCtx = document.getElementById('ahtSummaryChart').getContext('2d');
+      const dataValsAHT = months.map(m => dataMap[m]?.ahtSec || 0);
+
+      chartInstances.aht = new Chart(ahtCtx, {
         type: 'bar',
         data: {
-          labels: labels,
-          datasets: [{
-            data: slaValues,
-            backgroundColor: barColors,
-            borderColor: borderColors,
-            borderWidth: 1.5,
-            borderRadius: 5,
-            maxBarThickness: 28,
-            categoryPercentage: 0.72,
-            barPercentage: 0.85
-          }]
+          labels: months,
+          datasets: [{ data: dataValsAHT, backgroundColor: months.map((_, i) => i === 0 ? '#0f766e' : '#6366f1'), borderRadius: 6, maxBarThickness: 34 }]
         },
         options: {
-          responsive: true,
-          maintainAspectRatio: false,
-          layout: { padding: { top: 32, bottom: 4, left: 4, right: 4 } },
+          indexAxis: 'y', responsive: true, maintainAspectRatio: false,
+          layout: { padding: { right: 60, top: 10, bottom: 5 } },
           plugins: {
             legend: { display: false },
-            tooltip: {
-              backgroundColor: '#0f172a',
-              padding: 9,
-              titleFont: { family: 'Plus Jakarta Sans', size: 11, weight: '700' },
-              bodyFont: { family: 'JetBrains Mono', size: 11 },
-              callbacks: { label: (c) => `Service Level: ${c.parsed.y}%` }
-            },
             datalabels: {
-              anchor: 'end',
-              align: 'top',
-              offset: 3,
-              font: (ctx) => {
-                const val = ctx.dataset.data[ctx.dataIndex];
-                return { family: 'JetBrains Mono', weight: val === 0 ? '700' : '800', size: val === 0 ? 8.5 : 9.5 };
-              },
-              color: (ctx) => {
-                const val = ctx.dataset.data[ctx.dataIndex];
-                if (val >= 80) return '#059669';
-                if (val >= 60) return '#b45309';
-                if (val === 0) return '#fda4af';
-                return '#e11d48';
-              },
-              formatter: (val) => `${val}%`
+              anchor: 'end', align: 'right', color: '#0f766e',
+              font: { family: 'JetBrains Mono', weight: '800', size: 10.5 },
+              formatter: (val) => timeSecToHMS(val)
             }
           },
           scales: {
-            x: {
-              grid: { display: false },
-              ticks: { font: { family: 'JetBrains Mono', size: 9.5, weight: '700' }, color: '#64748b', autoSkip: false, maxRotation: 45, minRotation: 45 }
-            },
-            y: {
-              min: 0,
-              max: 118,
-              grid: { color: '#f1f5f9' },
-              ticks: { stepSize: 20, font: { family: 'JetBrains Mono', size: 9.5 }, color: '#64748b', callback: (val) => (val <= 100 ? `${val}%` : '') },
-              title: { display: true, text: 'Service Level %', font: { size: 9, weight: '700' }, color: '#64748b' }
+            x: { ticks: { callback: (val) => timeSecToHMS(val), font: { family: 'JetBrains Mono', size: 8.5 }, color: '#64748b' }, grid: { color: '#f1f5f9' } },
+            y: { grid: { display: false }, ticks: { font: { family: 'Plus Jakarta Sans', weight: '700', size: 9.5 }, color: '#334155' } }
+          }
+        }
+      });
+
+      const brkCtx = document.getElementById('consultHoldConfChart').getContext('2d');
+      const datasets = [
+        { label: 'Consult', data: months.map(m => dataMap[m]?.consultSec || 0), backgroundColor: '#06b6d4', borderRadius: 4, maxBarThickness: 32 },
+        { label: 'Hold', data: months.map(m => dataMap[m]?.holdSec || 0), backgroundColor: '#fde047', borderRadius: 4, maxBarThickness: 32 },
+        { label: 'Conference', data: months.map(m => dataMap[m]?.confSec || 0), backgroundColor: '#34d399', borderRadius: 4, maxBarThickness: 32 }
+      ];
+
+      chartInstances.breakdown = new Chart(brkCtx, {
+        type: 'bar',
+        data: { labels: months, datasets: datasets },
+        options: {
+          responsive: true, maintainAspectRatio: false,
+          layout: { padding: { top: 22 } },
+          plugins: {
+            legend: { position: 'top', labels: { boxWidth: 10, font: { family: 'Plus Jakarta Sans', size: 9.5, weight: '700' }, color: '#334155' } },
+            datalabels: {
+              anchor: 'end', align: 'top', offset: 2, color: '#0f172a',
+              font: { family: 'JetBrains Mono', weight: '800', size: 9.5 },
+              formatter: (val) => timeSecToHMS(val)
+            }
+          },
+          scales: {
+            y: { max: 350, ticks: { callback: (val) => timeSecToHMS(val), font: { family: 'JetBrains Mono', size: 8.5 }, color: '#64748b', stepSize: 60 }, grid: { color: '#f1f5f9' } },
+            x: { grid: { display: false }, ticks: { font: { family: 'Plus Jakarta Sans', weight: '700', size: 9.5 }, color: '#334155' } }
+          }
+        }
+      });
+    }
+
+    function renderSurveyCharts(months, dataMap) {
+      const surveyCtx = document.getElementById('surveyScoreChart').getContext('2d');
+      chartInstances.survey = new Chart(surveyCtx, {
+        type: 'bar',
+        data: {
+          labels: months,
+          datasets: [{ data: months.map(m => dataMap[m]?.surveyScore || 0), backgroundColor: months.map((_, i) => i === 0 ? '#0f766e' : '#6366f1'), borderRadius: 6, maxBarThickness: 38 }]
+        },
+        options: {
+          responsive: true, maintainAspectRatio: false, layout: { padding: { top: 20 } },
+          plugins: {
+            legend: { display: false },
+            datalabels: { anchor: 'end', align: 'top', font: { family: 'JetBrains Mono', weight: '800', size: 10.5 }, color: '#0f766e', formatter: (v) => v.toFixed(2) }
+          },
+          scales: {
+            y: { min: 4.4, max: 5.0, ticks: { stepSize: 0.1, font: { family: 'JetBrains Mono', size: 8.5 }, color: '#64748b' }, grid: { color: '#f1f5f9' } },
+            x: { grid: { display: false }, ticks: { font: { family: 'Plus Jakarta Sans', weight: '700', size: 9.5 }, color: '#334155' } }
+          }
+        }
+      });
+
+      const respCtx = document.getElementById('surveyRespondedChart').getContext('2d');
+      chartInstances.responded = new Chart(respCtx, {
+        type: 'bar',
+        data: {
+          labels: months,
+          datasets: [{ data: months.map(m => dataMap[m]?.responded || 0), backgroundColor: months.map((_, i) => i === 0 ? '#0f766e' : '#6366f1'), borderRadius: 6, maxBarThickness: 34 }]
+        },
+        options: {
+          indexAxis: 'y', responsive: true, maintainAspectRatio: false,
+          layout: { padding: { right: 45, top: 10, bottom: 5 } },
+          plugins: {
+            legend: { display: false },
+            datalabels: { anchor: 'end', align: 'right', font: { family: 'JetBrains Mono', weight: '800', size: 10.5 }, color: '#0f766e', formatter: (v) => v.toLocaleString() }
+          },
+          scales: {
+            x: { grid: { color: '#f1f5f9' }, ticks: { font: { family: 'JetBrains Mono', size: 8.5 }, color: '#64748b' } },
+            y: { grid: { display: false }, ticks: { font: { family: 'Plus Jakarta Sans', weight: '700', size: 9.5 }, color: '#334155' } }
+          }
+        }
+      });
+    }
+
+    function renderSLAChart(months, dataMap) {
+      const slaCtx = document.getElementById('slaChart').getContext('2d');
+      let labels = [], dataVals = [], bgColors = [];
+
+      if (months.length === 1) {
+        labels = [months[0], 'Remaining'];
+        const val = dataMap[months[0]]?.slaPercent || 0;
+        dataVals = [val, 100 - val];
+        bgColors = ['#0f766e', '#e2e8f0'];
+      } else {
+        labels = months;
+        dataVals = months.map(m => dataMap[m]?.slaPercent || 0);
+        bgColors = ['#0f766e', '#6366f1'];
+      }
+
+      chartInstances.sla = new Chart(slaCtx, {
+        type: 'doughnut',
+        data: { labels: labels, datasets: [{ data: dataVals, backgroundColor: bgColors, borderWidth: 2, borderColor: '#ffffff' }] },
+        options: {
+          responsive: true, maintainAspectRatio: false,
+          plugins: {
+            legend: { position: 'bottom', labels: { boxWidth: 10, font: { family: 'Plus Jakarta Sans', size: 10, weight: '700' }, color: '#334155' } },
+            datalabels: {
+              color: '#0f172a', font: { family: 'JetBrains Mono', weight: '900', size: 12 },
+              formatter: (val, ctx) => {
+                if (months.length === 1 && ctx.dataIndex === 1) return '';
+                return `${val}%`;
+              }
             }
           }
         }
       });
     }
 
-    function uploadDSR(e) {
+    function renderVolumeChart(months, dataMap) {
+      const volCtx = document.getElementById('volumeChart').getContext('2d');
+      const dataVals = months.map(m => dataMap[m]?.totalCalls || 0);
+
+      chartInstances.volume = new Chart(volCtx, {
+        type: 'bar',
+        data: {
+          labels: months,
+          datasets: [{ label: 'Handled Calls', data: dataVals, backgroundColor: months.map((_, i) => i === 0 ? '#0f766e' : '#6366f1'), borderRadius: 6, maxBarThickness: 36 }]
+        },
+        options: {
+          responsive: true, maintainAspectRatio: false, layout: { padding: { top: 22 } },
+          plugins: {
+            legend: { display: false },
+            datalabels: { anchor: 'end', align: 'top', font: { family: 'JetBrains Mono', weight: '800', size: 10.5 }, color: '#0f766e', formatter: (v) => v.toLocaleString() }
+          },
+          scales: {
+            x: { grid: { display: false }, ticks: { font: { family: 'Plus Jakarta Sans', size: 9.5, weight: '700' }, color: '#334155' } },
+            y: { grid: { color: '#f1f5f9' }, ticks: { font: { family: 'JetBrains Mono', size: 8.5 }, color: '#64748b' } }
+          }
+        }
+      });
+    }
+
+    // Save to Firebase Firestore Cloud
+    function saveToCloud(collectionName, docId, dataObject) {
+      db.collection(collectionName).doc(docId).set({ data: dataObject, updatedAt: new Date() })
+        .then(() => console.log(`${collectionName} saved to Firebase Firestore.`))
+        .catch(err => console.error("Firebase save error:", err));
+    }
+
+    // Load from Firebase Firestore Cloud + local cache fallback
+    function loadFromCloud() {
+      db.collection('petro_reports').doc('aht_data').get().then(doc => {
+        if (doc.exists) {
+          rawAHTRows = doc.data().data;
+          localStorage.setItem('PETRO_RAW_AHT_STORE', JSON.stringify(rawAHTRows));
+          document.getElementById('ahtUploadStatus').innerText = 'Loaded (Cloud Sync)';
+          initMonthDropdowns();
+          renderActiveView();
+        }
+      }).catch(err => console.log("AHT Cloud fetch note:", err));
+
+      db.collection('petro_reports').doc('dsr_data').get().then(doc => {
+        if (doc.exists) {
+          rawDSRRows = doc.data().data;
+          localStorage.setItem('PETRO_RAW_DSR_STORE', JSON.stringify(rawDSRRows));
+          document.getElementById('dsrUploadStatus').innerText = 'Loaded (Cloud Sync)';
+          renderActiveView();
+        }
+      }).catch(err => console.log("DSR Cloud fetch note:", err));
+    }
+
+    function handleAHTUpload(e) {
+      const file = e.target.files[0];
+      if (!file) return;
+
+      const reader = new FileReader();
+      reader.onload = function(evt) {
+        const data = new Uint8Array(evt.target.result);
+        const wb = XLSX.read(data, { type: 'array' });
+        const rawSheet = wb.Sheets['Raw Data'] || wb.Sheets[wb.SheetNames[0]];
+        const json = XLSX.utils.sheet_to_json(rawSheet);
+
+        rawAHTRows = json;
+        localStorage.setItem('PETRO_RAW_AHT_STORE', JSON.stringify(json));
+        saveToCloud('petro_reports', 'aht_data', json);
+
+        document.getElementById('ahtUploadStatus').innerText = `Synced (${file.name.slice(0, 10)}...)`;
+        initMonthDropdowns();
+        renderActiveView();
+      };
+      reader.readAsArrayBuffer(file);
+    }
+
+    function handleDSRUpload(e) {
       const file = e.target.files[0];
       if (!file) return;
 
@@ -907,124 +987,48 @@
         const sheet = wb.Sheets[wb.SheetNames[0]];
         const json = XLSX.utils.sheet_to_json(sheet, { header: 1 });
 
-        let startRow = -1;
-        let colMap = { date: 0, hour: 2, calls: 5, aht: 6, sla: 7 };
-
-        for (let r = 0; r < Math.min(30, json.length); r++) {
-          const row = json[r] || [];
-          row.forEach((c, idx) => {
-            const val = String(c).toUpperCase();
-            if (val === 'DATE') colMap.date = idx;
-            if (val === 'HOUR') { colMap.hour = idx; startRow = r + 1; }
-            if (val === 'CALLS') colMap.calls = idx;
-            if (val.includes('HANDLE TIME') || val === 'AHT') colMap.aht = idx;
-            if (val.includes('SERVICE LEVEL') || val.includes('SLA')) colMap.sla = idx;
-          });
-          if (startRow !== -1) break;
-        }
-
-        if (startRow === -1) {
-          alert("Could not detect interval table headers in DSR.");
-          return;
-        }
-
-        const fileIntervalsByDate = {};
-
-        for (let r = startRow; r < json.length; r++) {
+        const parsedRows = [];
+        for (let r = 17; r < json.length; r++) {
           const row = json[r];
-          if (!row || !row[colMap.hour]) continue;
-
-          const rawDate = row[colMap.date];
-          const isoDate = toISODate(rawDate);
-          const hrVal = String(row[colMap.hour]).trim();
-          if (!hrVal.includes(':')) continue;
-
-          if (!fileIntervalsByDate[isoDate]) {
-            fileIntervalsByDate[isoDate] = new Map();
-          }
-
-          const ahtVal = row[colMap.aht] || "00:00:00";
-          fileIntervalsByDate[isoDate].set(hrVal, {
-            hour: hrVal,
-            calls: Number(row[colMap.calls]) || 0,
-            ahtSec: timeToSeconds(ahtVal),
-            sla: Number(row[colMap.sla]) || 0
+          if (!row || !row[0] || !String(row[0]).includes('/')) continue;
+          parsedRows.push({
+            DATE: row[0],
+            CALLS: Number(row[5]) || 0,
+            SLA: Number(row[7]) || 0
           });
         }
 
-        Object.keys(fileIntervalsByDate).forEach(isoDate => {
-          const sortedIntervals = Array.from(fileIntervalsByDate[isoDate].values())
-            .sort((a, b) => a.hour.localeCompare(b.hour));
+        rawDSRRows = parsedRows;
+        localStorage.setItem('PETRO_RAW_DSR_STORE', JSON.stringify(parsedRows));
+        saveToCloud('petro_reports', 'dsr_data', parsedRows);
 
-          if (!appState.dates[isoDate]) {
-            appState.dates[isoDate] = { intervals: sortedIntervals, absences: 1, drivers: [] };
-          } else {
-            appState.dates[isoDate].intervals = sortedIntervals;
-          }
-        });
-
-        document.getElementById("dsrStatus").innerText = `Synced (${file.name.slice(0, 10)}...)`;
-        const newestDate = Object.keys(appState.dates).sort().pop();
-        appState.currentDate = newestDate;
-        
-        saveToCloud();
-        updateDateDropdown();
-        renderDashboard(newestDate);
-      };
-      reader.readAsArrayBuffer(file);
-    }
-
-    function uploadSF(e) {
-      const file = e.target.files[0];
-      if (!file) return;
-
-      const reader = new FileReader();
-      reader.onload = function(evt) {
-        const data = new Uint8Array(evt.target.result);
-        const wb = XLSX.read(data, { type: 'array' });
-        const sheetName = wb.SheetNames.includes("Data") ? "Data" : wb.SheetNames[0];
-        const json = XLSX.utils.sheet_to_json(wb.Sheets[sheetName]);
-
-        const rowsByDate = {};
-
-        json.forEach(row => {
-          const rawDate = row['Date'] || row['Month'] || row['Date/Time Opened'];
-          const isoDate = toISODate(rawDate);
-          if (!isoDate) return;
-
-          if (!rowsByDate[isoDate]) {
-            rowsByDate[isoDate] = [];
-          }
-          rowsByDate[isoDate].push(String(row['Subject'] || '').toLowerCase());
-        });
-
-        Object.keys(rowsByDate).forEach(dt => {
-          const subjects = rowsByDate[dt];
-          const catCounts = [];
-
-          for (const [catName, kws] of Object.entries(sfFormulaRules)) {
-            let count = 0;
-            for (let i = 0; i < subjects.length; i++) {
-              if (kws.some(kw => subjects[i].includes(kw))) {
-                count++;
-              }
-            }
-            catCounts.push({ name: catName, count });
-          }
-
-          catCounts.sort((a, b) => b.count - a.count);
-          appState.casesByDate[dt] = catCounts;
-        });
-
-        document.getElementById("sfStatus").innerText = `Synced (${Object.keys(rowsByDate).length} Dates)`;
-        saveToCloud();
-        renderDashboard(appState.currentDate);
+        document.getElementById('dsrUploadStatus').innerText = `Synced (${file.name.slice(0, 10)}...)`;
+        renderActiveView();
       };
       reader.readAsArrayBuffer(file);
     }
 
     window.addEventListener("DOMContentLoaded", () => {
-      loadFromCloud(); // Automatically sync and retrieve data from Firebase on startup
+      // 1. Instant local cache load
+      rawAHTRows = JSON.parse(localStorage.getItem('PETRO_RAW_AHT_STORE') || 'null');
+      rawDSRRows = JSON.parse(localStorage.getItem('PETRO_RAW_DSR_STORE') || 'null');
+
+      if (rawAHTRows && rawAHTRows.length > 0) {
+        document.getElementById('ahtUploadStatus').innerText = `Loaded (Saved)`;
+      }
+      if (rawDSRRows && rawDSRRows.length > 0) {
+        document.getElementById('dsrUploadStatus').innerText = `Loaded (Saved)`;
+      }
+
+      initMonthDropdowns();
+      renderActiveView();
+
+      // 2. Background cloud sync
+      loadFromCloud();
+      setTimeout(() => {
+        initMonthDropdowns();
+        renderActiveView();
+      }, 800);
     });
   </script>
 </body>
