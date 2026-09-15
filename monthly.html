@@ -516,6 +516,9 @@
 
     function toggleModal(show) {
       document.getElementById('settingsModal').style.display = show ? 'flex' : 'none';
+      if (!show) {
+        setTimeout(() => { window.dispatchEvent(new Event('resize')); }, 100);
+      }
     }
 
     function timeSecToHMS(sec) {
@@ -541,6 +544,18 @@
       if (typeof t === 'number') return Math.round(t * 86400);
       const p = String(t).trim().split(':');
       if (p.length === 3) return (+p[0])*3600 + (+p[1])*60 + (+p[2]);
+      if (p.length === 2) return (+p[0])*60 + (+p[1]);
+      return null;
+    }
+
+    function getRowVal(row, possibleKeys) {
+      const keys = Object.keys(row);
+      for (const pk of possibleKeys) {
+        const foundKey = keys.find(k => k.trim().toLowerCase() === pk.toLowerCase());
+        if (foundKey !== undefined && row[foundKey] !== undefined) {
+          return row[foundKey];
+        }
+      }
       return null;
     }
 
@@ -552,8 +567,8 @@
       }
 
       const rows = summaryAHTRows.filter(r => {
-        const m = String(r['MONTH'] || r['Month'] || '').trim().toLowerCase();
-        return m === cleanName;
+        const m = String(getRowVal(r, ['MONTH', 'Month', 'Period', 'Date']) || '').trim().toLowerCase();
+        return m.includes(cleanName);
       });
 
       let totalCalls = 0;
@@ -561,12 +576,12 @@
       let surveyArr = [], respondedCount = 0;
 
       rows.forEach(r => {
-        const calls = Number(r['CALLS'] || r['Calls'] || r['Total Calls'] || r['Total Handled'] || 1) || 1;
-        const ht = parseSecOrNull(r['HANDLE TIME'] || r['AHT']);
-        const cs = parseSecOrNull(r['CONSULT TIME']);
-        const hd = parseSecOrNull(r['HOLD TIME']);
-        const cf = parseSecOrNull(r['CONFERENCE TIME']);
-        const sq = Number(r['Survey Q1'] || r['CSAT'] || 0);
+        const calls = Number(getRowVal(r, ['CALLS', 'Calls', 'Total Calls', 'Total Handled', 'Handled Calls', 'Volume'])) || 1;
+        const ht = parseSecOrNull(getRowVal(r, ['HANDLE TIME', 'AHT', 'Average Handle Time']));
+        const cs = parseSecOrNull(getRowVal(r, ['CONSULT TIME', 'Consult']));
+        const hd = parseSecOrNull(getRowVal(r, ['HOLD TIME', 'Hold']));
+        const cf = parseSecOrNull(getRowVal(r, ['CONFERENCE TIME', 'Conference']));
+        const sq = Number(getRowVal(r, ['Survey Q1', 'CSAT', 'Score', 'Survey']) || 0);
 
         totalCalls += calls;
         if (ht !== null) sumprodAHT += (ht * calls);
@@ -619,10 +634,12 @@
       if (!summaryAHTRows || summaryAHTRows.length === 0) return ["September - 2026", "August - 2026", "July - 2026"];
       const set = new Set();
       summaryAHTRows.forEach(r => {
-        const m = r['MONTH'] || r['Month'];
+        const m = getRowVal(r, ['MONTH', 'Month', 'Period', 'Date']);
         if (m) set.add(`${String(m).trim()} - 2026`);
       });
-      return Array.from(set).sort((a, b) => parseMonthYearSortKey(b) - parseMonthYearSortKey(a));
+      const arr = Array.from(set);
+      if (arr.length === 0) return ["September - 2026"];
+      return arr.sort((a, b) => parseMonthYearSortKey(b) - parseMonthYearSortKey(a));
     }
 
     function initMonthDropdowns() {
@@ -931,7 +948,6 @@
           initMonthDropdowns();
           renderActiveView();
           
-          // Automatically close modal and force chart layout recalculation
           toggleModal(false);
           setTimeout(() => {
             window.dispatchEvent(new Event('resize'));
@@ -959,11 +975,10 @@
         initMonthDropdowns();
         renderActiveView();
         
-        // Automatically close modal and resize charts
         toggleModal(false);
         setTimeout(() => {
           window.dispatchEvent(new Event('resize'));
-        }, 150);
+        }, 200);
       };
       reader.readAsArrayBuffer(file);
     }
@@ -996,11 +1011,10 @@
         document.getElementById('dsrUploadStatus').innerText = `Synced (${file.name.slice(0, 10)}...)`;
         renderActiveView();
         
-        // Automatically close modal and resize charts
         toggleModal(false);
         setTimeout(() => {
           window.dispatchEvent(new Event('resize'));
-        }, 150);
+        }, 200);
       };
       reader.readAsArrayBuffer(file);
     }
@@ -1023,7 +1037,7 @@
       // Force canvas layout resize trigger
       setTimeout(() => {
         window.dispatchEvent(new Event('resize'));
-      }, 150);
+      }, 200);
 
       // 2. Background cloud sync
       loadFromCloud();
