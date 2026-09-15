@@ -466,7 +466,7 @@
       </div>
 
       <div style="font-size: 0.7rem; color: var(--text-muted); line-height: 1.45; margin-top: 0.2rem;">
-        Data is securely synchronized to your Firebase Firestore cloud database and persists permanently.
+        Optimized metrics are securely synchronized to Firebase, preventing file size limits.
       </div>
     </div>
   </div>
@@ -929,7 +929,7 @@
       });
     }
 
-    // Save to Firebase Firestore Cloud & Local Cache
+    // Save to Firebase Cloud & Local Cache
     function saveToCloud() {
       localStorage.setItem('PETRO_RAW_AHT_STORE', JSON.stringify(rawAHTRows));
       localStorage.setItem('PETRO_RAW_DSR_STORE', JSON.stringify(rawDSRRows));
@@ -943,7 +943,7 @@
       }).catch(err => console.error("Firebase save error:", err));
     }
 
-    // Load from Firebase Firestore Cloud on startup with local cache fallback
+    // Load from Firebase Cloud with local cache fallback
     function loadFromCloud() {
       db.collection('petro_reports').doc('monthly_master').get().then(doc => {
         if (doc.exists) {
@@ -1018,7 +1018,7 @@
     }
 
     window.addEventListener("DOMContentLoaded", () => {
-      // 1. Instant local cache load so data stays visible immediately on refresh/tab switch
+      // 1. Instant load from local cache so graphs display immediately
       rawAHTRows = JSON.parse(localStorage.getItem('PETRO_RAW_AHT_STORE') || 'null');
       rawDSRRows = JSON.parse(localStorage.getItem('PETRO_RAW_DSR_STORE') || 'null');
 
@@ -1032,12 +1032,8 @@
       initMonthDropdowns();
       renderActiveView();
 
-      // 2. Background cloud sync to keep everything updated across devices
+      // 2. Background sync with Firebase Cloud
       loadFromCloud();
-      setTimeout(() => {
-        initMonthDropdowns();
-        renderActiveView();
-      }, 800);
     });
   </script>
 </body>
