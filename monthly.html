@@ -16,15 +16,21 @@
       --bg: #f8fafc;
       --card-bg: #ffffff;
       --border-subtle: #e2e8f0;
+      --border-focus: #0f766e;
       --teal-primary: #0f766e;
       --teal-light: #14b8a6;
       --teal-glow: #f0fdfa;
+      --comp-color: #6366f1;
+      --comp-light: #e0e7ff;
       --text-main: #0f172a;
       --text-muted: #64748b;
+      --text-soft: #94a3b8;
       --emerald: #10b981;
       --emerald-bg: #ecfdf5;
       --rose: #f43f5e;
       --rose-bg: #fff1f2;
+      --amber: #f59e0b;
+      --amber-bg: #fffbeb;
       --shadow-sm: 0 1px 3px rgba(0,0,0,0.03), 0 1px 2px rgba(0,0,0,0.02);
       --shadow-card: 0 4px 12px -2px rgba(15, 23, 42, 0.04), 0 2px 6px -1px rgba(15, 23, 42, 0.02);
     }
@@ -208,6 +214,7 @@
       min-height: 0;
     }
 
+    /* Enhanced Card Container */
     .chart-card {
       background: var(--card-bg);
       border: 1px solid var(--border-subtle);
@@ -321,11 +328,13 @@
     </div>
 
     <div class="toolbar-right">
+      <!-- Single Month Selector -->
       <div id="singleSelectorGroup" style="display: flex; align-items: center; gap: 0.4rem;">
         <span class="label-tag">Month:</span>
         <select id="monthSelect1" class="dropdown" onchange="renderActiveView()"></select>
       </div>
 
+      <!-- Comparison Selectors -->
       <div id="compSelectorGroup" style="display: none; align-items: center; gap: 0.4rem;">
         <span class="label-tag">Compare:</span>
         <select id="monthComp1" class="dropdown" onchange="renderActiveView()"></select>
@@ -464,14 +473,15 @@
   </div>
 
   <script>
-    // TODO: Replace with your actual Firebase project configuration credentials
+    // Firebase Project Configuration
     const firebaseConfig = {
-      apiKey: "YOUR_FIREBASE_API_KEY",
-      authDomain: "YOUR_PROJECT_ID.firebaseapp.com",
-      projectId: "YOUR_PROJECT_ID",
-      storageBucket: "YOUR_PROJECT_ID.appspot.com",
-      messagingSenderId: "YOUR_MESSAGING_SENDER_ID",
-      appId: "YOUR_APP_ID"
+      apiKey: "AIzaSyCO5JOFPIw8YWouzGQ1hVnrar-h85rBUyA",
+      authDomain: "dailyservicereview.firebaseapp.com",
+      projectId: "dailyservicereview",
+      storageBucket: "dailyservicereview.firebasestorage.app",
+      messagingSenderId: "1004019130373",
+      appId: "1:1004019130373:web:8082b16c7570f56fd1fc6c",
+      measurementId: "G-4SMDMW96Q5"
     };
 
     if (!firebase.apps.length) {
@@ -998,7 +1008,7 @@
     window.addEventListener("DOMContentLoaded", () => {
       initMonthDropdowns();
       renderActiveView();
-      loadFromCloud(); // Automatically fetch latest synced records from Firebase
+      loadFromCloud();
     });
   </script>
 </body>
