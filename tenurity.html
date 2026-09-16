@@ -802,6 +802,10 @@
       firebase.initializeApp(firebaseConfig);
     }
     const db = firebase.firestore();
+    // Some corporate networks/proxies block Firestore's default streaming (WebChannel)
+    // connection, which makes writes look successful locally but never actually
+    // reach the cloud. Forcing long-polling works around that.
+    db.settings({ experimentalForceLongPolling: true, merge: true });
 
     Chart.register(ChartDataLabels);
 
