@@ -757,7 +757,9 @@
           }
         }
       } else {
-        monthKeys.forEach((mKey) => { activeDataMap[mKey] = getAggregatedMetricsForMonth(mKey); });
+        monthKeys.forEach((mKey) => {
+          activeDataMap[mKey] = (activeMode === 'single') ? getFullMonthMetrics(mKey) : getAggregatedMetricsForMonth(mKey);
+        });
         if (banner) banner.style.display = 'none';
       }
 
@@ -766,6 +768,33 @@
       renderSurveyCharts(monthKeys, activeDataMap);
       renderSLAChart(monthKeys, activeDataMap);
       renderVolumeChart(monthKeys, activeDataMap);
+    }
+
+    // Single Month view used to trust the stored top-level aggregate (monthlyAHTStore)
+    // directly. That field can go stale/corrupted if it was written by an older upload
+    // pass, and unlike Month Comparison (which always recomputes from the per-day
+    // breakdown), Single Month had no way to self-correct. This recomputes the full
+    // month straight from the same per-day breakdown Month Comparison already relies on,
+    // and only falls back to the stored aggregate when no daily detail exists at all.
+    function getFullMonthMetrics(monthKey) {
+      const fallback = getAggregatedMetricsForMonth(monthKey);
+      const dayLimit = daysInMonthLabel(monthKey);
+
+      const aht = computeAHTMetricsUpToDay(monthKey, dayLimit);
+      const sla = computeSlaUpToDay(monthKey, dayLimit);
+
+      if (!aht && sla === null) return fallback;
+
+      return {
+        ahtSec: aht ? aht.ahtSec : fallback.ahtSec,
+        consultSec: aht ? aht.consultSec : fallback.consultSec,
+        holdSec: aht ? aht.holdSec : fallback.holdSec,
+        confSec: aht ? aht.confSec : fallback.confSec,
+        surveyScore: aht ? aht.surveyScore : fallback.surveyScore,
+        responded: aht ? aht.responded : fallback.responded,
+        totalCalls: aht ? aht.totalCalls : fallback.totalCalls,
+        slaPercent: sla !== null ? sla : fallback.slaPercent
+      };
     }
 
     function updateKPIStrip(months, dataMap) {
