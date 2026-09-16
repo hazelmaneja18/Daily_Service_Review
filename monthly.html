@@ -742,7 +742,7 @@
           });
           if (banner) {
             banner.style.display = 'block';
-            banner.innerText = `Coverage comparison: both months limited to Day 1 – Day ${coverage.dayLimit} so the comparison stays apples-to-apples while a month is still in progress. Once both months are complete, this will switch to full-month totals automatically.`;
+            banner.innerText = `Coverage comparison: both months limited to Day 1 – Day ${coverage.dayLimit} so the comparison stays while a month is still in progress. Once both months are complete, this will switch to full-month totals automatically.`;
           }
         } else {
           monthKeys.forEach((mKey) => { activeDataMap[mKey] = getAggregatedMetricsForMonth(mKey); });
