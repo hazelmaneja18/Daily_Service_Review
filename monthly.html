@@ -490,7 +490,7 @@
     // Some corporate networks/proxies block Firestore's default streaming (WebChannel)
     // connection, which makes writes look successful locally but never actually
     // reach the cloud. Forcing long-polling works around that.
-    db.settings({ experimentalForceLongPolling: true, merge: true });
+    db.settings({ experimentalForceLongPolling: true });
 
     Chart.register(ChartDataLabels);
 
@@ -910,6 +910,165 @@
       }).catch(err => console.log("Cloud fetch note:", err));
     }
 
+    // Parses the "Raw Data" sheet: one row per call, with real MONTH + DATE columns.
+    // Returns { "August - 2026": {...metrics}, "September - 2026": {...metrics} }
+    // Because every call already has its own month, one upload can populate
+    // every month present in the file - no manual "current month" cell needed.
+    function parseRawDataSheet(sheet) {
+      const raw = XLSX.utils.sheet_to_json(sheet, { header: 1, raw: true });
+
+      let headerRowIdx = -1;
+      const colIdx = { month: -1, date: -1, aht: -1, consult: -1, hold: -1, conf: -1, callId: -1, survey: -1 };
+      for (let r = 0; r < Math.min(10, raw.length); r++) {
+        const row = raw[r] || [];
+        row.forEach((cell, idx) => {
+          const s = String(cell || '').toUpperCase().trim();
+          if (s === 'MONTH') { colIdx.month = idx; headerRowIdx = r; }
+          if (s === 'DATE') colIdx.date = idx;
+          if (s === 'HANDLE TIME') colIdx.aht = idx;
+          if (s === 'CONSULT TIME') colIdx.consult = idx;
+          if (s === 'HOLD TIME') colIdx.hold = idx;
+          if (s === 'CONFERENCE TIME') colIdx.conf = idx;
+          if (s === 'CALL ID') colIdx.callId = idx;
+          if (s.startsWith('SURVEY Q1')) colIdx.survey = idx;
+        });
+        if (headerRowIdx !== -1) break;
+      }
+      if (headerRowIdx === -1 || colIdx.callId === -1) return null;
+
+      const toSec = (v) => parseSecOrNull(v) || 0;
+      const buckets = {};
+
+      for (let r = headerRowIdx + 1; r < raw.length; r++) {
+        const row = raw[r];
+        if (!row || row[colIdx.callId] === undefined || row[colIdx.callId] === null || row[colIdx.callId] === '') continue;
+
+        const monthName = String(row[colIdx.month] || '').trim();
+        if (!monthName || !monthOrderMap[monthName.toLowerCase()]) continue;
+
+        let year = 2026;
+        const dateStr = String(row[colIdx.date] || '');
+        const ym = dateStr.match(/(\d{4})\//);
+        if (ym) year = parseInt(ym[1], 10);
+
+        const monthKey = `${monthName.charAt(0).toUpperCase() + monthName.slice(1).toLowerCase()} - ${year}`;
+
+        if (!buckets[monthKey]) buckets[monthKey] = { calls: 0, sumAHT: 0, sumConsult: 0, sumHold: 0, sumConf: 0, surveySum: 0, surveyCount: 0 };
+        const b = buckets[monthKey];
+        b.calls += 1;
+        b.sumAHT += toSec(row[colIdx.aht]);
+        b.sumConsult += toSec(row[colIdx.consult]);
+        b.sumHold += toSec(row[colIdx.hold]);
+        b.sumConf += toSec(row[colIdx.conf]);
+
+        const sq = Number(row[colIdx.survey]);
+        if (sq > 0) { b.surveySum += sq; b.surveyCount += 1; }
+      }
+
+      const result = {};
+      Object.keys(buckets).forEach(mk => {
+        const b = buckets[mk];
+        if (!b.calls) return;
+        result[mk] = {
+          ahtSec: Math.round(b.sumAHT / b.calls),
+          consultSec: Math.round(b.sumConsult / b.calls),
+          holdSec: Math.round(b.sumHold / b.calls),
+          confSec: Math.round(b.sumConf / b.calls),
+          surveyScore: b.surveyCount ? +(b.surveySum / b.surveyCount).toFixed(2) : 0,
+          responded: b.surveyCount,
+          totalCalls: b.calls
+        };
+      });
+      return Object.keys(result).length ? result : null;
+    }
+
+    // Fallback for older single-month "Agent Summary" cumulative templates.
+    // Returns { [monthKey]: metrics } with exactly one entry, or null.
+    function parseAgentSummarySheet(sheet) {
+      const raw = XLSX.utils.sheet_to_json(sheet, { header: 1, raw: true });
+
+      let monthLabel = null;
+      for (let r = 0; r < Math.min(8, raw.length) && !monthLabel; r++) {
+        const row = raw[r] || [];
+        for (const cell of row) {
+          const s = String(cell || '').trim();
+          if (monthOrderMap[s.toLowerCase()]) { monthLabel = s; break; }
+        }
+      }
+      if (!monthLabel) monthLabel = "September";
+
+      let headerRowIdx = -1;
+      const colIdx = { name: -1, aht: -1, calls: -1, survey: -1, responses: -1, consult: -1, hold: -1, conf: -1 };
+      for (let r = 0; r < Math.min(15, raw.length); r++) {
+        const row = raw[r] || [];
+        row.forEach((cell, idx) => {
+          const s = String(cell || '').toUpperCase();
+          if (s.includes('AGENT NAME')) { colIdx.name = idx; headerRowIdx = r; }
+          if (s.includes('HANDLE TIME')) colIdx.aht = idx;
+          if (s.includes('HANDLED CALLS')) colIdx.calls = idx;
+          if (s.includes('SURVEY SCORE')) colIdx.survey = idx;
+          if (s.includes('SURVEY RESPONSES')) colIdx.responses = idx;
+          if (s.includes('CONSULT')) colIdx.consult = idx;
+          if (s.includes('HOLD')) colIdx.hold = idx;
+          if (s.includes('CONFERENCE')) colIdx.conf = idx;
+        });
+        if (headerRowIdx !== -1) break;
+      }
+      if (headerRowIdx === -1) return null;
+
+      let overallRow = null;
+      const agentRows = [];
+      for (let r = headerRowIdx + 1; r < raw.length; r++) {
+        const row = raw[r];
+        if (!row || row[colIdx.name] === undefined || row[colIdx.name] === null || row[colIdx.name] === '') continue;
+        if (/all agents/i.test(String(row[colIdx.name]))) overallRow = row;
+        else agentRows.push(row);
+      }
+
+      const toSec = (v) => parseSecOrNull(v) || 0;
+      let monthMetrics;
+
+      if (overallRow) {
+        monthMetrics = {
+          ahtSec: toSec(overallRow[colIdx.aht]),
+          consultSec: toSec(overallRow[colIdx.consult]),
+          holdSec: toSec(overallRow[colIdx.hold]),
+          confSec: toSec(overallRow[colIdx.conf]),
+          surveyScore: Number(overallRow[colIdx.survey]) || 0,
+          responded: Number(overallRow[colIdx.responses]) || 0,
+          totalCalls: Number(overallRow[colIdx.calls]) || 0
+        };
+      } else {
+        let totalCalls = 0, sumAHT = 0, sumConsult = 0, sumHold = 0, sumConf = 0, surveySum = 0, respSum = 0;
+        agentRows.forEach(row => {
+          const calls = Number(row[colIdx.calls]) || 0;
+          totalCalls += calls;
+          sumAHT += toSec(row[colIdx.aht]) * calls;
+          sumConsult += toSec(row[colIdx.consult]) * calls;
+          sumHold += toSec(row[colIdx.hold]) * calls;
+          sumConf += toSec(row[colIdx.conf]) * calls;
+          const sq = Number(row[colIdx.survey]) || 0;
+          const resp = Number(row[colIdx.responses]) || 0;
+          if (sq > 0 && resp > 0) { surveySum += sq * resp; respSum += resp; }
+        });
+        monthMetrics = {
+          ahtSec: totalCalls ? Math.round(sumAHT / totalCalls) : 0,
+          consultSec: totalCalls ? Math.round(sumConsult / totalCalls) : 0,
+          holdSec: totalCalls ? Math.round(sumHold / totalCalls) : 0,
+          confSec: totalCalls ? Math.round(sumConf / totalCalls) : 0,
+          surveyScore: respSum ? +(surveySum / respSum).toFixed(2) : 0,
+          responded: respSum,
+          totalCalls: totalCalls
+        };
+      }
+
+      const yearGuess = 2026;
+      const monthKey = `${monthLabel.charAt(0).toUpperCase() + monthLabel.slice(1).toLowerCase()} - ${yearGuess}`;
+      const out = {};
+      out[monthKey] = monthMetrics;
+      return out;
+    }
+
     function handleAHTUpload(e) {
       const file = e.target.files[0];
       if (!file) return;
@@ -919,111 +1078,36 @@
         try {
           const data = new Uint8Array(evt.target.result);
           const wb = XLSX.read(data, { type: 'array' });
-          const targetSheetName = wb.SheetNames.find(n => n.toLowerCase().includes('agent summary')) || wb.SheetNames[0];
-          const sheet = wb.Sheets[targetSheetName];
 
-          // Read as raw rows first - this template's real header row is NOT row 1,
-          // and the month is a single cell value, not a per-row column.
-          const raw = XLSX.utils.sheet_to_json(sheet, { header: 1, raw: true });
-
-          // 1) Find the month label anywhere in the first few rows (e.g. "Show cumulative data through month: September")
-          let monthLabel = null;
-          for (let r = 0; r < Math.min(8, raw.length) && !monthLabel; r++) {
-            const row = raw[r] || [];
-            for (const cell of row) {
-              const s = String(cell || '').trim();
-              if (monthOrderMap[s.toLowerCase()]) { monthLabel = s; break; }
-            }
+          // Prefer "Raw Data" (per-call rows, real MONTH+DATE columns) - one upload
+          // then populates every month the file contains. Fall back to the older
+          // single-month "Agent Summary" cumulative sheet if Raw Data isn't present.
+          let monthsParsed = null;
+          const rawSheetName = wb.SheetNames.find(n => n.toLowerCase().includes('raw data'));
+          if (rawSheetName) {
+            monthsParsed = parseRawDataSheet(wb.Sheets[rawSheetName]);
           }
-          if (!monthLabel) monthLabel = "September";
-
-          // 2) Find the real header row (contains "Agent Name")
-          let headerRowIdx = -1;
-          const colIdx = { name: -1, aht: -1, calls: -1, survey: -1, responses: -1, consult: -1, hold: -1, conf: -1 };
-          for (let r = 0; r < Math.min(15, raw.length); r++) {
-            const row = raw[r] || [];
-            row.forEach((cell, idx) => {
-              const s = String(cell || '').toUpperCase();
-              if (s.includes('AGENT NAME')) { colIdx.name = idx; headerRowIdx = r; }
-              if (s.includes('HANDLE TIME')) colIdx.aht = idx;
-              if (s.includes('HANDLED CALLS')) colIdx.calls = idx;
-              if (s.includes('SURVEY SCORE')) colIdx.survey = idx;
-              if (s.includes('SURVEY RESPONSES')) colIdx.responses = idx;
-              if (s.includes('CONSULT')) colIdx.consult = idx;
-              if (s.includes('HOLD')) colIdx.hold = idx;
-              if (s.includes('CONFERENCE')) colIdx.conf = idx;
-            });
-            if (headerRowIdx !== -1) break;
+          if (!monthsParsed) {
+            const summarySheetName = wb.SheetNames.find(n => n.toLowerCase().includes('agent summary')) || wb.SheetNames[0];
+            monthsParsed = parseAgentSummarySheet(wb.Sheets[summarySheetName]);
           }
 
-          if (headerRowIdx === -1) {
-            alert("Could not find the 'Agent Name' header row in the Agent Summary sheet. Please check the file format.");
+          if (!monthsParsed || Object.keys(monthsParsed).length === 0) {
+            alert("Could not detect usable data in this file. Checked for a 'Raw Data' sheet and an 'Agent Summary' sheet - neither matched the expected format.");
             return;
           }
 
-          // 3) Separate the "ALL AGENTS (Overall)" row from individual agent rows
-          let overallRow = null;
-          const agentRows = [];
-          for (let r = headerRowIdx + 1; r < raw.length; r++) {
-            const row = raw[r];
-            if (!row || row[colIdx.name] === undefined || row[colIdx.name] === null || row[colIdx.name] === '') continue;
-            if (/all agents/i.test(String(row[colIdx.name]))) {
-              overallRow = row;
-            } else {
-              agentRows.push(row);
-            }
-          }
-
-          const toSec = (v) => parseSecOrNull(v) || 0;
-          let monthMetrics;
-
-          if (overallRow) {
-            // Use the sheet's own pre-computed overall row directly
-            monthMetrics = {
-              ahtSec: toSec(overallRow[colIdx.aht]),
-              consultSec: toSec(overallRow[colIdx.consult]),
-              holdSec: toSec(overallRow[colIdx.hold]),
-              confSec: toSec(overallRow[colIdx.conf]),
-              surveyScore: Number(overallRow[colIdx.survey]) || 0,
-              responded: Number(overallRow[colIdx.responses]) || 0,
-              totalCalls: Number(overallRow[colIdx.calls]) || 0
-            };
-          } else {
-            // Fallback: call-weighted aggregate from individual agent rows
-            let totalCalls = 0, sumAHT = 0, sumConsult = 0, sumHold = 0, sumConf = 0, surveySum = 0, respSum = 0;
-            agentRows.forEach(row => {
-              const calls = Number(row[colIdx.calls]) || 0;
-              totalCalls += calls;
-              sumAHT += toSec(row[colIdx.aht]) * calls;
-              sumConsult += toSec(row[colIdx.consult]) * calls;
-              sumHold += toSec(row[colIdx.hold]) * calls;
-              sumConf += toSec(row[colIdx.conf]) * calls;
-              const sq = Number(row[colIdx.survey]) || 0;
-              const resp = Number(row[colIdx.responses]) || 0;
-              if (sq > 0 && resp > 0) { surveySum += sq * resp; respSum += resp; }
-            });
-            monthMetrics = {
-              ahtSec: totalCalls ? Math.round(sumAHT / totalCalls) : 0,
-              consultSec: totalCalls ? Math.round(sumConsult / totalCalls) : 0,
-              holdSec: totalCalls ? Math.round(sumHold / totalCalls) : 0,
-              confSec: totalCalls ? Math.round(sumConf / totalCalls) : 0,
-              surveyScore: respSum ? +(surveySum / respSum).toFixed(2) : 0,
-              responded: respSum,
-              totalCalls: totalCalls
-            };
-          }
-
-          const yearGuess = 2026;
-          const monthKey = `${monthLabel.charAt(0).toUpperCase() + monthLabel.slice(1).toLowerCase()} - ${yearGuess}`;
-
-          monthlyAHTStore[monthKey] = monthMetrics;
+          Object.entries(monthsParsed).forEach(([mk, metrics]) => {
+            monthlyAHTStore[mk] = metrics;
+          });
           saveToCloud();
 
-          document.getElementById('ahtUploadStatus').innerText = `Synced (${monthKey})`;
+          const monthsList = Object.keys(monthsParsed).join(', ');
+          document.getElementById('ahtUploadStatus').innerText = `Synced (${monthsList})`;
           initMonthDropdowns();
-          // Jump the single-month selector to the month we just uploaded
           const m1 = document.getElementById('monthSelect1');
-          if (m1 && Array.from(m1.options).some(o => o.value === monthKey)) m1.value = monthKey;
+          const firstMonth = Object.keys(monthsParsed)[0];
+          if (m1 && Array.from(m1.options).some(o => o.value === firstMonth)) m1.value = firstMonth;
           renderActiveView();
 
           toggleModal(false);
