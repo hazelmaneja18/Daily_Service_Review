@@ -629,21 +629,26 @@
     function computeAHTMetricsUpToDay(monthKey, dayLimit) {
       const daily = monthlyAHTDailyStore[monthKey];
       if (!daily) return null;
-      let calls = 0, sumAHT = 0, sumConsult = 0, sumHold = 0, sumConf = 0, surveySum = 0, surveyCount = 0;
+      let calls = 0, sumAHT = 0;
+      let sumConsult = 0, countConsult = 0, sumHold = 0, countHold = 0, sumConf = 0, countConf = 0;
+      let surveySum = 0, surveyCount = 0;
       Object.keys(daily).forEach(dStr => {
         const d = parseInt(dStr, 10);
         if (d <= dayLimit) {
           const b = daily[dStr];
-          calls += b.calls; sumAHT += b.sumAHT; sumConsult += b.sumConsult;
-          sumHold += b.sumHold; sumConf += b.sumConf; surveySum += b.surveySum; surveyCount += b.surveyCount;
+          calls += b.calls; sumAHT += b.sumAHT;
+          sumConsult += b.sumConsult; countConsult += (b.countConsult || 0);
+          sumHold += b.sumHold; countHold += (b.countHold || 0);
+          sumConf += b.sumConf; countConf += (b.countConf || 0);
+          surveySum += b.surveySum; surveyCount += b.surveyCount;
         }
       });
       if (!calls) return null;
       return {
         ahtSec: Math.round(sumAHT / calls),
-        consultSec: Math.round(sumConsult / calls),
-        holdSec: Math.round(sumHold / calls),
-        confSec: Math.round(sumConf / calls),
+        consultSec: countConsult ? Math.round(sumConsult / countConsult) : 0,
+        holdSec: countHold ? Math.round(sumHold / countHold) : 0,
+        confSec: countConf ? Math.round(sumConf / countConf) : 0,
         surveyScore: surveyCount ? +(surveySum / surveyCount).toFixed(2) : 0,
         responded: surveyCount,
         totalCalls: calls
@@ -1067,7 +1072,7 @@
 
       const toSec = (v) => parseSecOrNull(v) || 0;
       const buckets = {};
-      const dailyBuckets = {}; // monthKey -> { dayNum -> {calls, sumAHT, sumConsult, sumHold, sumConf, surveySum, surveyCount} }
+      const dailyBuckets = {}; // monthKey -> { dayNum -> {calls, sumAHT, sumConsult, countConsult, sumHold, countHold, sumConf, countConf, surveySum, surveyCount} }
       const maxDayByMonth = {};
 
       for (let r = headerRowIdx + 1; r < raw.length; r++) {
@@ -1085,31 +1090,35 @@
 
         const monthKey = `${monthName.charAt(0).toUpperCase() + monthName.slice(1).toLowerCase()} - ${year}`;
 
-        if (!buckets[monthKey]) buckets[monthKey] = { calls: 0, sumAHT: 0, sumConsult: 0, sumHold: 0, sumConf: 0, surveySum: 0, surveyCount: 0 };
+        if (!buckets[monthKey]) buckets[monthKey] = { calls: 0, sumAHT: 0, sumConsult: 0, countConsult: 0, sumHold: 0, countHold: 0, sumConf: 0, countConf: 0, surveySum: 0, surveyCount: 0 };
         const b = buckets[monthKey];
         const aht = toSec(row[colIdx.aht]);
-        const consult = toSec(row[colIdx.consult]);
-        const hold = toSec(row[colIdx.hold]);
-        const conf = toSec(row[colIdx.conf]);
+        // A call with no consult/hold/conference leg is stored as "-" (blank), not zero -
+        // Excel's own AVERAGEIFS ignores those blanks entirely rather than averaging them
+        // in as 0, so we mirror that here: only calls that actually had that leg count
+        // toward its average.
+        const consultRaw = parseSecOrNull(row[colIdx.consult]);
+        const holdRaw = parseSecOrNull(row[colIdx.hold]);
+        const confRaw = parseSecOrNull(row[colIdx.conf]);
         const sq = Number(row[colIdx.survey]);
         const hasSurvey = sq > 0;
 
         b.calls += 1;
         b.sumAHT += aht;
-        b.sumConsult += consult;
-        b.sumHold += hold;
-        b.sumConf += conf;
+        if (consultRaw !== null) { b.sumConsult += consultRaw; b.countConsult += 1; }
+        if (holdRaw !== null) { b.sumHold += holdRaw; b.countHold += 1; }
+        if (confRaw !== null) { b.sumConf += confRaw; b.countConf += 1; }
         if (hasSurvey) { b.surveySum += sq; b.surveyCount += 1; }
 
         if (dayNum !== null) {
           if (!dailyBuckets[monthKey]) dailyBuckets[monthKey] = {};
-          if (!dailyBuckets[monthKey][dayNum]) dailyBuckets[monthKey][dayNum] = { calls: 0, sumAHT: 0, sumConsult: 0, sumHold: 0, sumConf: 0, surveySum: 0, surveyCount: 0 };
+          if (!dailyBuckets[monthKey][dayNum]) dailyBuckets[monthKey][dayNum] = { calls: 0, sumAHT: 0, sumConsult: 0, countConsult: 0, sumHold: 0, countHold: 0, sumConf: 0, countConf: 0, surveySum: 0, surveyCount: 0 };
           const db_ = dailyBuckets[monthKey][dayNum];
           db_.calls += 1;
           db_.sumAHT += aht;
-          db_.sumConsult += consult;
-          db_.sumHold += hold;
-          db_.sumConf += conf;
+          if (consultRaw !== null) { db_.sumConsult += consultRaw; db_.countConsult += 1; }
+          if (holdRaw !== null) { db_.sumHold += holdRaw; db_.countHold += 1; }
+          if (confRaw !== null) { db_.sumConf += confRaw; db_.countConf += 1; }
           if (hasSurvey) { db_.surveySum += sq; db_.surveyCount += 1; }
 
           if (!maxDayByMonth[monthKey] || dayNum > maxDayByMonth[monthKey]) maxDayByMonth[monthKey] = dayNum;
@@ -1122,9 +1131,9 @@
         if (!b.calls) return;
         result[mk] = {
           ahtSec: Math.round(b.sumAHT / b.calls),
-          consultSec: Math.round(b.sumConsult / b.calls),
-          holdSec: Math.round(b.sumHold / b.calls),
-          confSec: Math.round(b.sumConf / b.calls),
+          consultSec: b.countConsult ? Math.round(b.sumConsult / b.countConsult) : 0,
+          holdSec: b.countHold ? Math.round(b.sumHold / b.countHold) : 0,
+          confSec: b.countConf ? Math.round(b.sumConf / b.countConf) : 0,
           surveyScore: b.surveyCount ? +(b.surveySum / b.surveyCount).toFixed(2) : 0,
           responded: b.surveyCount,
           totalCalls: b.calls
