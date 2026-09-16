@@ -844,13 +844,13 @@
             legend: { display: false },
             datalabels: {
               anchor: 'end', align: 'right', color: '#0f766e',
-              font: { family: 'JetBrains Mono', weight: '800', size: 10.5 },
+              font: { family: 'JetBrains Mono', weight: '800', size: 14.0 },
               formatter: (val) => timeSecToHMS(val)
             }
           },
           scales: {
-            x: { ticks: { callback: (val) => timeSecToHMS(val), font: { family: 'JetBrains Mono', size: 8.5 }, color: '#64748b' }, grid: { color: '#f1f5f9' } },
-            y: { grid: { display: false }, ticks: { font: { family: 'Plus Jakarta Sans', weight: '700', size: 9.5 }, color: '#334155' } }
+            x: { ticks: { callback: (val) => timeSecToHMS(val), font: { family: 'JetBrains Mono', size: 11.5 }, color: '#64748b' }, grid: { color: '#f1f5f9' } },
+            y: { grid: { display: false }, ticks: { font: { family: 'Plus Jakarta Sans', weight: '700', size: 13.0 }, color: '#334155' } }
           }
         }
       });
@@ -869,16 +869,16 @@
           responsive: true, maintainAspectRatio: false,
           layout: { padding: { top: 22 } },
           plugins: {
-            legend: { position: 'top', labels: { boxWidth: 10, font: { family: 'Plus Jakarta Sans', size: 9.5, weight: '700' }, color: '#334155' } },
+            legend: { position: 'top', labels: { boxWidth: 10, font: { family: 'Plus Jakarta Sans', size: 13.0, weight: '700' }, color: '#334155' } },
             datalabels: {
               anchor: 'end', align: 'top', offset: 2, color: '#0f172a',
-              font: { family: 'JetBrains Mono', weight: '800', size: 9.5 },
+              font: { family: 'JetBrains Mono', weight: '800', size: 13.0 },
               formatter: (val) => timeSecToHMS(val)
             }
           },
           scales: {
-            y: { max: 350, ticks: { callback: (val) => timeSecToHMS(val), font: { family: 'JetBrains Mono', size: 8.5 }, color: '#64748b', stepSize: 60 }, grid: { color: '#f1f5f9' } },
-            x: { grid: { display: false }, ticks: { font: { family: 'Plus Jakarta Sans', weight: '700', size: 9.5 }, color: '#334155' } }
+            y: { max: 350, ticks: { callback: (val) => timeSecToHMS(val), font: { family: 'JetBrains Mono', size: 11.5 }, color: '#64748b', stepSize: 60 }, grid: { color: '#f1f5f9' } },
+            x: { grid: { display: false }, ticks: { font: { family: 'Plus Jakarta Sans', weight: '700', size: 13.0 }, color: '#334155' } }
           }
         }
       });
@@ -896,11 +896,11 @@
           responsive: true, maintainAspectRatio: false, layout: { padding: { top: 20 } },
           plugins: {
             legend: { display: false },
-            datalabels: { anchor: 'end', align: 'top', font: { family: 'JetBrains Mono', weight: '800', size: 10.5 }, color: '#0f766e', formatter: (v) => v.toFixed(2) }
+            datalabels: { anchor: 'end', align: 'top', font: { family: 'JetBrains Mono', weight: '800', size: 14.0 }, color: '#0f766e', formatter: (v) => v.toFixed(2) }
           },
           scales: {
-            y: { min: 4.4, max: 5.0, ticks: { stepSize: 0.1, font: { family: 'JetBrains Mono', size: 8.5 }, color: '#64748b' }, grid: { color: '#f1f5f9' } },
-            x: { grid: { display: false }, ticks: { font: { family: 'Plus Jakarta Sans', weight: '700', size: 9.5 }, color: '#334155' } }
+            y: { min: 4.4, max: 5.0, ticks: { stepSize: 0.1, font: { family: 'JetBrains Mono', size: 11.5 }, color: '#64748b' }, grid: { color: '#f1f5f9' } },
+            x: { grid: { display: false }, ticks: { font: { family: 'Plus Jakarta Sans', weight: '700', size: 13.0 }, color: '#334155' } }
           }
         }
       });
@@ -917,11 +917,11 @@
           layout: { padding: { right: 45, top: 10, bottom: 5 } },
           plugins: {
             legend: { display: false },
-            datalabels: { anchor: 'end', align: 'right', font: { family: 'JetBrains Mono', weight: '800', size: 10.5 }, color: '#0f766e', formatter: (v) => v.toLocaleString() }
+            datalabels: { anchor: 'end', align: 'right', font: { family: 'JetBrains Mono', weight: '800', size: 14.0 }, color: '#0f766e', formatter: (v) => v.toLocaleString() }
           },
           scales: {
-            x: { grid: { color: '#f1f5f9' }, ticks: { font: { family: 'JetBrains Mono', size: 8.5 }, color: '#64748b' } },
-            y: { grid: { display: false }, ticks: { font: { family: 'Plus Jakarta Sans', weight: '700', size: 9.5 }, color: '#334155' } }
+            x: { grid: { color: '#f1f5f9' }, ticks: { font: { family: 'JetBrains Mono', size: 11.5 }, color: '#64748b' } },
+            y: { grid: { display: false }, ticks: { font: { family: 'Plus Jakarta Sans', weight: '700', size: 13.0 }, color: '#334155' } }
           }
         }
       });
@@ -948,9 +948,9 @@
         options: {
           responsive: true, maintainAspectRatio: false,
           plugins: {
-            legend: { position: 'bottom', labels: { boxWidth: 10, font: { family: 'Plus Jakarta Sans', size: 10, weight: '700' }, color: '#334155' } },
+            legend: { position: 'bottom', labels: { boxWidth: 10, font: { family: 'Plus Jakarta Sans', size: 13.5, weight: '700' }, color: '#334155' } },
             datalabels: {
-              color: '#0f172a', font: { family: 'JetBrains Mono', weight: '900', size: 12 },
+              color: '#0f172a', font: { family: 'JetBrains Mono', weight: '900', size: 16.0 },
               formatter: (val, ctx) => {
                 if (months.length === 1 && ctx.dataIndex === 1) return '';
                 return `${val}%`;
@@ -975,11 +975,11 @@
           responsive: true, maintainAspectRatio: false, layout: { padding: { top: 22 } },
           plugins: {
             legend: { display: false },
-            datalabels: { anchor: 'end', align: 'top', font: { family: 'JetBrains Mono', weight: '800', size: 10.5 }, color: '#0f766e', formatter: (v) => v.toLocaleString() }
+            datalabels: { anchor: 'end', align: 'top', font: { family: 'JetBrains Mono', weight: '800', size: 14.0 }, color: '#0f766e', formatter: (v) => v.toLocaleString() }
           },
           scales: {
-            x: { grid: { display: false }, ticks: { font: { family: 'Plus Jakarta Sans', size: 9.5, weight: '700' }, color: '#334155' } },
-            y: { grid: { color: '#f1f5f9' }, ticks: { font: { family: 'JetBrains Mono', size: 8.5 }, color: '#64748b' } }
+            x: { grid: { display: false }, ticks: { font: { family: 'Plus Jakarta Sans', size: 13.0, weight: '700' }, color: '#334155' } },
+            y: { grid: { color: '#f1f5f9' }, ticks: { font: { family: 'JetBrains Mono', size: 11.5 }, color: '#64748b' } }
           }
         }
       });
