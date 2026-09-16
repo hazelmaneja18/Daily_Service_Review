@@ -345,6 +345,9 @@
     </div>
   </div>
 
+  <!-- Coverage Banner (only shown in Month Comparison mode) -->
+  <div id="coverageBanner" style="display:none; background:var(--teal-glow); border:1px solid var(--teal-primary); border-radius:8px; padding:0.4rem 0.85rem; font-size:0.72rem; font-weight:700; color:var(--teal-primary); flex-shrink:0;"></div>
+
   <!-- KPI Strip Summary Header -->
   <div class="kpi-strip">
     <div class="kpi-card">
@@ -490,7 +493,11 @@
     // Some corporate networks/proxies block Firestore's default streaming (WebChannel)
     // connection, which makes writes look successful locally but never actually
     // reach the cloud. Forcing long-polling works around that.
-    db.settings({ experimentalForceLongPolling: true });
+    try {
+      db.settings({ experimentalForceLongPolling: true });
+    } catch (settingsErr) {
+      console.warn('Firestore settings could not be applied (safe to ignore if already set):', settingsErr);
+    }
 
     Chart.register(ChartDataLabels);
 
@@ -516,6 +523,15 @@
     // monthlySlaStore: { "September - 2026": 19 }  (weighted SLA % for that month)
     let monthlyAHTStore = JSON.parse(localStorage.getItem('PETRO_MONTHLY_AHT_STORE') || 'null') || {};
     let monthlySlaStore = JSON.parse(localStorage.getItem('PETRO_MONTHLY_SLA_STORE') || 'null') || {};
+
+    // Per-day breakdowns (from files that have real per-call/per-hour dates) - used to
+    // build apples-to-apples "coverage" comparisons when one month is only partially complete.
+    // monthlyAHTDailyStore: { monthKey: { dayNum: {calls, sumAHT, sumConsult, sumHold, sumConf, surveySum, surveyCount} } }
+    // monthlySlaDailyStore: { monthKey: { dayNum: {calls, weightedSlaSum} } }
+    // monthlyMaxDayStore: { monthKey: lastDayNumberSeenInUploadedData }
+    let monthlyAHTDailyStore = JSON.parse(localStorage.getItem('PETRO_MONTHLY_AHT_DAILY_STORE') || 'null') || {};
+    let monthlySlaDailyStore = JSON.parse(localStorage.getItem('PETRO_MONTHLY_SLA_DAILY_STORE') || 'null') || {};
+    let monthlyMaxDayStore = JSON.parse(localStorage.getItem('PETRO_MONTHLY_MAXDAY_STORE') || 'null') || {};
 
     let activeMode = 'single';
     let chartInstances = {};
@@ -597,6 +613,74 @@
       return Array.from(set).sort((a, b) => parseMonthYearSortKey(b) - parseMonthYearSortKey(a));
     }
 
+    // Number of calendar days in a "Month - Year" label, e.g. "February - 2026" -> 28.
+    function daysInMonthLabel(monthKey) {
+      const clean = monthKey.split(' - ')[0].trim().toLowerCase();
+      const mNum = monthOrderMap[clean];
+      const yMatch = monthKey.match(/(\d{4})/);
+      const year = yMatch ? parseInt(yMatch[1], 10) : 2026;
+      if (!mNum) return 31;
+      return new Date(year, mNum, 0).getDate();
+    }
+
+    // Recomputes AHT/Consult/Hold/Conference/CSAT limited to days 1..dayLimit, using the
+    // per-day breakdown captured at upload time. Returns null if no daily detail is available
+    // for this month (e.g. it came from the older single-cell "Agent Summary" template).
+    function computeAHTMetricsUpToDay(monthKey, dayLimit) {
+      const daily = monthlyAHTDailyStore[monthKey];
+      if (!daily) return null;
+      let calls = 0, sumAHT = 0, sumConsult = 0, sumHold = 0, sumConf = 0, surveySum = 0, surveyCount = 0;
+      Object.keys(daily).forEach(dStr => {
+        const d = parseInt(dStr, 10);
+        if (d <= dayLimit) {
+          const b = daily[dStr];
+          calls += b.calls; sumAHT += b.sumAHT; sumConsult += b.sumConsult;
+          sumHold += b.sumHold; sumConf += b.sumConf; surveySum += b.surveySum; surveyCount += b.surveyCount;
+        }
+      });
+      if (!calls) return null;
+      return {
+        ahtSec: Math.round(sumAHT / calls),
+        consultSec: Math.round(sumConsult / calls),
+        holdSec: Math.round(sumHold / calls),
+        confSec: Math.round(sumConf / calls),
+        surveyScore: surveyCount ? +(surveySum / surveyCount).toFixed(2) : 0,
+        responded: surveyCount,
+        totalCalls: calls
+      };
+    }
+
+    // Recomputes weighted SLA % limited to days 1..dayLimit. Returns null if no daily detail exists.
+    function computeSlaUpToDay(monthKey, dayLimit) {
+      const daily = monthlySlaDailyStore[monthKey];
+      if (!daily) return null;
+      let calls = 0, weighted = 0;
+      Object.keys(daily).forEach(dStr => {
+        const d = parseInt(dStr, 10);
+        if (d <= dayLimit) { calls += daily[dStr].calls; weighted += daily[dStr].weightedSlaSum; }
+      });
+      if (!calls) return null;
+      return Math.round((weighted / calls) * 100);
+    }
+
+    // Decides whether a Month-Comparison pair needs day-limited "coverage" matching
+    // (one or both months are still partial) or can use full-month totals (both complete).
+    function resolveComparisonCoverage(monthA, monthB) {
+      const maxDayA = monthlyMaxDayStore[monthA] || 0;
+      const maxDayB = monthlyMaxDayStore[monthB] || 0;
+      const fullA = daysInMonthLabel(monthA);
+      const fullB = daysInMonthLabel(monthB);
+
+      const aIsComplete = maxDayA === 0 || maxDayA >= fullA;
+      const bIsComplete = maxDayB === 0 || maxDayB >= fullB;
+
+      if (aIsComplete && bIsComplete) {
+        return { limited: false, dayLimit: null };
+      }
+      const dayLimit = Math.min(maxDayA || fullA, maxDayB || fullB);
+      return { limited: true, dayLimit };
+    }
+
     function initMonthDropdowns() {
       const months = getAvailableMonths();
       const m1 = document.getElementById('monthSelect1');
@@ -641,9 +725,36 @@
       }
 
       const activeDataMap = {};
-      monthKeys.forEach((mKey) => {
-        activeDataMap[mKey] = getAggregatedMetricsForMonth(mKey);
-      });
+      const banner = document.getElementById('coverageBanner');
+
+      if (activeMode === 'comp' && monthKeys.length === 2 && monthKeys[0] !== monthKeys[1]) {
+        const [mA, mB] = monthKeys;
+        const coverage = resolveComparisonCoverage(mA, mB);
+
+        if (coverage.limited) {
+          [mA, mB].forEach(mk => {
+            const covAHT = computeAHTMetricsUpToDay(mk, coverage.dayLimit);
+            const covSla = computeSlaUpToDay(mk, coverage.dayLimit);
+            const fullFallback = getAggregatedMetricsForMonth(mk);
+            activeDataMap[mk] = covAHT
+              ? { ...covAHT, slaPercent: covSla !== null ? covSla : fullFallback.slaPercent }
+              : { ...fullFallback, slaPercent: covSla !== null ? covSla : fullFallback.slaPercent };
+          });
+          if (banner) {
+            banner.style.display = 'block';
+            banner.innerText = `Coverage comparison: both months limited to Day 1 – Day ${coverage.dayLimit} so the comparison stays apples-to-apples while a month is still in progress. Once both months are complete, this will switch to full-month totals automatically.`;
+          }
+        } else {
+          monthKeys.forEach((mKey) => { activeDataMap[mKey] = getAggregatedMetricsForMonth(mKey); });
+          if (banner) {
+            banner.style.display = 'block';
+            banner.innerText = `Full-month comparison: both months have complete data.`;
+          }
+        }
+      } else {
+        monthKeys.forEach((mKey) => { activeDataMap[mKey] = getAggregatedMetricsForMonth(mKey); });
+        if (banner) banner.style.display = 'none';
+      }
 
       updateKPIStrip(monthKeys, activeDataMap);
       renderHandleTimeCharts(monthKeys, activeDataMap);
@@ -873,10 +984,16 @@
     function saveToCloud() {
       localStorage.setItem('PETRO_MONTHLY_AHT_STORE', JSON.stringify(monthlyAHTStore));
       localStorage.setItem('PETRO_MONTHLY_SLA_STORE', JSON.stringify(monthlySlaStore));
+      localStorage.setItem('PETRO_MONTHLY_AHT_DAILY_STORE', JSON.stringify(monthlyAHTDailyStore));
+      localStorage.setItem('PETRO_MONTHLY_SLA_DAILY_STORE', JSON.stringify(monthlySlaDailyStore));
+      localStorage.setItem('PETRO_MONTHLY_MAXDAY_STORE', JSON.stringify(monthlyMaxDayStore));
 
       db.collection('petro_reports').doc('monthly_summary_master').set({
         monthlyAHTStore: monthlyAHTStore,
         monthlySlaStore: monthlySlaStore,
+        monthlyAHTDailyStore: monthlyAHTDailyStore,
+        monthlySlaDailyStore: monthlySlaDailyStore,
+        monthlyMaxDayStore: monthlyMaxDayStore,
         updatedAt: new Date()
       }).then(() => {
         console.log("Monthly summary data saved to Firebase Firestore successfully.");
@@ -895,6 +1012,18 @@
           if (remote.monthlySlaStore) {
             monthlySlaStore = remote.monthlySlaStore;
             localStorage.setItem('PETRO_MONTHLY_SLA_STORE', JSON.stringify(monthlySlaStore));
+          }
+          if (remote.monthlyAHTDailyStore) {
+            monthlyAHTDailyStore = remote.monthlyAHTDailyStore;
+            localStorage.setItem('PETRO_MONTHLY_AHT_DAILY_STORE', JSON.stringify(monthlyAHTDailyStore));
+          }
+          if (remote.monthlySlaDailyStore) {
+            monthlySlaDailyStore = remote.monthlySlaDailyStore;
+            localStorage.setItem('PETRO_MONTHLY_SLA_DAILY_STORE', JSON.stringify(monthlySlaDailyStore));
+          }
+          if (remote.monthlyMaxDayStore) {
+            monthlyMaxDayStore = remote.monthlyMaxDayStore;
+            localStorage.setItem('PETRO_MONTHLY_MAXDAY_STORE', JSON.stringify(monthlyMaxDayStore));
           }
 
           if (Object.keys(monthlyAHTStore).length > 0) document.getElementById('ahtUploadStatus').innerText = 'Loaded (Cloud Sync)';
@@ -938,6 +1067,8 @@
 
       const toSec = (v) => parseSecOrNull(v) || 0;
       const buckets = {};
+      const dailyBuckets = {}; // monthKey -> { dayNum -> {calls, sumAHT, sumConsult, sumHold, sumConf, surveySum, surveyCount} }
+      const maxDayByMonth = {};
 
       for (let r = headerRowIdx + 1; r < raw.length; r++) {
         const row = raw[r];
@@ -947,22 +1078,42 @@
         if (!monthName || !monthOrderMap[monthName.toLowerCase()]) continue;
 
         let year = 2026;
+        let dayNum = null;
         const dateStr = String(row[colIdx.date] || '');
-        const ym = dateStr.match(/(\d{4})\//);
-        if (ym) year = parseInt(ym[1], 10);
+        const dm = dateStr.match(/(\d{4})\/(\d{1,2})\/(\d{1,2})/);
+        if (dm) { year = parseInt(dm[1], 10); dayNum = parseInt(dm[3], 10); }
 
         const monthKey = `${monthName.charAt(0).toUpperCase() + monthName.slice(1).toLowerCase()} - ${year}`;
 
         if (!buckets[monthKey]) buckets[monthKey] = { calls: 0, sumAHT: 0, sumConsult: 0, sumHold: 0, sumConf: 0, surveySum: 0, surveyCount: 0 };
         const b = buckets[monthKey];
-        b.calls += 1;
-        b.sumAHT += toSec(row[colIdx.aht]);
-        b.sumConsult += toSec(row[colIdx.consult]);
-        b.sumHold += toSec(row[colIdx.hold]);
-        b.sumConf += toSec(row[colIdx.conf]);
-
+        const aht = toSec(row[colIdx.aht]);
+        const consult = toSec(row[colIdx.consult]);
+        const hold = toSec(row[colIdx.hold]);
+        const conf = toSec(row[colIdx.conf]);
         const sq = Number(row[colIdx.survey]);
-        if (sq > 0) { b.surveySum += sq; b.surveyCount += 1; }
+        const hasSurvey = sq > 0;
+
+        b.calls += 1;
+        b.sumAHT += aht;
+        b.sumConsult += consult;
+        b.sumHold += hold;
+        b.sumConf += conf;
+        if (hasSurvey) { b.surveySum += sq; b.surveyCount += 1; }
+
+        if (dayNum !== null) {
+          if (!dailyBuckets[monthKey]) dailyBuckets[monthKey] = {};
+          if (!dailyBuckets[monthKey][dayNum]) dailyBuckets[monthKey][dayNum] = { calls: 0, sumAHT: 0, sumConsult: 0, sumHold: 0, sumConf: 0, surveySum: 0, surveyCount: 0 };
+          const db_ = dailyBuckets[monthKey][dayNum];
+          db_.calls += 1;
+          db_.sumAHT += aht;
+          db_.sumConsult += consult;
+          db_.sumHold += hold;
+          db_.sumConf += conf;
+          if (hasSurvey) { db_.surveySum += sq; db_.surveyCount += 1; }
+
+          if (!maxDayByMonth[monthKey] || dayNum > maxDayByMonth[monthKey]) maxDayByMonth[monthKey] = dayNum;
+        }
       }
 
       const result = {};
@@ -979,7 +1130,8 @@
           totalCalls: b.calls
         };
       });
-      return Object.keys(result).length ? result : null;
+      if (Object.keys(result).length === 0) return null;
+      return { metrics: result, daily: dailyBuckets, maxDay: maxDayByMonth };
     }
 
     // Fallback for older single-month "Agent Summary" cumulative templates.
@@ -1080,33 +1232,48 @@
           const wb = XLSX.read(data, { type: 'array' });
 
           // Prefer "Raw Data" (per-call rows, real MONTH+DATE columns) - one upload
-          // then populates every month the file contains. Fall back to the older
-          // single-month "Agent Summary" cumulative sheet if Raw Data isn't present.
-          let monthsParsed = null;
+          // then populates every month the file contains, plus per-day breakdowns
+          // used for coverage-based comparisons. Fall back to the older single-month
+          // "Agent Summary" cumulative sheet if Raw Data isn't present (no daily detail).
+          let monthsMetrics = null;
+          let monthsDaily = {};
+          let monthsMaxDay = {};
+
           const rawSheetName = wb.SheetNames.find(n => n.toLowerCase().includes('raw data'));
           if (rawSheetName) {
-            monthsParsed = parseRawDataSheet(wb.Sheets[rawSheetName]);
+            const parsed = parseRawDataSheet(wb.Sheets[rawSheetName]);
+            if (parsed) {
+              monthsMetrics = parsed.metrics;
+              monthsDaily = parsed.daily;
+              monthsMaxDay = parsed.maxDay;
+            }
           }
-          if (!monthsParsed) {
+          if (!monthsMetrics) {
             const summarySheetName = wb.SheetNames.find(n => n.toLowerCase().includes('agent summary')) || wb.SheetNames[0];
-            monthsParsed = parseAgentSummarySheet(wb.Sheets[summarySheetName]);
+            monthsMetrics = parseAgentSummarySheet(wb.Sheets[summarySheetName]);
           }
 
-          if (!monthsParsed || Object.keys(monthsParsed).length === 0) {
+          if (!monthsMetrics || Object.keys(monthsMetrics).length === 0) {
             alert("Could not detect usable data in this file. Checked for a 'Raw Data' sheet and an 'Agent Summary' sheet - neither matched the expected format.");
             return;
           }
 
-          Object.entries(monthsParsed).forEach(([mk, metrics]) => {
+          Object.entries(monthsMetrics).forEach(([mk, metrics]) => {
             monthlyAHTStore[mk] = metrics;
+          });
+          Object.entries(monthsDaily).forEach(([mk, daily]) => {
+            monthlyAHTDailyStore[mk] = daily;
+          });
+          Object.entries(monthsMaxDay).forEach(([mk, maxDay]) => {
+            monthlyMaxDayStore[mk] = Math.max(monthlyMaxDayStore[mk] || 0, maxDay);
           });
           saveToCloud();
 
-          const monthsList = Object.keys(monthsParsed).join(', ');
+          const monthsList = Object.keys(monthsMetrics).join(', ');
           document.getElementById('ahtUploadStatus').innerText = `Synced (${monthsList})`;
           initMonthDropdowns();
           const m1 = document.getElementById('monthSelect1');
-          const firstMonth = Object.keys(monthsParsed)[0];
+          const firstMonth = Object.keys(monthsMetrics)[0];
           if (m1 && Array.from(m1.options).some(o => o.value === firstMonth)) m1.value = firstMonth;
           renderActiveView();
 
@@ -1150,8 +1317,11 @@
           }
           if (headerRowIdx === -1) headerRowIdx = 16;
 
-          // Dates in this report come as "YYYY/MM/DD" - aggregate call-weighted SLA per month directly here
+          // Dates in this report come as "YYYY/MM/DD" - aggregate call-weighted SLA per month
+          // AND per day (so partial-month comparisons can line up the same day range).
           const perMonthAgg = {};
+          const perMonthDaily = {};
+          const perMonthMaxDay = {};
           for (let r = headerRowIdx + 1; r < raw.length; r++) {
             const row = raw[r];
             if (!row || !row[colIdx.date]) continue;
@@ -1162,6 +1332,7 @@
 
             const yNum = parseInt(parts[0], 10);
             const mNum = parseInt(parts[1], 10);
+            const dNum = parseInt(parts[2], 10);
             if (!mNum || mNum < 1 || mNum > 12) continue;
 
             const monthName = Object.keys(monthOrderMap).find(k => monthOrderMap[k] === mNum);
@@ -1174,6 +1345,14 @@
             if (!perMonthAgg[monthKey]) perMonthAgg[monthKey] = { callsSum: 0, weightedSlaSum: 0 };
             perMonthAgg[monthKey].callsSum += calls;
             perMonthAgg[monthKey].weightedSlaSum += calls * sla;
+
+            if (dNum) {
+              if (!perMonthDaily[monthKey]) perMonthDaily[monthKey] = {};
+              if (!perMonthDaily[monthKey][dNum]) perMonthDaily[monthKey][dNum] = { calls: 0, weightedSlaSum: 0 };
+              perMonthDaily[monthKey][dNum].calls += calls;
+              perMonthDaily[monthKey][dNum].weightedSlaSum += calls * sla;
+              if (!perMonthMaxDay[monthKey] || dNum > perMonthMaxDay[monthKey]) perMonthMaxDay[monthKey] = dNum;
+            }
           }
 
           const monthsFound = Object.keys(perMonthAgg);
@@ -1185,6 +1364,12 @@
           monthsFound.forEach(mk => {
             const agg = perMonthAgg[mk];
             monthlySlaStore[mk] = agg.callsSum > 0 ? Math.round((agg.weightedSlaSum / agg.callsSum) * 100) : 0;
+          });
+          Object.entries(perMonthDaily).forEach(([mk, daily]) => {
+            monthlySlaDailyStore[mk] = daily;
+          });
+          Object.entries(perMonthMaxDay).forEach(([mk, maxDay]) => {
+            monthlyMaxDayStore[mk] = Math.max(monthlyMaxDayStore[mk] || 0, maxDay);
           });
 
           saveToCloud();
@@ -1209,6 +1394,9 @@
       // 1. Instant local cache load so graphs display immediately
       monthlyAHTStore = JSON.parse(localStorage.getItem('PETRO_MONTHLY_AHT_STORE') || 'null') || {};
       monthlySlaStore = JSON.parse(localStorage.getItem('PETRO_MONTHLY_SLA_STORE') || 'null') || {};
+      monthlyAHTDailyStore = JSON.parse(localStorage.getItem('PETRO_MONTHLY_AHT_DAILY_STORE') || 'null') || {};
+      monthlySlaDailyStore = JSON.parse(localStorage.getItem('PETRO_MONTHLY_SLA_DAILY_STORE') || 'null') || {};
+      monthlyMaxDayStore = JSON.parse(localStorage.getItem('PETRO_MONTHLY_MAXDAY_STORE') || 'null') || {};
 
       if (Object.keys(monthlyAHTStore).length > 0) {
         document.getElementById('ahtUploadStatus').innerText = `Loaded (Saved)`;
