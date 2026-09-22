@@ -4,16 +4,16 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>PETRO MANILA DAILY SERVICE REVIEW</title>
-  <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@500;600;700;800;900&display=swap" rel="stylesheet">
+  <link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@600;700;800&family=Plus+Jakarta+Sans:wght@500;600;700;800;900&display=swap" rel="stylesheet">
   <style>
     :root {
-      --bg-body: #f8fafc;
+      --bg-body: #eaf6ff;
       --navbar-bg: #ffffff;
-      --border-color: #e2e8f0;
-      --teal-dark: #0f766e;
-      --teal-primary: #0d9488;
-      --teal-subtle: #f0fdfa;
-      --teal-border: #ccfbf1;
+      --border-color: #d3e9fc;
+      --blue-dark: #0d47a1;
+      --blue-primary: #2196f3;
+      --blue-mid: #90caf9;
+      --blue-subtle: #e3f2fd;
       --text-dark: #0f172a;
       --text-muted: #64748b;
     }
@@ -37,9 +37,19 @@
       display: flex;
       justify-content: space-between;
       align-items: center;
-      box-shadow: 0 1px 3px rgba(0, 0, 0, 0.02);
+      box-shadow: 0 1px 3px rgba(13, 71, 161, 0.03);
       z-index: 10;
       height: 58px;
+      position: relative;
+    }
+    /* Live-console identity strip, echoes the dashboard's accent underline */
+    header::after {
+      content: "";
+      position: absolute;
+      left: 0; right: 0; bottom: -1px;
+      height: 2px;
+      background: linear-gradient(90deg, var(--blue-dark), var(--blue-primary));
+      opacity: 0.9;
     }
 
     .brand-section {
@@ -48,7 +58,7 @@
       gap: 0.85rem;
     }
 
-    /* Verifone Logo - Crisp Solid Black */
+    /* Verifone Logo - unchanged: crisp solid black, kept exactly as before */
     .brand-logo-wrap {
       width: 38px;
       height: 38px;
@@ -80,17 +90,18 @@
       color: var(--text-dark);
     }
     .brand-caption {
-      font-size: 0.69rem;
-      color: var(--teal-primary);
+      font-family: 'JetBrains Mono', monospace;
+      font-size: 0.65rem;
+      color: var(--blue-primary);
       font-weight: 700;
-      letter-spacing: 0.03em;
+      letter-spacing: 0.05em;
     }
 
-    /* Redesigned Aesthetic Navigation Dock */
+    /* Navigation Dock */
     nav {
       display: flex;
       gap: 0.4rem;
-      background: #f8fafc;
+      background: var(--bg-body);
       padding: 0.25rem;
       border-radius: 12px;
       border: 1px solid var(--border-color);
@@ -124,21 +135,21 @@
     }
 
     .tab-btn:hover {
-      color: var(--teal-dark);
+      color: var(--blue-dark);
       background: #ffffff;
-      border-color: #e2e8f0;
+      border-color: var(--border-color);
       box-shadow: 0 1px 3px rgba(0, 0, 0, 0.03);
     }
 
     .tab-btn.active {
       background: #ffffff;
-      color: var(--teal-dark);
-      border-color: var(--teal-border);
-      box-shadow: 0 2px 6px rgba(13, 148, 136, 0.12);
+      color: var(--blue-dark);
+      border-color: var(--blue-mid);
+      box-shadow: 0 2px 6px rgba(33, 150, 243, 0.14);
     }
 
     .tab-btn.active svg {
-      stroke: var(--teal-primary);
+      stroke: var(--blue-primary);
     }
 
     .tab-btn.active::after {
@@ -148,7 +159,7 @@
       left: 20%;
       right: 20%;
       height: 2.5px;
-      background: linear-gradient(90deg, #0f766e, #14b8a6);
+      background: linear-gradient(90deg, var(--blue-dark), var(--blue-primary));
       border-radius: 4px;
     }
 
@@ -173,7 +184,7 @@
 
   <header>
     <div class="brand-section">
-      <!-- Verifone Connected Dots Logo in Permanent Pure Black -->
+      <!-- Verifone Connected Dots Logo in Permanent Pure Black — untouched -->
       <div class="brand-logo-wrap" title="Verifone Logo">
         <svg viewBox="0 0 554 554" fill="none" xmlns="http://www.w3.org/2000/svg">
           <circle cx="131" cy="111" r="65" fill="#000000"/>
@@ -184,29 +195,29 @@
       </div>
       <div class="brand-text-col">
         <div class="brand-name">PETRO MANILA DAILY SERVICE REVIEW</div>
-        <div class="brand-caption">Operational & Performance Dashboard</div>
+        <div class="brand-caption">OPERATIONAL &amp; PERFORMANCE DASHBOARD</div>
       </div>
     </div>
 
-    <!-- Redesigned Button Dock -->
+    <!-- Button Dock — new icon set, theme colors applied via currentColor -->
     <nav>
       <button class="tab-btn active" onclick="switchTab(this, 'abandon.html')">
-        <svg viewBox="0 0 24 24"><path d="M18 20V10M12 20V4M6 20v-6"/></svg>
+        <svg viewBox="0 0 24 24"><path d="M22 12h-4l-3 9L9 3l-3 9H2"/></svg>
         <span>Abandon Review</span>
       </button>
 
       <button class="tab-btn" onclick="switchTab(this, 'tenurity.html')">
-        <svg viewBox="0 0 24 24"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/></svg>
+        <svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="9"/><polyline points="12 7 12 12 15.5 14"/></svg>
         <span>Tenurity Stats</span>
       </button>
 
       <button class="tab-btn" onclick="switchTab(this, 'monthly.html')">
-        <svg viewBox="0 0 24 24"><rect x="3" y="4" width="18" height="18" rx="2" ry="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/></svg>
+        <svg viewBox="0 0 24 24"><line x1="18" y1="20" x2="18" y2="10"/><line x1="12" y1="20" x2="12" y2="4"/><line x1="6" y1="20" x2="6" y2="14"/></svg>
         <span>Monthly Stats</span>
       </button>
 
       <button class="tab-btn" onclick="switchTab(this, 'updates.html')">
-        <svg viewBox="0 0 24 24"><path d="M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9"/><path d="M13.73 21a2 2 0 0 1-3.46 0"/></svg>
+        <svg viewBox="0 0 24 24"><path d="M21 2v6h-6"/><path d="M3 12a9 9 0 0 1 15-6.7L21 8"/><path d="M3 22v-6h6"/><path d="M21 12a9 9 0 0 1-15 6.7L3 16"/></svg>
         <span>Updates</span>
       </button>
     </nav>

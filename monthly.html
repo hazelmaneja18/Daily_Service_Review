@@ -13,15 +13,16 @@
   <script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore-compat.js"></script>
   <style>
     :root {
-      --bg: #f8fafc;
+      /* ---- Theme: Sky Blue (matches the rest of the PETRO MNL portal) ---- */
+      --bg: #eef7ff;
       --card-bg: #ffffff;
-      --border-subtle: #e2e8f0;
-      --border-focus: #0f766e;
-      --teal-primary: #0f766e;
-      --teal-light: #14b8a6;
-      --teal-glow: #f0fdfa;
-      --comp-color: #6366f1;
-      --comp-light: #e0e7ff;
+      --border-subtle: #d3e9fc;
+      --border-focus: #2196f3;
+      --teal-primary: #0d47a1;
+      --teal-light: #2196f3;
+      --teal-glow: #e3f2fd;
+      --comp-color: #f59e0b;
+      --comp-light: #fef3c7;
       --text-main: #0f172a;
       --text-muted: #64748b;
       --text-soft: #94a3b8;
@@ -31,8 +32,8 @@
       --rose-bg: #fff1f2;
       --amber: #f59e0b;
       --amber-bg: #fffbeb;
-      --shadow-sm: 0 1px 3px rgba(0,0,0,0.03), 0 1px 2px rgba(0,0,0,0.02);
-      --shadow-card: 0 4px 12px -2px rgba(15, 23, 42, 0.04), 0 2px 6px -1px rgba(15, 23, 42, 0.02);
+      --shadow-sm: 0 1px 3px rgba(13, 71, 161, 0.05), 0 1px 2px rgba(13, 71, 161, 0.03);
+      --shadow-card: 0 4px 12px -2px rgba(13, 71, 161, 0.07), 0 2px 6px -1px rgba(13, 71, 161, 0.04);
     }
 
     * { box-sizing: border-box; margin: 0; padding: 0; font-family: 'Plus Jakarta Sans', sans-serif; }
@@ -54,7 +55,7 @@
     .top-toolbar {
       background: var(--card-bg);
       border: 1px solid var(--border-subtle);
-      border-radius: 10px;
+      border-radius: 11px;
       padding: 0.45rem 0.95rem;
       display: flex;
       justify-content: space-between;
@@ -64,20 +65,20 @@
     }
     .brand-group { display: flex; align-items: center; gap: 1rem; }
     .brand-badge {
-      background: linear-gradient(135deg, #0f766e 0%, #0d9488 100%);
+      background: linear-gradient(135deg, #0d47a1 0%, #2196f3 100%);
       color: #ffffff;
       padding: 0.3rem 0.75rem;
       border-radius: 7px;
       font-size: 0.75rem;
       font-weight: 800;
       letter-spacing: 0.04em;
-      box-shadow: 0 2px 4px rgba(15, 118, 110, 0.2);
+      box-shadow: 0 2px 6px rgba(13, 71, 161, 0.25);
     }
 
     /* Modern Mode Switcher */
     .view-mode-toggle {
       display: flex;
-      background: #f1f5f9;
+      background: var(--teal-glow);
       border: 1px solid var(--border-subtle);
       border-radius: 8px;
       padding: 2.5px;
@@ -99,14 +100,14 @@
     .mode-btn.active {
       background: #ffffff;
       color: var(--teal-primary);
-      box-shadow: 0 1px 4px rgba(0,0,0,0.08);
+      box-shadow: 0 1px 4px rgba(13, 71, 161, 0.16);
     }
 
     .toolbar-right { display: flex; align-items: center; gap: 0.6rem; }
     .label-tag { font-size: 0.68rem; font-weight: 800; color: var(--text-muted); text-transform: uppercase; letter-spacing: 0.03em; }
     
     .dropdown {
-      background: #f8fafc url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='10' height='10' fill='%2364748b' viewBox='0 0 16 16'%3E%3Cpath d='M7.247 11.14 2.451 5.658C1.885 5.013 2.345 4 3.204 4h9.592a1 1 0 0 1 .753 1.659l-4.796 5.48a1 1 0 0 1-1.506 0z'/%3E%3C/svg%3E") no-repeat calc(100% - 10px) center;
+      background: #eef7ff url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='10' height='10' fill='%2364748b' viewBox='0 0 16 16'%3E%3Cpath d='M7.247 11.14 2.451 5.658C1.885 5.013 2.345 4 3.204 4h9.592a1 1 0 0 1 .753 1.659l-4.796 5.48a1 1 0 0 1-1.506 0z'/%3E%3C/svg%3E") no-repeat calc(100% - 10px) center;
       border: 1px solid var(--border-subtle);
       padding: 0.32rem 1.8rem 0.32rem 0.75rem;
       border-radius: 7px;
@@ -124,7 +125,7 @@
     .gear-btn {
       width: 32px; height: 32px;
       border-radius: 7px;
-      background: #f8fafc;
+      background: #eef7ff;
       border: 1px solid var(--border-subtle);
       color: var(--text-muted);
       display: flex; align-items: center; justify-content: center;
@@ -148,7 +149,7 @@
     .kpi-card {
       background: var(--card-bg);
       border: 1px solid var(--border-subtle);
-      border-radius: 10px;
+      border-radius: 11px;
       padding: 0.55rem 0.85rem;
       box-shadow: var(--shadow-sm);
       display: flex;
@@ -156,6 +157,11 @@
       justify-content: space-between;
       min-height: 80px;
       position: relative;
+      transition: transform 0.15s ease, box-shadow 0.15s ease;
+    }
+    .kpi-card:hover {
+      transform: translateY(-2px);
+      box-shadow: 0 10px 22px -6px rgba(13, 71, 161, 0.14);
     }
     .kpi-title-row {
       display: flex;
@@ -217,7 +223,7 @@
     .chart-card {
       background: var(--card-bg);
       border: 1px solid var(--border-subtle);
-      border-radius: 11px;
+      border-radius: 12px;
       padding: 0.75rem 1rem 0.5rem;
       box-shadow: var(--shadow-card);
       display: flex;
@@ -238,6 +244,17 @@
       color: var(--text-main);
       text-transform: uppercase;
       letter-spacing: 0.04em;
+      display: flex;
+      align-items: center;
+      gap: 0.45rem;
+    }
+    .chart-card-title::before {
+      content: "";
+      width: 3px;
+      height: 13px;
+      background: var(--teal-light);
+      border-radius: 2px;
+      display: inline-block;
     }
     .chart-card-badge {
       font-size: 0.65rem;
@@ -278,10 +295,10 @@
     .modal-box {
       background: var(--card-bg);
       border: 1px solid var(--border-subtle);
-      border-radius: 12px;
+      border-radius: 13px;
       width: min(92vw, 520px);
       padding: 1.25rem;
-      box-shadow: 0 15px 30px -5px rgba(0, 0, 0, 0.15);
+      box-shadow: 0 15px 30px -5px rgba(13, 71, 161, 0.22);
       display: flex;
       flex-direction: column;
       gap: 0.85rem;
@@ -296,7 +313,7 @@
     .upload-field { display: flex; flex-direction: column; gap: 0.3rem; }
     .upload-field label { font-size: 0.68rem; font-weight: 800; color: var(--teal-primary); text-transform: uppercase; }
     .upload-btn-label {
-      border: 1px dashed var(--teal-primary);
+      border: 1px dashed var(--teal-light);
       background: var(--teal-glow);
       color: var(--teal-primary);
       padding: 0.55rem 0.85rem;
@@ -309,7 +326,7 @@
       justify-content: space-between;
       transition: all 0.15s ease;
     }
-    .upload-btn-label:hover { background: #ccfbf1; }
+    .upload-btn-label:hover { background: #bbdefb; }
     .upload-status { font-size: 0.68rem; color: var(--emerald); font-weight: 700; }
     input[type="file"] { display: none; }
   </style>
@@ -864,7 +881,7 @@
         type: 'bar',
         data: {
           labels: months,
-          datasets: [{ data: dataValsAHT, backgroundColor: months.map((_, i) => i === 0 ? '#0f766e' : '#6366f1'), borderRadius: 6, maxBarThickness: 34 }]
+          datasets: [{ data: dataValsAHT, backgroundColor: months.map((_, i) => i === 0 ? '#0d47a1' : '#f59e0b'), borderRadius: 6, maxBarThickness: 34 }]
         },
         options: {
           indexAxis: 'y', responsive: true, maintainAspectRatio: false,
@@ -872,13 +889,13 @@
           plugins: {
             legend: { display: false },
             datalabels: {
-              anchor: 'end', align: 'right', color: '#0f766e',
+              anchor: 'end', align: 'right', color: '#0d47a1',
               font: { family: 'JetBrains Mono', weight: '800', size: 14.0 },
               formatter: (val) => timeSecToHMS(val)
             }
           },
           scales: {
-            x: { ticks: { callback: (val) => timeSecToHMS(val), font: { family: 'JetBrains Mono', size: 11.5 }, color: '#64748b' }, grid: { color: '#f1f5f9' } },
+            x: { ticks: { callback: (val) => timeSecToHMS(val), font: { family: 'JetBrains Mono', size: 11.5 }, color: '#64748b' }, grid: { color: '#e3f2fd' } },
             y: { grid: { display: false }, ticks: { font: { family: 'Plus Jakarta Sans', weight: '700', size: 13.0 }, color: '#334155' } }
           }
         }
@@ -886,9 +903,9 @@
 
       const brkCtx = document.getElementById('consultHoldConfChart').getContext('2d');
       const datasets = [
-        { label: 'Consult', data: months.map(m => dataMap[m]?.consultSec || 0), backgroundColor: '#06b6d4', borderRadius: 4, maxBarThickness: 32 },
-        { label: 'Hold', data: months.map(m => dataMap[m]?.holdSec || 0), backgroundColor: '#fde047', borderRadius: 4, maxBarThickness: 32 },
-        { label: 'Conference', data: months.map(m => dataMap[m]?.confSec || 0), backgroundColor: '#34d399', borderRadius: 4, maxBarThickness: 32 }
+        { label: 'Consult', data: months.map(m => dataMap[m]?.consultSec || 0), backgroundColor: '#2196f3', borderRadius: 4, maxBarThickness: 32 },
+        { label: 'Hold', data: months.map(m => dataMap[m]?.holdSec || 0), backgroundColor: '#f59e0b', borderRadius: 4, maxBarThickness: 32 },
+        { label: 'Conference', data: months.map(m => dataMap[m]?.confSec || 0), backgroundColor: '#0d47a1', borderRadius: 4, maxBarThickness: 32 }
       ];
 
       chartInstances.breakdown = new Chart(brkCtx, {
@@ -896,17 +913,17 @@
         data: { labels: months, datasets: datasets },
         options: {
           responsive: true, maintainAspectRatio: false,
-          layout: { padding: { top: 22 } },
+          layout: { padding: { top: 14 } },
           plugins: {
-            legend: { position: 'top', labels: { boxWidth: 10, font: { family: 'Plus Jakarta Sans', size: 13.0, weight: '700' }, color: '#334155' } },
+            legend: { position: 'top', labels: { boxWidth: 10, padding: 18, font: { family: 'Plus Jakarta Sans', size: 12.0, weight: '700' }, color: '#334155' } },
             datalabels: {
-              anchor: 'end', align: 'top', offset: 2, color: '#0f172a',
-              font: { family: 'JetBrains Mono', weight: '800', size: 13.0 },
+              anchor: 'end', align: 'top', offset: 4, color: '#0f172a',
+              font: { family: 'JetBrains Mono', weight: '800', size: 10.5 },
               formatter: (val) => timeSecToHMS(val)
             }
           },
           scales: {
-            y: { max: 350, ticks: { callback: (val) => timeSecToHMS(val), font: { family: 'JetBrains Mono', size: 11.5 }, color: '#64748b', stepSize: 60 }, grid: { color: '#f1f5f9' } },
+            y: { max: 350, ticks: { callback: (val) => timeSecToHMS(val), font: { family: 'JetBrains Mono', size: 11.5 }, color: '#64748b', stepSize: 60 }, grid: { color: '#e3f2fd' } },
             x: { grid: { display: false }, ticks: { font: { family: 'Plus Jakarta Sans', weight: '700', size: 13.0 }, color: '#334155' } }
           }
         }
@@ -919,16 +936,16 @@
         type: 'bar',
         data: {
           labels: months,
-          datasets: [{ data: months.map(m => dataMap[m]?.surveyScore || 0), backgroundColor: months.map((_, i) => i === 0 ? '#0f766e' : '#6366f1'), borderRadius: 6, maxBarThickness: 38 }]
+          datasets: [{ data: months.map(m => dataMap[m]?.surveyScore || 0), backgroundColor: months.map((_, i) => i === 0 ? '#0d47a1' : '#f59e0b'), borderRadius: 6, maxBarThickness: 38 }]
         },
         options: {
           responsive: true, maintainAspectRatio: false, layout: { padding: { top: 20 } },
           plugins: {
             legend: { display: false },
-            datalabels: { anchor: 'end', align: 'top', font: { family: 'JetBrains Mono', weight: '800', size: 14.0 }, color: '#0f766e', formatter: (v) => v.toFixed(2) }
+            datalabels: { anchor: 'end', align: 'top', font: { family: 'JetBrains Mono', weight: '800', size: 14.0 }, color: '#0d47a1', formatter: (v) => v.toFixed(2) }
           },
           scales: {
-            y: { min: 4.4, max: 5.0, ticks: { stepSize: 0.1, font: { family: 'JetBrains Mono', size: 11.5 }, color: '#64748b' }, grid: { color: '#f1f5f9' } },
+            y: { min: 4.4, max: 5.0, ticks: { stepSize: 0.1, font: { family: 'JetBrains Mono', size: 11.5 }, color: '#64748b' }, grid: { color: '#e3f2fd' } },
             x: { grid: { display: false }, ticks: { font: { family: 'Plus Jakarta Sans', weight: '700', size: 13.0 }, color: '#334155' } }
           }
         }
@@ -939,17 +956,17 @@
         type: 'bar',
         data: {
           labels: months,
-          datasets: [{ data: months.map(m => dataMap[m]?.responded || 0), backgroundColor: months.map((_, i) => i === 0 ? '#0f766e' : '#6366f1'), borderRadius: 6, maxBarThickness: 34 }]
+          datasets: [{ data: months.map(m => dataMap[m]?.responded || 0), backgroundColor: months.map((_, i) => i === 0 ? '#0d47a1' : '#f59e0b'), borderRadius: 6, maxBarThickness: 34 }]
         },
         options: {
           indexAxis: 'y', responsive: true, maintainAspectRatio: false,
           layout: { padding: { right: 45, top: 10, bottom: 5 } },
           plugins: {
             legend: { display: false },
-            datalabels: { anchor: 'end', align: 'right', font: { family: 'JetBrains Mono', weight: '800', size: 14.0 }, color: '#0f766e', formatter: (v) => v.toLocaleString() }
+            datalabels: { anchor: 'end', align: 'right', font: { family: 'JetBrains Mono', weight: '800', size: 14.0 }, color: '#0d47a1', formatter: (v) => v.toLocaleString() }
           },
           scales: {
-            x: { grid: { color: '#f1f5f9' }, ticks: { font: { family: 'JetBrains Mono', size: 11.5 }, color: '#64748b' } },
+            x: { grid: { color: '#e3f2fd' }, ticks: { font: { family: 'JetBrains Mono', size: 11.5 }, color: '#64748b' } },
             y: { grid: { display: false }, ticks: { font: { family: 'Plus Jakarta Sans', weight: '700', size: 13.0 }, color: '#334155' } }
           }
         }
@@ -964,11 +981,11 @@
         labels = [months[0], 'Remaining'];
         const val = dataMap[months[0]]?.slaPercent || 0;
         dataVals = [val, 100 - val];
-        bgColors = ['#0f766e', '#e2e8f0'];
+        bgColors = ['#0d47a1', '#e3f2fd'];
       } else {
         labels = months;
         dataVals = months.map(m => dataMap[m]?.slaPercent || 0);
-        bgColors = ['#0f766e', '#6366f1'];
+        bgColors = ['#0d47a1', '#f59e0b'];
       }
 
       chartInstances.sla = new Chart(slaCtx, {
@@ -979,7 +996,11 @@
           plugins: {
             legend: { position: 'bottom', labels: { boxWidth: 10, font: { family: 'Plus Jakarta Sans', size: 13.5, weight: '700' }, color: '#334155' } },
             datalabels: {
-              color: '#0f172a', font: { family: 'JetBrains Mono', weight: '900', size: 16.0 },
+              color: (ctx) => {
+                const sliceColor = ctx.dataset.backgroundColor[ctx.dataIndex];
+                return sliceColor === '#0d47a1' ? '#ffffff' : '#0f172a';
+              },
+              font: { family: 'JetBrains Mono', weight: '900', size: 16.0 },
               formatter: (val, ctx) => {
                 if (months.length === 1 && ctx.dataIndex === 1) return '';
                 return `${val}%`;
@@ -998,17 +1019,17 @@
         type: 'bar',
         data: {
           labels: months,
-          datasets: [{ label: 'Handled Calls', data: dataVals, backgroundColor: months.map((_, i) => i === 0 ? '#0f766e' : '#6366f1'), borderRadius: 6, maxBarThickness: 36 }]
+          datasets: [{ label: 'Handled Calls', data: dataVals, backgroundColor: months.map((_, i) => i === 0 ? '#0d47a1' : '#f59e0b'), borderRadius: 6, maxBarThickness: 36 }]
         },
         options: {
           responsive: true, maintainAspectRatio: false, layout: { padding: { top: 22 } },
           plugins: {
             legend: { display: false },
-            datalabels: { anchor: 'end', align: 'top', font: { family: 'JetBrains Mono', weight: '800', size: 14.0 }, color: '#0f766e', formatter: (v) => v.toLocaleString() }
+            datalabels: { anchor: 'end', align: 'top', font: { family: 'JetBrains Mono', weight: '800', size: 14.0 }, color: '#0d47a1', formatter: (v) => v.toLocaleString() }
           },
           scales: {
             x: { grid: { display: false }, ticks: { font: { family: 'Plus Jakarta Sans', size: 13.0, weight: '700' }, color: '#334155' } },
-            y: { grid: { color: '#f1f5f9' }, ticks: { font: { family: 'JetBrains Mono', size: 11.5 }, color: '#64748b' } }
+            y: { grid: { color: '#e3f2fd' }, ticks: { font: { family: 'JetBrains Mono', size: 11.5 }, color: '#64748b' } }
           }
         }
       });

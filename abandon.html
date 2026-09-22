@@ -4,7 +4,7 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Abandon & Service Level Review - PETRO MNL</title>
-  <link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@600;700;800&family=Plus+Jakarta+Sans:wght@500;600;700;800;900&display=swap" rel="stylesheet">
+  <link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@500;600;700;800&family=Plus+Jakarta+Sans:wght@500;600;700;800;900&display=swap" rel="stylesheet">
   <!-- Chart.js, Datalabels Plugin, SheetJS, and Firebase SDKs -->
   <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.1/dist/chart.umd.min.js"></script>
   <script src="https://cdn.jsdelivr.net/npm/chartjs-plugin-datalabels@2.2.0/dist/chartjs-plugin-datalabels.min.js"></script>
@@ -13,28 +13,36 @@
   <script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore-compat.js"></script>
   <style>
     :root {
-      --bg: #f8fafc;
-      --card: #ffffff;
-      --border: #e2e8f0;
-      --teal-dark: #0f766e;
-      --teal-primary: #0d9488;
-      --teal-subtle: #f0fdfa;
-      --teal-border: #ccfbf1;
-      --text-main: #0f172a;
-      --text-muted: #64748b;
-      --red: #f43f5e;
-      --red-bg: #fff1f2;
-      --green: #10b981;
-      --green-bg: #ecfdf5;
-      --yellow: #f59e0b;
-      --yellow-bg: #fffbeb;
-      --shadow: 0 1px 3px rgba(0,0,0,0.04), 0 1px 2px rgba(0,0,0,0.02);
+      /* ---- Theme: Sky Blue (matches the rest of the PETRO MNL portal) ---- */
+      --cream:        #eaf6ff;
+      --blush:        #e3f2fd;
+      --pink:         #90caf9;
+      --coral:        #2196f3;
+      --coral-deep:   #0d47a1;
+      --ink:          #0d2b45;
+      --muted:        #5b7fa6;
+      --card:         #ffffff;
+      --border:       #d3e9fc;
+      --bg:           #f4faff;
+
+      /* semantic traffic-light tones (unchanged thresholds) */
+      --good-bg:      #dff5e6;
+      --good-line:    #59c284;
+      --good-text:    #22824f;
+      --warn-bg:      #fff2d6;
+      --warn-line:    #f0b94d;
+      --warn-text:    #9c6c04;
+      --bad-bg:       #ffe1e1;
+      --bad-line:     #ff9494;
+      --bad-text:     #c33f45;
+
+      --shadow: 0 1px 3px rgba(13, 71, 161, 0.05), 0 4px 12px rgba(13, 71, 161, 0.06);
     }
 
     * { box-sizing: border-box; margin: 0; padding: 0; font-family: 'Plus Jakarta Sans', sans-serif; }
     html, body {
-      background-color: var(--bg);
-      color: var(--text-main);
+      background: var(--bg);
+      color: var(--ink);
       min-height: 100vh;
       width: 100%;
       overflow-x: hidden;
@@ -42,71 +50,73 @@
     body {
       display: flex;
       flex-direction: column;
-      padding: clamp(0.75rem, 1.5vw, 1.25rem);
-      gap: 0.75rem;
+      padding: clamp(0.85rem, 1.6vw, 1.4rem);
+      gap: 0.8rem;
+      max-width: 1800px;
+      margin: 0 auto;
     }
+    ::selection { background: var(--coral); color: #fff; }
 
-    /* Top Action Bar */
+    /* ---------------- Top Bar ---------------- */
     .top-toolbar {
       background: var(--card);
       border: 1px solid var(--border);
-      border-radius: 10px;
-      padding: 0.45rem 0.9rem;
+      border-radius: 12px;
+      padding: 0.65rem 1.15rem;
       display: flex;
       justify-content: space-between;
       align-items: center;
       box-shadow: var(--shadow);
     }
-    .brand-group { display: flex; align-items: center; gap: 0.5rem; }
+    .brand-group { display: flex; align-items: center; gap: 0.65rem; }
     .brand-dot {
       width: 9px; height: 9px; border-radius: 50%;
-      background: var(--teal-dark);
-      box-shadow: 0 0 0 3px rgba(15, 118, 110, 0.12);
+      background: var(--coral);
+      box-shadow: 0 0 0 4px rgba(13, 148, 136, 0.16);
+      animation: pulse 2.4s ease-in-out infinite;
     }
-    .brand-title {
-      font-size: 0.92rem;
-      font-weight: 800;
-      color: var(--text-main);
-      letter-spacing: -0.01em;
+    @keyframes pulse {
+      0%, 100% { box-shadow: 0 0 0 4px rgba(13, 148, 136, 0.16); }
+      50% { box-shadow: 0 0 0 7px rgba(13, 148, 136, 0.07); }
     }
+    .brand-title { font-size: 0.95rem; font-weight: 800; color: var(--ink); letter-spacing: -0.01em; }
+    .brand-sub { font-family: 'JetBrains Mono', monospace; font-size: 0.62rem; color: var(--coral); letter-spacing: 0.05em; font-weight: 700; }
 
-    .toolbar-right { display: flex; align-items: center; gap: 0.5rem; }
-    .label-tag { font-size: 0.68rem; font-weight: 800; color: var(--text-muted); text-transform: uppercase; }
-    
+    .toolbar-right { display: flex; align-items: center; gap: 0.55rem; }
+    .label-tag { font-family: 'JetBrains Mono', monospace; font-size: 0.64rem; font-weight: 700; color: var(--muted); letter-spacing: 0.06em; }
+
     .dropdown {
-      background: #f1f5f9 url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='10' height='10' fill='%2364748b' viewBox='0 0 16 16'%3E%3Cpath d='M7.247 11.14 2.451 5.658C1.885 5.013 2.345 4 3.204 4h9.592a1 1 0 0 1 .753 1.659l-4.796 5.48a1 1 0 0 1-1.506 0z'/%3E%3C/svg%3E") no-repeat calc(100% - 8px) center;
+      background: var(--bg) url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='10' height='10' fill='%230d47a1' viewBox='0 0 16 16'%3E%3Cpath d='M7.247 11.14 2.451 5.658C1.885 5.013 2.345 4 3.204 4h9.592a1 1 0 0 1 .753 1.659l-4.796 5.48a1 1 0 0 1-1.506 0z'/%3E%3C/svg%3E") no-repeat calc(100% - 8px) center;
       border: 1px solid var(--border);
-      padding: 0.28rem 1.6rem 0.28rem 0.6rem;
-      border-radius: 6px;
-      font-size: 0.74rem;
+      padding: 0.32rem 1.7rem 0.32rem 0.65rem;
+      border-radius: 8px;
+      font-size: 0.72rem;
       font-weight: 700;
-      color: var(--text-main);
+      color: var(--ink);
       font-family: 'JetBrains Mono', monospace;
       outline: none;
       appearance: none;
       cursor: pointer;
-      min-width: 145px;
+      min-width: 150px;
     }
-    .dropdown:focus { border-color: var(--teal-dark); }
+    .dropdown option { color: var(--ink); }
+    .dropdown:focus { border-color: var(--coral); }
 
     .gear-btn {
-      width: 30px; height: 30px;
-      border-radius: 6px;
-      background: #f1f5f9;
+      width: 32px; height: 32px;
+      border-radius: 8px;
+      background: var(--blush);
       border: 1px solid var(--border);
-      color: var(--text-muted);
+      color: var(--coral-deep);
       display: flex; align-items: center; justify-content: center;
       cursor: pointer;
-      font-size: 0.95rem;
+      font-size: 1rem;
       transition: all 0.15s ease;
     }
-    .gear-btn:hover {
-      background: var(--teal-subtle);
-      border-color: var(--teal-border);
-      color: var(--teal-dark);
-    }
+    .gear-btn:hover { background: var(--pink); border-color: var(--coral); }
+    .gear-btn.toggle-active { background: var(--coral); color: #fff; border-color: var(--coral); }
 
-    /* Centered KPI Cards */
+    /* ---------------- KPI Strip ---------------- */
     .kpi-row {
       display: grid;
       grid-template-columns: repeat(5, minmax(0, 1fr));
@@ -116,284 +126,308 @@
     .kpi-card {
       background: var(--card);
       border: 1px solid var(--border);
-      border-radius: 10px;
-      padding: 0.65rem 0.75rem;
+      border-radius: 12px;
+      padding: 0.7rem 0.8rem;
       box-shadow: var(--shadow);
       display: flex;
       flex-direction: column;
       align-items: center;
       text-align: center;
       justify-content: space-between;
-      min-height: 98px;
+      min-height: 100px;
     }
     .kpi-header {
-      font-size: 0.72rem;
-      font-weight: 900;
-      color: #0f172a;
-      letter-spacing: 0.05em;
+      font-family: 'JetBrains Mono', monospace;
+      font-size: 0.62rem;
+      font-weight: 700;
+      color: var(--muted);
+      letter-spacing: 0.06em;
       text-transform: uppercase;
       width: 100%;
       text-align: center;
     }
-    .kpi-core {
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      gap: 0.45rem;
-      margin: 0.12rem 0;
-      width: 100%;
-    }
+    .kpi-core { display: flex; align-items: center; justify-content: center; gap: 0.45rem; margin: 0.15rem 0; width: 100%; }
     .kpi-icon-wrap {
-      width: 28px; height: 28px;
-      border-radius: 6px;
-      background: var(--teal-subtle);
+      width: 30px; height: 30px;
+      border-radius: 9px;
+      background: var(--blush);
       display: flex; align-items: center; justify-content: center;
       flex-shrink: 0;
     }
-    .kpi-icon-wrap svg { width: 15px; height: 15px; fill: var(--teal-dark); }
-    .kpi-val {
-      font-size: clamp(1.25rem, 1.8vw, 1.65rem);
-      font-weight: 800;
-      font-family: 'JetBrains Mono', monospace;
-      color: var(--teal-dark);
-      line-height: 1;
-      letter-spacing: -0.03em;
-    }
-
+    .kpi-icon-wrap svg { width: 16px; height: 16px; fill: var(--coral-deep); }
+    .kpi-val { font-size: clamp(1.25rem, 1.8vw, 1.65rem); font-weight: 800; font-family: 'JetBrains Mono', monospace; color: var(--coral-deep); line-height: 1; letter-spacing: -0.03em; }
     .kpi-subtext {
-      font-size: 0.65rem;
-      color: var(--text-muted);
-      font-weight: 600;
-      width: 100%;
-      text-align: center;
-      white-space: nowrap;
-      overflow: hidden;
-      text-overflow: ellipsis;
-      border-top: 1px solid #f1f5f9;
-      padding-top: 0.35rem;
+      font-size: 0.64rem; color: var(--muted); font-weight: 600; width: 100%; text-align: center;
+      white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
+      border-top: 1px dashed var(--border); padding-top: 0.35rem;
     }
 
-    /* Top Call Drivers */
-    .drivers-stack {
-      width: 100%;
-      display: flex;
-      flex-direction: column;
-      gap: 0.12rem;
-      margin: 0.08rem 0;
-    }
-    .driver-row {
-      display: flex;
-      justify-content: space-between;
-      align-items: center;
-      font-size: 0.7rem;
-      font-weight: 600;
-      color: #0f172a;
-      padding: 0 0.45rem;
-    }
-    .driver-num {
-      font-family: 'JetBrains Mono', monospace;
-      color: #0f172a;
-      font-weight: 700;
-    }
+    .drivers-stack { width: 100%; display: flex; flex-direction: column; gap: 0.14rem; margin: 0.08rem 0; }
+    .driver-row { display: flex; justify-content: space-between; align-items: center; font-size: 0.68rem; font-weight: 600; color: var(--ink); padding: 0 0.35rem; }
+    .driver-num { font-family: 'JetBrains Mono', monospace; color: var(--coral-deep); font-weight: 700; }
 
     .absence-field {
-      width: 48px;
-      border: 1px dashed var(--teal-border);
-      background: var(--teal-subtle);
-      color: var(--teal-dark);
-      border-radius: 6px;
-      font-size: 1.35rem;
-      font-weight: 800;
-      font-family: 'JetBrains Mono', monospace;
-      text-align: center;
-      outline: none;
-      padding: 0.08rem;
+      width: 54px;
+      border: 1px dashed var(--coral);
+      background: var(--blush);
+      color: var(--coral-deep);
+      border-radius: 8px;
+      font-size: 1.4rem; font-weight: 800; font-family: 'JetBrains Mono', monospace;
+      text-align: center; outline: none; padding: 0.08rem;
     }
-    .absence-field:focus { border-color: var(--teal-dark); background: #ffffff; }
+    .absence-field:focus { border-color: var(--coral-deep); background: #fff; }
 
-    /* Dashboard Split */
+    /* ---------------- Main Split ---------------- */
     .dashboard-layout {
       display: grid;
-      grid-template-columns: minmax(0, 1fr) 245px;
+      grid-template-columns: minmax(0, 1fr) 250px;
       gap: 0.75rem;
-      flex: 1;
       align-items: stretch;
       min-height: 0;
     }
-
+    .dual-view-col { display: flex; flex-direction: column; min-height: 0; }
     .chart-panel {
       background: var(--card);
       border: 1px solid var(--border);
-      border-radius: 10px;
-      padding: 0.85rem 1rem 0.5rem;
+      border-radius: 12px;
+      padding: 0.9rem 1.05rem 0.55rem;
       box-shadow: var(--shadow);
-      display: flex;
-      flex-direction: column;
-      min-height: 0;
+      display: flex; flex-direction: column; min-height: 0; flex: 1;
     }
-    .chart-heading {
-      font-size: 0.88rem;
-      font-weight: 800;
-      color: var(--text-main);
-      margin-bottom: 0.35rem;
+    .panel-heading {
+      font-size: 0.86rem; font-weight: 800; color: var(--ink);
+      margin-bottom: 0.4rem; display: flex; align-items: center; gap: 0.45rem;
     }
-    .chart-viewport {
-      position: relative;
-      width: 100%;
-      flex: 1;
-      min-height: clamp(380px, 52vh, 580px);
+    .panel-heading::before { content: ""; width: 3px; height: 14px; background: var(--coral); border-radius: 2px; display: inline-block; }
+    .chart-legend-mini {
+      display: flex; gap: 0.85rem; margin-bottom: 0.4rem; font-family: 'JetBrains Mono', monospace; font-size: 0.62rem; color: var(--muted);
     }
+    .chart-legend-mini span { display: flex; align-items: center; gap: 0.3rem; }
+    .swatch { width: 9px; height: 9px; border-radius: 2px; display: inline-block; }
+    .chart-viewport { position: relative; width: 100%; flex: 1; min-height: clamp(420px, 58vh, 680px); }
 
     .summary-panel {
       background: var(--card);
       border: 1px solid var(--border);
-      border-radius: 10px;
-      padding: 0.75rem;
+      border-radius: 12px;
+      padding: 0.8rem;
       box-shadow: var(--shadow);
-      display: flex;
-      flex-direction: column;
-      justify-content: space-between;
-      gap: 0.5rem;
+      display: flex; flex-direction: column; justify-content: space-between; gap: 0.5rem;
+      flex: 1; min-height: 0;
     }
     .summary-title {
-      font-size: 0.72rem;
-      font-weight: 800;
-      color: var(--text-main);
-      padding-bottom: 0.35rem;
-      border-bottom: 1px solid var(--border);
-      text-transform: uppercase;
-      letter-spacing: 0.04em;
+      font-family: 'JetBrains Mono', monospace; font-size: 0.66rem; font-weight: 700; color: var(--muted);
+      padding-bottom: 0.4rem; border-bottom: 1px solid var(--border); letter-spacing: 0.06em;
     }
-    .insight-card {
-      padding: 0.45rem 0.6rem;
-      border-radius: 6px;
-      display: flex;
-      flex-direction: column;
-      gap: 0.05rem;
-    }
-    .card-green { background: var(--green-bg); border-left: 3px solid var(--green); }
-    .card-red { background: var(--red-bg); border-left: 3px solid var(--red); }
-    .card-yellow { background: var(--yellow-bg); border-left: 3px solid var(--yellow); }
+    .insight-card { padding: 0.5rem 0.65rem; border-radius: 9px; display: flex; flex-direction: column; gap: 0.06rem; }
+    .card-good  { background: var(--good-bg); border-left: 3px solid var(--good-line); }
+    .card-crit  { background: var(--bad-bg);  border-left: 3px solid var(--bad-line); }
+    .card-warn  { background: var(--warn-bg); border-left: 3px solid var(--warn-line); }
 
-    .insight-label { font-size: 0.6rem; font-weight: 800; text-transform: uppercase; color: var(--text-muted); }
-    .insight-primary { font-size: 0.95rem; font-weight: 800; font-family: 'JetBrains Mono', monospace; }
-    .insight-sub { font-size: 0.65rem; color: var(--text-muted); }
+    .insight-label { font-family: 'JetBrains Mono', monospace; font-size: 0.6rem; font-weight: 700; letter-spacing: 0.04em; color: var(--muted); }
+    .insight-primary { font-size: 0.98rem; font-weight: 800; font-family: 'JetBrains Mono', monospace; color: var(--ink); }
+    .insight-sub { font-size: 0.66rem; color: var(--muted); }
 
     .analysis-card {
-      background: #f8fafc;
-      border: 1px solid var(--border);
-      border-radius: 6px;
-      padding: 0.55rem 0.65rem;
-      display: flex;
-      flex-direction: column;
-      gap: 0.35rem;
+      background: var(--coral-deep);
+      border-radius: 9px;
+      padding: 0.6rem 0.7rem;
+      display: flex; flex-direction: column; gap: 0.4rem;
     }
-    .analysis-hours {
-      font-size: 0.72rem;
-      font-weight: 700;
-      display: flex;
-      flex-direction: column;
-      gap: 0.35rem;
-      line-height: 1.45;
-      font-family: 'JetBrains Mono', monospace;
-    }
-    .hr-crit { color: #dc2626; }
-    .hr-peak { color: #16a34a; }
+    .analysis-card .insight-label { color: rgba(240,253,250,0.65); }
+    .analysis-hours { font-size: 0.7rem; font-weight: 600; display: flex; flex-direction: column; gap: 0.35rem; line-height: 1.45; font-family: 'JetBrains Mono', monospace; }
+    .hr-crit { color: #ffc4c4; }
+    .hr-peak { color: #9fd6ff; }
 
-    .comment-panel {
-      background: var(--card);
+    .period-row {
+      background: var(--bg);
       border: 1px solid var(--border);
-      border-radius: 10px;
-      padding: 0.6rem 0.85rem;
-      box-shadow: var(--shadow);
+      border-radius: 8px;
+      padding: 0.45rem 0.55rem;
+      display: flex; flex-direction: column; gap: 0.25rem;
+      flex-shrink: 0;
     }
-    .comment-title {
-      font-size: 0.65rem;
-      font-weight: 800;
-      color: var(--teal-dark);
-      text-transform: uppercase;
-      letter-spacing: 0.04em;
-      margin-bottom: 0.25rem;
-    }
-    .comment-textarea {
-      width: 100%;
-      min-height: 42px;
-      max-height: 80px;
-      border: 1px solid var(--border);
-      border-radius: 6px;
-      padding: 0.4rem 0.6rem;
-      font-size: 0.76rem;
-      color: var(--text-main);
-      background: #f8fafc;
-      resize: vertical;
-      outline: none;
-    }
-    .comment-textarea:focus { border-color: var(--teal-dark); background: #ffffff; }
+    .period-row-label { font-family: 'JetBrains Mono', monospace; font-size: 0.68rem; font-weight: 800; color: var(--ink); }
+    .period-row-stats { display: flex; justify-content: space-between; gap: 0.4rem; font-size: 0.62rem; font-weight: 700; font-family: 'JetBrains Mono', monospace; }
+    .stat-good { color: var(--good-text); }
+    .stat-bad { color: var(--bad-text); }
 
-    /* Settings Modal */
-    .modal-overlay {
-      position: fixed;
-      top: 0; left: 0; width: 100%; height: 100%;
-      background: rgba(15, 23, 42, 0.45);
-      backdrop-filter: blur(2px);
-      display: none;
-      align-items: center;
-      justify-content: center;
-      z-index: 1000;
-    }
-    .modal-box {
+    /* ---------------- Heatmap Panel (week / month band design) ---------------- */
+    .heatmap-panel {
       background: var(--card);
       border: 1px solid var(--border);
       border-radius: 12px;
-      width: min(92vw, 460px);
-      padding: 1.25rem;
-      box-shadow: 0 10px 25px -5px rgba(0, 0, 0, 0.1);
+      padding: 0.9rem 1.05rem 1rem;
+      box-shadow: var(--shadow);
+      flex: 1; min-height: 0;
+      display: flex; flex-direction: column;
     }
-    .modal-title-row {
-      display: flex; justify-content: space-between; align-items: center;
-      margin-bottom: 1rem; padding-bottom: 0.5rem; border-bottom: 1px solid var(--border);
+    .heatmap-head-row { display: flex; justify-content: space-between; align-items: flex-end; flex-wrap: wrap; gap: 0.6rem; margin-bottom: 0.7rem; }
+    .heatmap-sub { font-family: 'JetBrains Mono', monospace; font-size: 0.64rem; color: var(--muted); }
+
+    .heatmap-controls { display: flex; align-items: center; gap: 0.7rem; flex-wrap: wrap; }
+    .tab-group { display: flex; background: var(--blush); border-radius: 8px; padding: 3px; gap: 3px; }
+    .heatmap-tab {
+      border: none; background: transparent; padding: 0.32rem 0.85rem; border-radius: 6px;
+      font-family: 'JetBrains Mono', monospace; font-size: 0.68rem; font-weight: 700; color: var(--coral-deep);
+      cursor: pointer; transition: all 0.15s ease;
     }
-    .modal-title { font-size: 0.92rem; font-weight: 800; color: var(--text-main); }
-    .close-btn { background: none; border: none; font-size: 1.2rem; color: var(--text-muted); cursor: pointer; }
-    .upload-field { margin-bottom: 0.9rem; display: flex; flex-direction: column; gap: 0.25rem; }
-    .upload-field label { font-size: 0.7rem; font-weight: 700; color: var(--text-muted); text-transform: uppercase; }
-    .file-select-btn {
-      border: 1px dashed var(--teal-border);
-      background: var(--teal-subtle);
-      color: var(--teal-dark);
-      padding: 0.55rem 0.75rem;
-      border-radius: 6px;
-      font-size: 0.76rem;
+    .heatmap-tab.active { background: var(--coral); color: #fff; }
+
+    .filter-select {
+      border: 1px solid var(--border);
+      background: var(--blush);
+      color: var(--coral-deep);
+      font-family: 'JetBrains Mono', monospace;
+      font-size: 0.68rem;
       font-weight: 700;
+      padding: 0.34rem 0.65rem;
+      border-radius: 8px;
+      outline: none;
       cursor: pointer;
+      appearance: none;
+      background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='10' height='10' fill='%230d47a1' viewBox='0 0 16 16'%3E%3Cpath d='M7.247 11.14 2.451 5.658C1.885 5.013 2.345 4 3.204 4h9.592a1 1 0 0 1 .753 1.659l-4.796 5.48a1 1 0 0 1-1.506 0z'/%3E%3C/svg%3E");
+      background-repeat: no-repeat;
+      background-position: calc(100% - 8px) center;
+      padding-right: 1.6rem;
+      min-width: 130px;
+    }
+    .filter-select:focus { border-color: var(--coral); }
+
+    .heatmap-legend { display: flex; gap: 0.6rem; align-items: center; font-family: 'JetBrains Mono', monospace; font-size: 0.6rem; color: var(--muted); }
+    .heatmap-legend span { display: flex; align-items: center; gap: 0.3rem; }
+
+    .heatmap-scroll { overflow-x: auto; overflow-y: auto; padding-bottom: 4px; flex: 1; min-height: 0; }
+    .bucket-list { display: flex; flex-direction: column; gap: 0.5rem; min-width: 760px; }
+
+    .bucket-ruler {
+      display: grid;
+      grid-template-columns: 168px 1fr 118px;
+      gap: 0.9rem;
+      padding: 0 0.15rem;
+    }
+    .ruler-strip { display: grid; grid-template-columns: repeat(24, 1fr); }
+    .ruler-tick { font-family: 'JetBrains Mono', monospace; font-size: 0.56rem; color: var(--muted); text-align: center; }
+
+    .bucket-row {
+      display: grid;
+      grid-template-columns: 168px 1fr 118px;
+      gap: 0.9rem;
+      align-items: center;
+      padding: 0.55rem 0.7rem;
+      border: 1px solid var(--border);
+      border-radius: 10px;
+      background: var(--bg);
+      transition: border-color 0.15s ease, box-shadow 0.15s ease;
+    }
+    .bucket-row:hover { border-color: var(--pink); box-shadow: var(--shadow); }
+
+    .bucket-label-wrap { display: flex; flex-direction: column; gap: 0.1rem; }
+    .bucket-label { font-family: 'JetBrains Mono', monospace; font-size: 0.72rem; font-weight: 800; color: var(--ink); }
+    .bucket-sub { font-size: 0.6rem; color: var(--muted); }
+
+    .bucket-strip { display: grid; grid-template-columns: repeat(24, 1fr); gap: 2px; }
+    .bucket-hour-cell {
+      height: 28px;
+      border-radius: 4px;
+      border: 1px solid rgba(13,43,69,0.06);
+      cursor: default;
+      transition: transform 0.1s ease;
       display: flex;
       align-items: center;
-      justify-content: space-between;
+      justify-content: center;
+      font-family: 'JetBrains Mono', monospace;
+      font-size: 0.5rem;
+      font-weight: 700;
+      color: var(--ink);
+      overflow: hidden;
+      white-space: nowrap;
     }
-    .upload-status { font-size: 0.68rem; color: var(--green); font-weight: 600; }
+    .bucket-hour-cell:hover { transform: scaleY(1.15); z-index: 2; position: relative; border-color: var(--coral-deep); }
+    .bucket-hour-cell.empty {
+      background: repeating-linear-gradient(45deg, var(--card), var(--card) 4px, var(--border) 4px, var(--border) 5px);
+      border: 1px dashed var(--border);
+      color: var(--muted);
+      font-size: 0.55rem;
+    }
+
+    .bucket-total {
+      text-align: center;
+      border-radius: 9px;
+      padding: 0.4rem 0.3rem;
+    }
+    .bucket-total .val { font-family: 'JetBrains Mono', monospace; font-weight: 800; font-size: 1.02rem; line-height: 1; }
+    .bucket-total .lbl { font-family: 'JetBrains Mono', monospace; font-size: 0.55rem; font-weight: 700; letter-spacing: 0.05em; opacity: 0.75; margin-top: 2px; }
+
+    .heatmap-empty { font-size: 0.75rem; color: var(--muted); padding: 1rem; text-align: center; }
+
+    /* ---------------- Commentary ---------------- */
+    .comment-panel { background: var(--card); border: 1px solid var(--border); border-radius: 12px; padding: 0.65rem 0.9rem; box-shadow: var(--shadow); }
+    .comment-title { font-family: 'JetBrains Mono', monospace; font-size: 0.64rem; font-weight: 700; color: var(--coral-deep); letter-spacing: 0.05em; margin-bottom: 0.3rem; }
+    .comment-textarea {
+      width: 100%; min-height: 42px; max-height: 80px;
+      border: 1px solid var(--border); border-radius: 8px; padding: 0.42rem 0.62rem;
+      font-size: 0.78rem; color: var(--ink); background: var(--bg); resize: vertical; outline: none;
+    }
+    .comment-textarea:focus { border-color: var(--coral); background: #fff; }
+
+    /* ---------------- Settings Modal ---------------- */
+    .modal-overlay {
+      position: fixed; top: 0; left: 0; width: 100%; height: 100%;
+      background: rgba(15, 23, 42, 0.45); backdrop-filter: blur(2px);
+      display: none; align-items: center; justify-content: center; z-index: 1000;
+    }
+    .modal-box { background: var(--card); border: 1px solid var(--border); border-radius: 14px; width: min(92vw, 460px); padding: 1.25rem; box-shadow: 0 14px 30px -6px rgba(15, 118, 110, 0.25); }
+    .modal-title-row { display: flex; justify-content: space-between; align-items: center; margin-bottom: 1rem; padding-bottom: 0.5rem; border-bottom: 1px solid var(--border); }
+    .modal-title { font-size: 0.9rem; font-weight: 800; color: var(--coral-deep); }
+    .close-btn { background: none; border: none; font-size: 1.2rem; color: var(--muted); cursor: pointer; }
+    .upload-field { margin-bottom: 0.9rem; display: flex; flex-direction: column; gap: 0.25rem; }
+    .upload-field label.field-label { font-family: 'JetBrains Mono', monospace; font-size: 0.66rem; font-weight: 700; color: var(--muted); letter-spacing: 0.04em; }
+    .file-select-btn {
+      border: 1px dashed var(--coral);
+      background: var(--blush);
+      color: var(--coral-deep);
+      padding: 0.55rem 0.75rem; border-radius: 8px; font-size: 0.76rem; font-weight: 700;
+      cursor: pointer; display: flex; align-items: center; justify-content: space-between;
+    }
+    .upload-status { font-size: 0.68rem; color: var(--coral-deep); font-weight: 700; font-family: 'JetBrains Mono', monospace; }
     input[type="file"] { display: none; }
+
+    @media (max-width: 980px) {
+      .kpi-row { grid-template-columns: repeat(2, minmax(0,1fr)); }
+      .dashboard-layout { grid-template-columns: 1fr; }
+    }
   </style>
 </head>
 <body>
 
-  <!-- Top Action Bar -->
+  <!-- Top Bar -->
   <div class="top-toolbar">
     <div class="brand-group">
       <div class="brand-dot"></div>
-      <div class="brand-title">Abandon & Service Level Review</div>
+      <div>
+        <div class="brand-title">Abandon &amp; Service Level Review</div>
+        <div class="brand-sub">PETRO MNL // LIVE OPS CONSOLE</div>
+      </div>
     </div>
-
     <div class="toolbar-right">
-      <span class="label-tag">Date:</span>
+      <span class="label-tag">DATE</span>
       <select id="dateDropdown" class="dropdown" onchange="onDateSelectionChanged()"></select>
+      <button class="gear-btn" id="heatmapToggleBtn" title="Show Service Level by Period" onclick="toggleHeatmapPanel()">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="width:16px;height:16px;">
+          <rect x="3" y="12" width="4" height="8"></rect>
+          <rect x="10" y="6" width="4" height="14"></rect>
+          <rect x="17" y="9" width="4" height="11"></rect>
+        </svg>
+      </button>
       <button class="gear-btn" title="Upload Settings" onclick="toggleSettingsModal(true)">⚙</button>
     </div>
   </div>
 
-  <!-- Centered KPI Cards -->
+  <!-- KPI Strip -->
   <div class="kpi-row">
     <div class="kpi-card">
-      <div class="kpi-header">TOTAL RECEIVED CALLS</div>
+      <div class="kpi-header">Total Received Calls</div>
       <div class="kpi-core">
         <div class="kpi-icon-wrap">
           <svg viewBox="0 0 24 24"><path d="M20.01 15.38c-1.23 0-2.42-.2-3.53-.56a.977.977 0 0 0-1.01.24l-1.57 1.97c-2.83-1.44-5.15-3.75-6.59-6.59l1.97-1.57c.28-.28.37-.68.25-1.02A11.36 11.36 0 0 1 8.5 4.31c0-.55-.45-1-1-1H4.11c-.55 0-1 .45-1 1 0 9.39 7.61 17 17 17 .55 0 1-.45 1-1v-3.39c0-.54-.45-.99-1-.99z"/></svg>
@@ -404,7 +438,7 @@
     </div>
 
     <div class="kpi-card">
-      <div class="kpi-header">SERVICE LEVEL</div>
+      <div class="kpi-header">Service Level</div>
       <div class="kpi-core">
         <div class="kpi-icon-wrap">
           <svg viewBox="0 0 24 24"><path d="M2 20h20v2H2zm2-8h3v7H4zm6-5h3v12h-3zm6-4h3v16h-3z"/></svg>
@@ -415,7 +449,7 @@
     </div>
 
     <div class="kpi-card">
-      <div class="kpi-header">AVERAGE HANDLE TIME</div>
+      <div class="kpi-header">Average Handle Time</div>
       <div class="kpi-core">
         <div class="kpi-icon-wrap">
           <svg viewBox="0 0 24 24"><path d="M12 1a9 9 0 0 0-9 9v7c0 1.66 1.34 3 3 3h3v-8H5v-2c0-3.87 3.13-7 7-7s7 3.13 7 7v2h-4v8h3c1.66 0 3-1.34 3-3v-7a9 9 0 0 0-9-9z"/></svg>
@@ -426,7 +460,7 @@
     </div>
 
     <div class="kpi-card">
-      <div class="kpi-header">CALL DRIVERS</div>
+      <div class="kpi-header">Call Drivers</div>
       <div class="drivers-stack" id="dispDrivers">
         <div class="driver-row"><span>POS Issue</span><span class="driver-num">174</span></div>
         <div class="driver-row"><span>Pump Issue</span><span class="driver-num">141</span></div>
@@ -436,7 +470,7 @@
     </div>
 
     <div class="kpi-card">
-      <div class="kpi-header">ABSENCES</div>
+      <div class="kpi-header">Absences</div>
       <div class="kpi-core" style="justify-content: center;">
         <input type="number" id="absenceInput" class="absence-field" value="1" min="0" onchange="onAbsenceChanged(this.value)">
       </div>
@@ -444,49 +478,95 @@
     </div>
   </div>
 
-  <!-- Dashboard Split -->
+  <!-- Main Split -->
   <div class="dashboard-layout">
-    <div class="chart-panel">
-      <div class="chart-heading">Service Level % by Hourly Interval</div>
-      <div class="chart-viewport">
-        <canvas id="slaBarChart"></canvas>
+    <div class="dual-view-col">
+      <div class="chart-panel" id="hourlyChartPanel">
+        <div class="panel-heading">Service Level % by Hourly Interval</div>
+        <div class="chart-legend-mini">
+          <span><span class="swatch" style="background: var(--good-line);"></span>&ge; 80%</span>
+          <span><span class="swatch" style="background: var(--warn-line);"></span>60&ndash;79%</span>
+          <span><span class="swatch" style="background: var(--bad-line);"></span>&lt; 60%</span>
+          <span><span class="swatch" style="background: var(--coral-deep); border-radius: 50%;"></span>Trend line</span>
+        </div>
+        <div class="chart-viewport">
+          <canvas id="slaBarChart"></canvas>
+        </div>
+      </div>
+
+      <!-- Heatmap: real calendar Week / Month bands with a per-period total SLA.
+           Swapped in over the hourly chart by the toggle button, in the same slot,
+           so it never requires scrolling down to see. -->
+      <div class="heatmap-panel" id="periodPanel" style="display:none;">
+        <div class="heatmap-head-row">
+          <div>
+            <div class="panel-heading">Service Level by Period</div>
+            <div class="heatmap-sub" id="heatmapSub">Averaged across every logged Monday, Tuesday, etc. // hourly pattern + total SLA</div>
+          </div>
+          <div class="heatmap-controls">
+            <div class="tab-group">
+              <button type="button" class="heatmap-tab active" data-mode="weekday" onclick="setHeatmapMode('weekday')">By Weekday</button>
+              <button type="button" class="heatmap-tab" data-mode="monthly" onclick="setHeatmapMode('monthly')">Monthly</button>
+            </div>
+            <select id="monthFilter" class="filter-select" onchange="onMonthFilterChanged()">
+              <option value="all">All Months</option>
+            </select>
+            <div class="heatmap-legend">
+              <span><span class="swatch" style="background: var(--good-line);"></span>&ge;80%</span>
+              <span><span class="swatch" style="background: var(--warn-line);"></span>60&ndash;79%</span>
+              <span><span class="swatch" style="background: var(--bad-line);"></span>&lt;60%</span>
+            </div>
+          </div>
+        </div>
+        <div class="heatmap-scroll">
+          <div class="bucket-list" id="weeklyHeatmap"></div>
+        </div>
       </div>
     </div>
 
-    <div class="summary-panel">
-      <div class="summary-title">Summary</div>
+    <div class="dual-view-col">
+      <div class="summary-panel" id="defaultSummaryPanel">
+        <div class="summary-title">SUMMARY</div>
 
-      <div class="insight-card card-green">
-        <div class="insight-label">Peak Performance</div>
-        <div class="insight-primary" id="sumPeak">100%</div>
-        <div class="insight-sub" id="sumPeakHr">at 22:00</div>
-      </div>
-
-      <div class="insight-card card-red">
-        <div class="insight-label">Critical Drop</div>
-        <div class="insight-primary" id="sumLow">0%</div>
-        <div class="insight-sub" id="sumLowHr">Lowest point</div>
-      </div>
-
-      <div class="insight-card card-yellow">
-        <div class="insight-label">Recovery Point</div>
-        <div class="insight-primary" id="sumRecover">04:00 (69%)</div>
-        <div class="insight-sub" id="sumRecoverSub">Turnaround point</div>
-      </div>
-
-      <div class="analysis-card">
-        <div class="insight-label" style="margin-bottom: 2px;">Hours Overview</div>
-        <div class="analysis-hours">
-          <span class="hr-crit" id="guideCrit">Critical : 00:00 - 03:00, 08:00 - 21:00</span>
-          <span class="hr-peak" id="guidePeak">Peak : 04:00 - 07:00, 22:00 - 23:00</span>
+        <div class="insight-card card-good">
+          <div class="insight-label">Peak Performance</div>
+          <div class="insight-primary" id="sumPeak">100%</div>
+          <div class="insight-sub" id="sumPeakHr">at 22:00</div>
         </div>
+
+        <div class="insight-card card-crit">
+          <div class="insight-label">Critical Drop</div>
+          <div class="insight-primary" id="sumLow">0%</div>
+          <div class="insight-sub" id="sumLowHr">Lowest point</div>
+        </div>
+
+        <div class="insight-card card-warn">
+          <div class="insight-label">Recovery Point</div>
+          <div class="insight-primary" id="sumRecover">04:00 (69%)</div>
+          <div class="insight-sub" id="sumRecoverSub">Turnaround point</div>
+        </div>
+
+        <div class="analysis-card">
+          <div class="insight-label">Hours Overview</div>
+          <div class="analysis-hours">
+            <span class="hr-crit" id="guideCrit">Critical : 00:00 - 03:00, 08:00 - 21:00</span>
+            <span class="hr-peak" id="guidePeak">Peak : 04:00 - 07:00, 22:00 - 23:00</span>
+          </div>
+        </div>
+      </div>
+
+      <!-- Swaps in alongside the period heatmap: which hour is strongest / most
+           critical for each row currently shown (each weekday, or each month). -->
+      <div class="summary-panel" id="periodSummaryPanel" style="display:none; overflow-y:auto;">
+        <div class="summary-title">PERIOD INSIGHTS</div>
+        <div id="periodSummaryList" style="display:flex; flex-direction:column; gap:0.45rem; overflow-y:auto; flex:1;"></div>
       </div>
     </div>
   </div>
 
-  <!-- Compact Comment Section -->
+  <!-- Commentary -->
   <div class="comment-panel">
-    <div class="comment-title">Shift Commentary & Operational Remarks</div>
+    <div class="comment-title">SHIFT COMMENTARY &amp; OPERATIONAL REMARKS</div>
     <textarea id="shiftComment" class="comment-textarea" placeholder="Add brief notes regarding spikes, outages, or staffing exceptions for this day..." oninput="saveComment(this.value)"></textarea>
   </div>
 
@@ -494,12 +574,12 @@
   <div class="modal-overlay" id="settingsModal" onclick="if(event.target === this) toggleSettingsModal(false)">
     <div class="modal-box">
       <div class="modal-title-row">
-        <div class="modal-title">⚙ Upload Telemetry & Case Reports</div>
+        <div class="modal-title">⚙ Upload Telemetry &amp; Case Reports</div>
         <button class="close-btn" onclick="toggleSettingsModal(false)">&times;</button>
       </div>
 
       <div class="upload-field">
-        <label>1. Abandon DSR Sheet (.xlsx)</label>
+        <label class="field-label">1. Abandon DSR Sheet (.xlsx)</label>
         <label for="dsrInputModal" class="file-select-btn">
           <span>📊 Select Abandon DSR File</span>
           <span class="upload-status" id="dsrStatus">Checking Cloud...</span>
@@ -508,7 +588,7 @@
       </div>
 
       <div class="upload-field">
-        <label>2. Salesforce Case Reports (.xlsx)</label>
+        <label class="field-label">2. Salesforce Case Reports (.xlsx)</label>
         <label for="sfInputModal" class="file-select-btn">
           <span>📂 Select Cases Report File</span>
           <span class="upload-status" id="sfStatus">Checking Cloud...</span>
@@ -516,7 +596,7 @@
         <input type="file" id="sfInputModal" accept=".xlsx,.xls,.csv" onchange="uploadSF(event)">
       </div>
 
-      <div style="font-size: 0.7rem; color: var(--text-muted); line-height: 1.4; margin-top: 0.5rem;">
+      <div style="font-size: 0.7rem; color: var(--muted); line-height: 1.4; margin-top: 0.5rem;">
         Data is securely synchronized to your Firebase Firestore cloud database and persists permanently.
       </div>
     </div>
@@ -614,6 +694,7 @@
           document.getElementById("sfStatus").innerText = "Loaded (Cloud Sync)";
 
           updateDateDropdown();
+          populateMonthFilter();
           renderDashboard(appState.currentDate);
         }
       }).catch(err => console.log("Cloud fetch note:", err));
@@ -633,6 +714,34 @@
     };
 
     let slaChartInstance = null;
+    let heatmapMode = 'weekday'; // 'weekday' | 'monthly' — controls which period bands the heatmap panel shows
+    let heatmapMonthFilter = 'all'; // 'all' or 'YYYY-MM' — narrows the period bands to a single month
+    let heatmapPanelVisible = false;
+
+    function toggleHeatmapPanel() {
+      heatmapPanelVisible = !heatmapPanelVisible;
+
+      const hourlyChart = document.getElementById('hourlyChartPanel');
+      const periodPanel = document.getElementById('periodPanel');
+      const defaultSummary = document.getElementById('defaultSummaryPanel');
+      const periodSummary = document.getElementById('periodSummaryPanel');
+      const btn = document.getElementById('heatmapToggleBtn');
+
+      if (hourlyChart) hourlyChart.style.display = heatmapPanelVisible ? 'none' : 'flex';
+      if (periodPanel) periodPanel.style.display = heatmapPanelVisible ? 'flex' : 'none';
+      if (defaultSummary) defaultSummary.style.display = heatmapPanelVisible ? 'none' : 'flex';
+      if (periodSummary) periodSummary.style.display = heatmapPanelVisible ? 'flex' : 'none';
+
+      if (btn) {
+        btn.classList.toggle('toggle-active', heatmapPanelVisible);
+        btn.title = heatmapPanelVisible ? 'Show Hourly Interval Chart' : 'Show Service Level by Period';
+      }
+
+      if (heatmapPanelVisible) {
+        renderHeatmap();
+        renderPeriodSummary();
+      }
+    }
 
     function toggleSettingsModal(open) {
       document.getElementById("settingsModal").style.display = open ? "flex" : "none";
@@ -815,6 +924,16 @@
       document.getElementById("shiftComment").value = appState.commentsByDate[dt] || "";
 
       renderSLABarChart(intervals);
+      renderHeatmap();
+    }
+
+    /* ---------- Traffic-light color helper (shared by bar chart + heatmap) ----------
+       >=80% -> light green | 60-79% -> yellow | <60% -> light red. */
+    function colorForPct(fraction) {
+      const v = fraction * 100;
+      if (v >= 80) return { bg: '#8fe3ac', border: '#4fae74', text: '#22824f' };
+      if (v >= 60) return { bg: '#ffd873', border: '#e0ad3d', text: '#9c6c04' };
+      return { bg: '#ff9494', border: '#e0676d', text: '#c33f45' };
     }
 
     function renderSLABarChart(intervals) {
@@ -822,34 +941,45 @@
       const labels = intervals.map(i => i.hour);
       const slaValues = intervals.map(i => Math.round(i.sla * 100));
 
-      const barColors = slaValues.map(v => {
-        if (v >= 80) return '#10b981';
-        if (v >= 60) return '#f59e0b';
-        return '#f43f5e';
-      });
-
-      const borderColors = slaValues.map(v => {
-        if (v >= 80) return '#059669';
-        if (v >= 60) return '#d97706';
-        return '#e11d48';
-      });
+      const barColors = intervals.map(i => colorForPct(i.sla).bg);
+      const borderColors = intervals.map(i => colorForPct(i.sla).border);
 
       if (slaChartInstance) slaChartInstance.destroy();
 
       slaChartInstance = new Chart(ctx, {
-        type: 'bar',
         data: {
           labels: labels,
-          datasets: [{
-            data: slaValues,
-            backgroundColor: barColors,
-            borderColor: borderColors,
-            borderWidth: 1.5,
-            borderRadius: 5,
-            maxBarThickness: 28,
-            categoryPercentage: 0.72,
-            barPercentage: 0.85
-          }]
+          datasets: [
+            {
+              type: 'bar',
+              label: 'Service Level',
+              data: slaValues,
+              backgroundColor: barColors,
+              borderColor: borderColors,
+              borderWidth: 1.5,
+              borderRadius: 5,
+              maxBarThickness: 28,
+              categoryPercentage: 0.72,
+              barPercentage: 0.85,
+              order: 2
+            },
+            {
+              // Subtle overlay line so the up/down trend across the shift is visible at a glance
+              type: 'line',
+              label: 'Trend',
+              data: slaValues,
+              borderColor: 'rgba(13, 71, 161, 0.45)',
+              backgroundColor: 'rgba(13, 71, 161, 0.45)',
+              borderWidth: 1.75,
+              borderDash: [4, 3],
+              pointRadius: 2,
+              pointHoverRadius: 4,
+              pointBackgroundColor: 'rgba(13, 71, 161, 0.65)',
+              tension: 0.35,
+              fill: false,
+              order: 1
+            }
+          ]
         },
         options: {
           responsive: true,
@@ -858,13 +988,14 @@
           plugins: {
             legend: { display: false },
             tooltip: {
-              backgroundColor: '#0f172a',
+              backgroundColor: '#0d47a1',
               padding: 9,
               titleFont: { family: 'Plus Jakarta Sans', size: 11, weight: '700' },
               bodyFont: { family: 'JetBrains Mono', size: 11 },
-              callbacks: { label: (c) => `Service Level: ${c.parsed.y}%` }
+              callbacks: { label: (c) => `${c.dataset.label}: ${c.parsed.y}%` }
             },
             datalabels: {
+              display: (ctx) => ctx.dataset.type === 'bar',
               anchor: 'end',
               align: 'top',
               offset: 3,
@@ -872,30 +1003,316 @@
                 const val = ctx.dataset.data[ctx.dataIndex];
                 return { family: 'JetBrains Mono', weight: val === 0 ? '700' : '800', size: val === 0 ? 8.5 : 9.5 };
               },
-              color: (ctx) => {
-                const val = ctx.dataset.data[ctx.dataIndex];
-                if (val >= 80) return '#059669';
-                if (val >= 60) return '#b45309';
-                if (val === 0) return '#fda4af';
-                return '#e11d48';
-              },
+              color: (ctx) => colorForPct(ctx.dataset.data[ctx.dataIndex] / 100).text,
               formatter: (val) => `${val}%`
             }
           },
           scales: {
             x: {
               grid: { display: false },
-              ticks: { font: { family: 'JetBrains Mono', size: 9.5, weight: '700' }, color: '#64748b', autoSkip: false, maxRotation: 45, minRotation: 45 }
+              ticks: { font: { family: 'JetBrains Mono', size: 10.5, weight: '700' }, color: '#5b7fa6', autoSkip: false, maxRotation: 45, minRotation: 0 }
             },
             y: {
               min: 0,
               max: 118,
-              grid: { color: '#f1f5f9' },
-              ticks: { stepSize: 20, font: { family: 'JetBrains Mono', size: 9.5 }, color: '#64748b', callback: (val) => (val <= 100 ? `${val}%` : '') },
-              title: { display: true, text: 'Service Level %', font: { size: 9, weight: '700' }, color: '#64748b' }
+              grid: { color: '#d3e9fc' },
+              ticks: { stepSize: 20, font: { family: 'JetBrains Mono', size: 9.5 }, color: '#5b7fa6', callback: (val) => (val <= 100 ? `${val}%` : '') },
+              title: { display: true, text: 'Service Level %', font: { size: 9, weight: '700' }, color: '#5b7fa6' }
             }
           }
         }
+      });
+    }
+
+    /* ================= Period bands (new heatmap design) =================
+       Instead of one grid with every weekday or day-of-month as a row, this
+       groups the uploaded data into real calendar periods (an actual week,
+       or an actual month) so each row is something you'd recognize from the
+       DSR file — with its own hourly pattern AND a single "Total SLA" figure
+       for that period, weighted by call volume exactly like the KPI card. */
+
+    function formatShortDate(d) {
+      const mm = String(d.getMonth() + 1).padStart(2, '0');
+      const dd = String(d.getDate()).padStart(2, '0');
+      return `${mm}/${dd}`;
+    }
+
+    function computeWeekdayBuckets() {
+      const dayNames = ["Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday", "Sunday"];
+      const buckets = dayNames.map(name => ({
+        label: name,
+        hourSum: Array(24).fill(0), hourCount: Array(24).fill(0),
+        callsSum: 0, callSlaSum: 0, dateSet: new Set()
+      }));
+
+      Object.keys(appState.dates).forEach(dateStr => {
+        const rec = appState.dates[dateStr];
+        if (!rec || !rec.intervals) return;
+        const parts = dateStr.split('-');
+        if (parts.length !== 3) return;
+
+        // Respect the month filter here too, so "By Weekday" can be narrowed to
+        // e.g. every Monday in September specifically, not every Monday ever logged.
+        const dateMonthKey = `${parts[0]}-${parts[1]}`;
+        if (heatmapMonthFilter !== 'all' && dateMonthKey !== heatmapMonthFilter) return;
+
+        const d = new Date(parseInt(parts[0], 10), parseInt(parts[1], 10) - 1, parseInt(parts[2], 10));
+        const dow = (d.getDay() + 6) % 7; // Monday = 0
+        const b = buckets[dow];
+        b.dateSet.add(dateStr);
+
+        rec.intervals.forEach(iv => {
+          const hr = parseInt(String(iv.hour).split(':')[0], 10);
+          if (Number.isNaN(hr) || hr < 0 || hr > 23) return;
+          b.hourSum[hr] += iv.sla;
+          b.hourCount[hr] += 1;
+          b.callsSum += iv.calls;
+          b.callSlaSum += (iv.calls * iv.sla);
+        });
+      });
+
+      return buckets.map(b => {
+        const hours = b.hourSum.map((s, i) => (b.hourCount[i] > 0 ? s / b.hourCount[i] : null));
+        const totalSLA = b.callsSum > 0 ? b.callSlaSum / b.callsSum : 0;
+        return {
+          label: b.label,
+          sub: `${b.dateSet.size} date${b.dateSet.size === 1 ? '' : 's'} logged`,
+          hours, totalSLA
+        };
+      });
+    }
+
+    function computeMonthBuckets() {
+      const buckets = {};
+
+      Object.keys(appState.dates).forEach(dateStr => {
+        const rec = appState.dates[dateStr];
+        if (!rec || !rec.intervals) return;
+        const parts = dateStr.split('-');
+        if (parts.length !== 3) return;
+        const key = `${parts[0]}-${parts[1]}`; // YYYY-MM
+
+        if (!buckets[key]) {
+          buckets[key] = {
+            key,
+            sampleDate: new Date(parseInt(parts[0], 10), parseInt(parts[1], 10) - 1, 1),
+            hourSum: Array(24).fill(0), hourCount: Array(24).fill(0),
+            callsSum: 0, callSlaSum: 0, dateSet: new Set()
+          };
+        }
+        buckets[key].dateSet.add(dateStr);
+
+        rec.intervals.forEach(iv => {
+          const hr = parseInt(String(iv.hour).split(':')[0], 10);
+          if (Number.isNaN(hr) || hr < 0 || hr > 23) return;
+          buckets[key].hourSum[hr] += iv.sla;
+          buckets[key].hourCount[hr] += 1;
+          buckets[key].callsSum += iv.calls;
+          buckets[key].callSlaSum += (iv.calls * iv.sla);
+        });
+      });
+
+      return Object.values(buckets)
+        .sort((a, b) => a.key.localeCompare(b.key))
+        .map(b => {
+          const hours = b.hourSum.map((s, i) => (b.hourCount[i] > 0 ? s / b.hourCount[i] : null));
+          const totalSLA = b.callsSum > 0 ? b.callSlaSum / b.callsSum : 0;
+          const label = b.sampleDate.toLocaleString('en-US', { month: 'short', year: 'numeric' });
+          return {
+            label,
+            sub: `${b.dateSet.size} date${b.dateSet.size === 1 ? '' : 's'} logged`,
+            hours, totalSLA, monthKey: b.key
+          };
+        });
+    }
+
+    /* ---------- Month filter: lets the person pick a single month (e.g. September, then
+       August) so the Weekly/Monthly bands only show that month instead of everything at once ---------- */
+    function getAvailableMonths() {
+      const set = new Set();
+      Object.keys(appState.dates).forEach(dateStr => {
+        const parts = dateStr.split('-');
+        if (parts.length === 3) set.add(`${parts[0]}-${parts[1]}`);
+      });
+      return Array.from(set).sort().reverse(); // most recent month first
+    }
+
+    function monthKeyToLabel(key) {
+      const [y, m] = key.split('-');
+      const d = new Date(parseInt(y, 10), parseInt(m, 10) - 1, 1);
+      return d.toLocaleString('en-US', { month: 'long', year: 'numeric' });
+    }
+
+    function populateMonthFilter() {
+      const sel = document.getElementById('monthFilter');
+      if (!sel) return;
+      const prevVal = sel.value || 'all';
+      const months = getAvailableMonths();
+
+      sel.innerHTML = '<option value="all">All Months</option>';
+      months.forEach(key => {
+        const opt = document.createElement('option');
+        opt.value = key;
+        opt.textContent = monthKeyToLabel(key);
+        sel.appendChild(opt);
+      });
+
+      const stillValid = Array.from(sel.options).some(o => o.value === prevVal);
+      sel.value = stillValid ? prevVal : 'all';
+      heatmapMonthFilter = sel.value;
+    }
+
+    function onMonthFilterChanged() {
+      const sel = document.getElementById('monthFilter');
+      heatmapMonthFilter = sel ? sel.value : 'all';
+      renderHeatmap();
+      renderPeriodSummary();
+    }
+
+    function setHeatmapMode(mode) {
+      heatmapMode = mode;
+      document.querySelectorAll('.heatmap-tab').forEach(btn => {
+        btn.classList.toggle('active', btn.dataset.mode === mode);
+      });
+      renderHeatmap();
+      renderPeriodSummary();
+    }
+
+    function renderHeatmap() {
+      const list = document.getElementById("weeklyHeatmap");
+      if (!list) return;
+
+      const sub = document.getElementById("heatmapSub");
+      // computeWeekdayBuckets() applies the month filter internally (it needs to check
+      // each date's own month before bucketing it into Monday/Tuesday/etc.); the monthly
+      // view still filters its already-built per-month buckets by key, same as before.
+      let buckets = heatmapMode === 'monthly' ? computeMonthBuckets() : computeWeekdayBuckets();
+
+      if (heatmapMonthFilter !== 'all' && heatmapMode === 'monthly') {
+        buckets = buckets.filter(b => b.monthKey === heatmapMonthFilter);
+      }
+
+      if (sub) {
+        const baseLabel = heatmapMode === 'monthly'
+          ? 'Each row is a calendar month // hourly pattern + total SLA'
+          : 'Averaged across every logged Monday, Tuesday, etc. // hourly pattern + total SLA';
+        sub.innerText = heatmapMonthFilter !== 'all'
+          ? `${baseLabel} \u2014 filtered to ${monthKeyToLabel(heatmapMonthFilter)}`
+          : baseLabel;
+      }
+
+      list.innerHTML = "";
+
+      if (buckets.length === 0) {
+        list.innerHTML = '<div class="heatmap-empty">No data for this filter — try a different month, or upload an Abandon DSR sheet.</div>';
+        return;
+      }
+
+      // hour ruler, shown once above the period rows
+      const ruler = document.createElement("div");
+      ruler.className = "bucket-ruler";
+      const rulerSpacerL = document.createElement("div");
+      const rulerStrip = document.createElement("div");
+      rulerStrip.className = "ruler-strip";
+      for (let h = 0; h < 24; h++) {
+        const tick = document.createElement("div");
+        tick.className = "ruler-tick";
+        tick.innerText = String(h).padStart(2, '0');
+        rulerStrip.appendChild(tick);
+      }
+      const rulerSpacerR = document.createElement("div");
+      ruler.appendChild(rulerSpacerL);
+      ruler.appendChild(rulerStrip);
+      ruler.appendChild(rulerSpacerR);
+      list.appendChild(ruler);
+
+      buckets.forEach(b => {
+        const row = document.createElement("div");
+        row.className = "bucket-row";
+
+        const labelWrap = document.createElement("div");
+        labelWrap.className = "bucket-label-wrap";
+        labelWrap.innerHTML = `<div class="bucket-label">${b.label}</div><div class="bucket-sub">${b.sub}</div>`;
+        row.appendChild(labelWrap);
+
+        const strip = document.createElement("div");
+        strip.className = "bucket-strip";
+        b.hours.forEach((val, h) => {
+          const cell = document.createElement("div");
+          if (val === null) {
+            cell.className = "bucket-hour-cell empty";
+            cell.innerText = "\u2013";
+            cell.title = `${String(h).padStart(2,'0')}:00 \u2014 no data`;
+          } else {
+            const c = colorForPct(val);
+            cell.className = "bucket-hour-cell";
+            cell.style.background = c.bg;
+            cell.style.borderColor = c.border;
+            cell.style.color = c.text;
+            cell.innerText = `${Math.round(val * 100)}%`;
+            cell.title = `${String(h).padStart(2,'0')}:00 \u2014 ${Math.round(val * 100)}% service level`;
+          }
+          strip.appendChild(cell);
+        });
+        row.appendChild(strip);
+
+        const totalColor = colorForPct(b.totalSLA);
+        const total = document.createElement("div");
+        total.className = "bucket-total";
+        total.style.background = totalColor.bg;
+        total.style.border = `1px solid ${totalColor.border}`;
+        total.innerHTML = `<div class="val" style="color:${totalColor.text}">${Math.round(b.totalSLA * 100)}%</div><div class="lbl" style="color:${totalColor.text}">TOTAL SLA</div>`;
+        row.appendChild(total);
+
+        list.appendChild(row);
+      });
+    }
+
+    /* ---------- Period Insights: for each row currently shown (each weekday, or
+       each month), find its single best hour and single most-critical hour. This
+       mirrors exactly what the heatmap panel is already showing — same buckets,
+       same month filter — just distilled into one line per row instead of 24 cells. */
+    function renderPeriodSummary() {
+      const container = document.getElementById("periodSummaryList");
+      if (!container) return;
+
+      let buckets = heatmapMode === 'monthly' ? computeMonthBuckets() : computeWeekdayBuckets();
+      if (heatmapMonthFilter !== 'all' && heatmapMode === 'monthly') {
+        buckets = buckets.filter(b => b.monthKey === heatmapMonthFilter);
+      }
+
+      container.innerHTML = "";
+
+      if (buckets.length === 0) {
+        container.innerHTML = '<div style="font-size: 0.68rem; color: var(--muted);">No data for this filter yet.</div>';
+        return;
+      }
+
+      buckets.forEach(b => {
+        let bestHour = null, bestVal = -1, critHour = null, critVal = 2;
+        b.hours.forEach((val, h) => {
+          if (val === null) return;
+          if (val > bestVal) { bestVal = val; bestHour = h; }
+          if (val < critVal) { critVal = val; critHour = h; }
+        });
+
+        const row = document.createElement("div");
+        row.className = "period-row";
+
+        if (bestHour === null) {
+          row.innerHTML = `<div class="period-row-label">${b.label}</div><div class="period-row-stats"><span style="color:var(--muted);">No hourly data logged</span></div>`;
+        } else {
+          const bestStr = `${String(bestHour).padStart(2,'0')}:00`;
+          const critStr = `${String(critHour).padStart(2,'0')}:00`;
+          row.innerHTML = `
+            <div class="period-row-label">${b.label}</div>
+            <div class="period-row-stats">
+              <span class="stat-good">&#9650; ${bestStr} (${Math.round(bestVal*100)}%)</span>
+              <span class="stat-bad">&#9660; ${critStr} (${Math.round(critVal*100)}%)</span>
+            </div>
+          `;
+        }
+        container.appendChild(row);
       });
     }
 
@@ -972,6 +1389,7 @@
         
         saveState();
         updateDateDropdown();
+        populateMonthFilter();
         renderDashboard(newestDate);
       };
       reader.readAsArrayBuffer(file);
@@ -1028,6 +1446,7 @@
 
     window.addEventListener("DOMContentLoaded", () => {
       updateDateDropdown();
+      populateMonthFilter();
       renderDashboard(appState.currentDate);
       loadFromCloud();
     });

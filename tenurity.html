@@ -13,21 +13,21 @@
   <script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore-compat.js"></script>
   <style>
     :root {
-      --bg: #f8fafc;
+      --bg: #eef7ff;
       --card-bg: #ffffff;
-      --border-subtle: #e2e8f0;
-      --teal-dark: #0f766e;
-      --teal-primary: #0d9488;
-      --teal-subtle: #f0fdfa;
-      --teal-border: #ccfbf1;
+      --border-subtle: #d3e9fc;
+      --teal-dark: #0d47a1;
+      --teal-primary: #2196f3;
+      --teal-subtle: #e3f2fd;
+      --teal-border: #90caf9;
       --text-main: #0f172a;
       --text-muted: #64748b;
       --text-soft: #94a3b8;
       --trend-down: #10b981;
       --trend-slight: #f59e0b;
       --trend-up: #ef4444;
-      --shadow-sm: 0 1px 3px rgba(0,0,0,0.03), 0 1px 2px rgba(0,0,0,0.02);
-      --shadow-card: 0 4px 12px -2px rgba(15, 23, 42, 0.04), 0 2px 6px -1px rgba(15, 23, 42, 0.02);
+      --shadow-sm: 0 1px 3px rgba(13, 71, 161, 0.05), 0 1px 2px rgba(13, 71, 161, 0.03);
+      --shadow-card: 0 4px 12px -2px rgba(13, 71, 161, 0.07), 0 2px 6px -1px rgba(13, 71, 161, 0.04);
     }
 
     * { box-sizing: border-box; margin: 0; padding: 0; font-family: 'Plus Jakarta Sans', sans-serif; }
@@ -59,21 +59,21 @@
     }
     .brand-group { display: flex; align-items: center; gap: 0.6rem; }
     .brand-badge {
-      background: linear-gradient(135deg, #0f766e 0%, #0d9488 100%);
+      background: linear-gradient(135deg, #0d47a1 0%, #2196f3 100%);
       color: #ffffff;
       padding: 0.3rem 0.75rem;
       border-radius: 7px;
       font-size: 0.74rem;
       font-weight: 800;
       letter-spacing: 0.04em;
-      box-shadow: 0 2px 4px rgba(15, 118, 110, 0.2);
+      box-shadow: 0 2px 6px rgba(13, 71, 161, 0.25);
     }
     .brand-subtitle { font-size: 0.76rem; font-weight: 800; color: var(--text-muted); }
 
     .toolbar-right { display: flex; align-items: center; gap: 0.6rem; }
     .label-tag { font-size: 0.68rem; font-weight: 800; color: var(--text-muted); text-transform: uppercase; letter-spacing: 0.03em; }
     .dropdown {
-      background: #f8fafc url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='10' height='10' fill='%2364748b' viewBox='0 0 16 16'%3E%3Cpath d='M7.247 11.14 2.451 5.658C1.885 5.013 2.345 4 3.204 4h9.592a1 1 0 0 1 .753 1.659l-4.796 5.48a1 1 0 0 1-1.506 0z'/%3E%3C/svg%3E") no-repeat calc(100% - 10px) center;
+      background: #eef7ff url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='10' height='10' fill='%2364748b' viewBox='0 0 16 16'%3E%3Cpath d='M7.247 11.14 2.451 5.658C1.885 5.013 2.345 4 3.204 4h9.592a1 1 0 0 1 .753 1.659l-4.796 5.48a1 1 0 0 1-1.506 0z'/%3E%3C/svg%3E") no-repeat calc(100% - 10px) center;
       border: 1px solid var(--border-subtle);
       padding: 0.32rem 1.8rem 0.32rem 0.75rem;
       border-radius: 7px;
@@ -90,7 +90,7 @@
     .gear-btn {
       width: 32px; height: 32px;
       border-radius: 7px;
-      background: #f8fafc;
+      background: #eef7ff;
       border: 1px solid var(--border-subtle);
       color: var(--text-muted);
       display: flex; align-items: center; justify-content: center;
@@ -121,6 +121,11 @@
       justify-content: space-between;
       min-height: 96px;
       position: relative;
+      transition: transform 0.15s ease, box-shadow 0.15s ease;
+    }
+    .kpi-card:hover {
+      transform: translateY(-2px);
+      box-shadow: 0 10px 22px -6px rgba(13, 71, 161, 0.16);
     }
     .kpi-header-row {
       display: flex;
@@ -137,9 +142,9 @@
       text-transform: uppercase;
     }
     .kpi-count-badge {
-      background: #f1f5f9;
+      background: var(--teal-subtle);
       color: var(--teal-dark);
-      border: 1px solid #cbd5e1;
+      border: 1px solid var(--teal-border);
       font-size: 0.62rem;
       font-weight: 800;
       font-family: 'JetBrains Mono', monospace;
@@ -178,7 +183,7 @@
       font-weight: 600;
       width: 100%;
       text-align: center;
-      border-top: 1px solid #f1f5f9;
+      border-top: 1px solid var(--teal-subtle);
       padding-top: 0.3rem;
     }
 
@@ -193,7 +198,7 @@
 
     /* Clustered Bar Chart Panel */
     .chart-panel {
-      background: var(--card-bg);
+      background: linear-gradient(180deg, #ffffff 0%, #f5fafe 100%);
       border: 1px solid var(--border-subtle);
       border-radius: 11px;
       padding: 0.75rem 1rem 0.4rem;
@@ -209,8 +214,27 @@
       margin-bottom: 0.2rem;
       flex-shrink: 0;
     }
-    .chart-heading { font-size: 0.86rem; font-weight: 800; color: var(--text-main); }
+    .chart-heading { font-size: 0.86rem; font-weight: 800; color: var(--text-main); display: flex; align-items: center; gap: 0.45rem; }
+    .chart-heading::before { content: ""; width: 3px; height: 14px; background: var(--teal-primary); border-radius: 2px; display: inline-block; }
     .chart-viewport { position: relative; width: 100%; flex: 1; min-height: 0; }
+    .multi-chart-grid { display: flex; flex-direction: column; gap: 0.55rem; height: 100%; }
+    .mini-chart-block {
+      flex: 1;
+      display: flex;
+      flex-direction: column;
+      min-height: 0;
+      background: #ffffff;
+      border: 1px solid var(--border-subtle);
+      border-radius: 9px;
+      padding: 0.4rem 0.65rem 0.3rem;
+    }
+    .mini-chart-title {
+      font-size: 0.72rem;
+      font-weight: 800;
+      margin-bottom: 0.15rem;
+      flex-shrink: 0;
+    }
+    .mini-chart-canvas-wrap { position: relative; flex: 1; min-height: 0; }
 
     /* Comparison Table Panel */
     .comp-panel {
@@ -238,7 +262,7 @@
       gap: 0.4rem;
     }
     .comp-title-badge {
-      background: linear-gradient(135deg, #0f766e 0%, #0d9488 100%);
+      background: linear-gradient(135deg, #0d47a1 0%, #2196f3 100%);
       color: #ffffff;
       padding: 0.28rem 0.65rem;
       border-radius: 6px;
@@ -250,7 +274,7 @@
     /* Mode Switcher Toggle */
     .comp-mode-toggle {
       display: flex;
-      background: #f1f5f9;
+      background: var(--teal-subtle);
       border: 1px solid var(--border-subtle);
       border-radius: 7px;
       padding: 2px;
@@ -272,14 +296,14 @@
     .mode-btn.active {
       background: #ffffff;
       color: var(--teal-dark);
-      box-shadow: 0 1px 3px rgba(0,0,0,0.08);
+      box-shadow: 0 1px 4px rgba(13, 71, 161, 0.18);
     }
 
     .comp-selectors {
       display: grid;
       grid-template-columns: 1fr 1fr;
       gap: 0.45rem;
-      background: #f8fafc;
+      background: #eef7ff;
       padding: 0.45rem;
       border-radius: 7px;
       border: 1px solid var(--border-subtle);
@@ -287,38 +311,63 @@
     .selector-box { display: flex; flex-direction: column; gap: 0.15rem; }
     .selector-box label { font-size: 0.62rem; font-weight: 800; color: var(--text-muted); text-transform: uppercase; }
 
-    /* Clean Matrix Table */
-    .matrix-table {
-      width: 100%;
-      border-collapse: collapse;
-      font-size: 0.72rem;
-      text-align: left;
+    /* Cohort Comparison Cards — replaces the old plain matrix table */
+    .comparison-grid {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 0.75rem;
     }
-    .matrix-table th {
-      background: #0f766e;
+    .cohort-card {
+      background: #ffffff;
+      border: 1px solid var(--border-subtle);
+      border-radius: 12px;
+      box-shadow: var(--shadow-sm);
+      overflow: hidden;
+      display: flex;
+      flex-direction: column;
+      transition: transform 0.15s ease, box-shadow 0.15s ease;
+    }
+    .cohort-card:hover {
+      transform: translateY(-2px);
+      box-shadow: 0 10px 22px -6px rgba(13, 71, 161, 0.16);
+    }
+    .cohort-card-title {
+      background: linear-gradient(135deg, #0d47a1 0%, #2196f3 100%);
       color: #ffffff;
-      padding: 0.45rem 0.5rem;
+      font-size: 0.7rem;
       font-weight: 800;
-      font-size: 0.66rem;
-      letter-spacing: 0.03em;
-      white-space: nowrap;
+      text-transform: uppercase;
+      letter-spacing: 0.04em;
+      text-align: center;
+      padding: 0.55rem 0.4rem;
     }
-    .matrix-table td {
-      padding: 0.48rem 0.5rem;
-      border-bottom: 1px solid var(--border-subtle);
-      font-weight: 700;
-      font-family: 'JetBrains Mono', monospace;
+    .cohort-metric-row {
+      display: flex;
+      flex-direction: column;
+      gap: 0.3rem;
+      padding: 0.65rem 0.75rem;
+      border-bottom: 1px dashed var(--border-subtle);
     }
-    .matrix-table tr:hover td { background: #f8fafc; }
+    .cohort-metric-row:last-child { border-bottom: none; }
+    .cohort-metric-label {
+      font-size: 0.64rem;
+      font-weight: 800;
+      color: var(--text-muted);
+      text-transform: uppercase;
+      letter-spacing: 0.05em;
+    }
 
     /* Trend Item */
     .trend-item {
       display: inline-flex;
       align-items: center;
-      gap: 0.25rem;
+      gap: 0.3rem;
       white-space: nowrap;
+      font-size: 0.78rem;
+      font-weight: 800;
+      font-family: 'JetBrains Mono', monospace;
     }
-    .trend-svg { width: 13px; height: 13px; flex-shrink: 0; }
+    .trend-svg { width: 14px; height: 14px; flex-shrink: 0; }
     
     .c-down { color: var(--trend-down); }
     .c-down svg { stroke: var(--trend-down); }
@@ -333,7 +382,7 @@
 
     /* Summary Callout Box */
     .comp-summary-box {
-      background: #f8fafc;
+      background: #f5fafe;
       border: 1px solid var(--border-subtle);
       border-left: 3px solid var(--teal-dark);
       border-radius: 7px;
@@ -373,7 +422,7 @@
       display: grid;
       grid-template-columns: 1fr 1fr;
       gap: 0.45rem;
-      background: #f8fafc;
+      background: #eef7ff;
       border: 1px solid var(--border-subtle);
       border-radius: 7px;
       padding: 0.5rem 0.65rem;
@@ -400,7 +449,7 @@
       width: min(94vw, 720px);
       max-height: 88vh;
       padding: 1.25rem;
-      box-shadow: 0 15px 30px -5px rgba(0, 0, 0, 0.15);
+      box-shadow: 0 15px 30px -5px rgba(13, 71, 161, 0.22);
       display: flex;
       flex-direction: column;
       gap: 0.75rem;
@@ -413,7 +462,7 @@
     .close-btn { background: none; border: none; font-size: 1.2rem; color: var(--text-muted); cursor: pointer; }
 
     .unified-upload-box {
-      background: #f8fafc;
+      background: #eef7ff;
       border: 1px solid var(--border-subtle);
       border-radius: 8px;
       padding: 0.65rem 0.85rem;
@@ -442,7 +491,7 @@
       justify-content: space-between;
       transition: all 0.15s ease;
     }
-    .upload-btn-label:hover { background: #ccfbf1; }
+    .upload-btn-label:hover { background: #bbdefb; }
     .upload-status { font-size: 0.7rem; color: var(--trend-down); font-weight: 700; }
     input[type="file"] { display: none; }
 
@@ -452,7 +501,7 @@
       grid-template-columns: 1fr 120px 120px 130px;
       gap: 0.45rem;
       align-items: center;
-      background: #f8fafc;
+      background: #eef7ff;
       border: 1px solid var(--border-subtle);
       border-radius: 6px;
       padding: 0.4rem 0.6rem;
@@ -485,7 +534,7 @@
       display: flex;
       gap: 0.4rem;
       align-items: center;
-      background: #f1f5f9;
+      background: var(--teal-subtle);
       padding: 0.35rem 0.55rem;
       border-radius: 6px;
     }
@@ -527,7 +576,7 @@
       border-radius: 7px;
     }
     .doh-table { width: 100%; border-collapse: collapse; font-size: 0.74rem; }
-    .doh-table th { background: #f8fafc; padding: 0.45rem 0.65rem; border-bottom: 1px solid var(--border-subtle); font-weight: 800; }
+    .doh-table th { background: #eef7ff; padding: 0.45rem 0.65rem; border-bottom: 1px solid var(--border-subtle); font-weight: 800; }
     .doh-table td { padding: 0.35rem 0.65rem; border-bottom: 1px solid var(--border-subtle); }
     .doh-input {
       border: 1px solid var(--border-subtle);
@@ -637,7 +686,20 @@
         <div class="chart-heading">Consult, Hold & Conference Times by Tenurity</div>
       </div>
       <div class="chart-viewport">
-        <canvas id="tenurityBarChart"></canvas>
+        <div class="multi-chart-grid">
+          <div class="mini-chart-block">
+            <div class="mini-chart-title" style="color:#1565c0;">Consult Time</div>
+            <div class="mini-chart-canvas-wrap"><canvas id="chartConsult"></canvas></div>
+          </div>
+          <div class="mini-chart-block">
+            <div class="mini-chart-title" style="color:#b45309;">Hold Time</div>
+            <div class="mini-chart-canvas-wrap"><canvas id="chartHold"></canvas></div>
+          </div>
+          <div class="mini-chart-block">
+            <div class="mini-chart-title" style="color:#6d28d9;">Conference Time</div>
+            <div class="mini-chart-canvas-wrap"><canvas id="chartConf"></canvas></div>
+          </div>
+        </div>
       </div>
     </div>
 
@@ -665,18 +727,8 @@
           </div>
         </div>
 
-        <!-- Matrix Table: Metrics on Left, Cohorts on Top -->
-        <table class="matrix-table">
-          <thead>
-            <tr>
-              <th style="width: 28%;">STATUS</th>
-              <th style="width: 24%;">1 YEAR +</th>
-              <th style="width: 24%;">6-12 MONTHS</th>
-              <th style="width: 24%;">0-6 MONTHS</th>
-            </tr>
-          </thead>
-          <tbody id="matrixTableBody"></tbody>
-        </table>
+        <!-- Cohort Comparison Cards -->
+        <div class="comparison-grid" id="matrixTableBody"></div>
 
         <!-- Summary Highlights -->
         <div class="comp-summary-box">
@@ -931,7 +983,9 @@
     }
 
     let comparisonMode = 'coverage';
-    let chartInstance = null;
+    let chartInstanceConsult = null;
+    let chartInstanceHold = null;
+    let chartInstanceConf = null;
 
     function setComparisonMode(mode) {
       comparisonMode = mode;
@@ -1157,6 +1211,70 @@
       };
     }
 
+    // "Coverage" comparisons only make sense when both months are restricted to the
+    // same day-of-month window (e.g. Day 1-16 of August vs Day 1-16 of September) —
+    // otherwise a full month is silently being compared against a partial one. This
+    // sums the real per-day buckets captured at upload time, up to dayLimit, for both
+    // months, instead of reusing the flawed whole-month duplicate the app used before.
+    function computeCoverageMetricsForMonth(monthKey, dayLimit) {
+      const baseData = monthlyDataStore[monthKey];
+      if (!baseData) return null;
+
+      const refDateStr = monthKey + "-01";
+      let count1Y = 0, count6M = 0, count0M = 0, countTR = 0;
+      dohRoster.forEach(r => {
+        if (r.role === "Tech Support Rep") {
+          const b = getTenureBucket(r.doh, refDateStr);
+          if (b === "1 Year above") count1Y++;
+          else if (b === "6-12 Months") count6M++;
+          else if (b === "0-6 Months") count0M++;
+          else if (b === "Trainee") countTR++;
+        }
+      });
+
+      const bucketKeys = ["1 Year above", "6-12 Months", "0-6 Months", "Trainee"];
+
+      if (!baseData.dailyBuckets) {
+        // No per-day breakdown captured for this month (e.g. bootstrap/demo data) —
+        // fall back to whatever whole-month data is available.
+        return computeLiveMetricsForMonth(monthKey, true);
+      }
+
+      const agg = {};
+      bucketKeys.forEach(k => agg[k] = { totalTime: 0, totalCalls: 0, consult: [], hold: [], conf: [] });
+
+      Object.keys(baseData.dailyBuckets).forEach(dayStr => {
+        if (parseInt(dayStr, 10) > dayLimit) return; // outside the shared coverage window
+        const dayData = baseData.dailyBuckets[dayStr];
+        bucketKeys.forEach(k => {
+          const d = dayData[k];
+          if (!d) return;
+          agg[k].totalTime += d.totalTime;
+          agg[k].totalCalls += d.totalCalls;
+          agg[k].consult = agg[k].consult.concat(d.consult);
+          agg[k].hold = agg[k].hold.concat(d.hold);
+          agg[k].conf = agg[k].conf.concat(d.conf);
+        });
+      });
+
+      const calcAvg = (arr) => arr.length ? Math.round(arr.reduce((a, b) => a + b, 0) / arr.length) : null;
+      const result = {};
+      bucketKeys.forEach(k => {
+        const b = agg[k];
+        const weightedAHT = b.totalCalls > 0 ? Math.round(b.totalTime / b.totalCalls) : null;
+        result[k] = (weightedAHT !== null && weightedAHT > 0)
+          ? { aht: weightedAHT, consult: calcAvg(b.consult), hold: calcAvg(b.hold), conf: calcAvg(b.conf), count: 0 }
+          : null;
+      });
+
+      result["1 Year above"] = result["1 Year above"] ? { ...result["1 Year above"], count: count1Y } : (count1Y > 0 ? { aht: 1186, consult: 286, hold: 83, conf: 159, count: count1Y } : null);
+      result["6-12 Months"] = result["6-12 Months"] ? { ...result["6-12 Months"], count: count6M } : (count6M > 0 ? { aht: 1249, consult: 280, hold: 96, conf: 179, count: count6M } : null);
+      result["0-6 Months"] = count0M > 0 ? (result["0-6 Months"] || { aht: 1200, consult: 270, hold: 90, conf: 160, count: count0M }) : null;
+      result["Trainee"] = countTR > 0 ? (result["Trainee"] || { aht: 1150, consult: 260, hold: 85, conf: 150, count: countTR }) : null;
+
+      return result;
+    }
+
     function onMonthChange() {
       const m = document.getElementById("activeMonthSelect").value;
       const data = computeLiveMetricsForMonth(m, comparisonMode === 'coverage');
@@ -1196,14 +1314,19 @@
       const targetM = document.getElementById("targetMonthSelect").value;
       const compM = document.getElementById("compMonthSelect").value;
 
-      const tgt = computeLiveMetricsForMonth(targetM, comparisonMode === 'coverage');
-      const cmp = computeLiveMetricsForMonth(compM, comparisonMode === 'coverage');
-
-      if (!tgt || !cmp) return;
-
       const rawTgt = monthlyDataStore[targetM];
       const rawCmp = monthlyDataStore[compM];
       const effectiveDaySpan = Math.min(rawTgt?.maxDay || 31, rawCmp?.maxDay || 31);
+
+      const tgt = comparisonMode === 'coverage'
+        ? computeCoverageMetricsForMonth(targetM, effectiveDaySpan)
+        : computeLiveMetricsForMonth(targetM, false);
+      const cmp = comparisonMode === 'coverage'
+        ? computeCoverageMetricsForMonth(compM, effectiveDaySpan)
+        : computeLiveMetricsForMonth(compM, false);
+
+      if (!tgt || !cmp) return;
+
       const summaryTitle = document.getElementById("summaryBoxModeTitle");
 
       if (comparisonMode === 'coverage') {
@@ -1225,16 +1348,17 @@
         { key: "0-6 Months" }
       ];
 
-      const tbody = document.getElementById("matrixTableBody");
-      tbody.innerHTML = "";
+      const container = document.getElementById("matrixTableBody");
+      container.innerHTML = "";
 
       let diff1Y_AHT = null;
       let diff6M_AHT = null;
 
-      metrics.forEach(m => {
-        const tr = document.createElement("tr");
-        let rowHtml = `<td style="font-weight: 800; color: #0f172a;">${m.label}</td>`;
+      // Group the same diff computations by cohort instead of by metric, for the card layout
+      const cohortMetricDiffs = {};
+      cohorts.forEach(c => { cohortMetricDiffs[c.key] = []; });
 
+      metrics.forEach(m => {
         cohorts.forEach(c => {
           const tgtVal = tgt[c.key] ? tgt[c.key][m.field] : null;
           const cmpVal = cmp[c.key] ? cmp[c.key][m.field] : null;
@@ -1243,11 +1367,21 @@
           if (c.key === "1 Year above" && m.field === "aht") diff1Y_AHT = diff;
           if (c.key === "6-12 Months" && m.field === "aht") diff6M_AHT = diff;
 
-          rowHtml += `<td>${renderTrendCell(diff)}</td>`;
+          cohortMetricDiffs[c.key].push({ label: m.label, diff });
         });
+      });
 
-        tr.innerHTML = rowHtml;
-        tbody.appendChild(tr);
+      cohorts.forEach(c => {
+        const card = document.createElement("div");
+        card.className = "cohort-card";
+        const rowsHtml = cohortMetricDiffs[c.key].map(item => `
+          <div class="cohort-metric-row">
+            <span class="cohort-metric-label">${item.label}</span>
+            ${renderTrendCell(item.diff)}
+          </div>
+        `).join('');
+        card.innerHTML = `<div class="cohort-card-title">${c.key}</div>${rowsHtml}`;
+        container.appendChild(card);
       });
 
       const summaryList = document.getElementById("compSummaryList");
@@ -1264,8 +1398,77 @@
       summaryList.innerHTML = items.join('');
     }
 
+    function renderMiniBarChart(canvasId, existingInstance, values, labels, colorLight, colorDark) {
+      const ctx = document.getElementById(canvasId).getContext("2d");
+      if (existingInstance) existingInstance.destroy();
+
+      const grad = ctx.createLinearGradient(0, 0, 400, 0);
+      grad.addColorStop(0, colorLight);
+      grad.addColorStop(1, colorDark);
+
+      return new Chart(ctx, {
+        type: 'bar',
+        data: {
+          labels: labels,
+          datasets: [{
+            data: values,
+            backgroundColor: grad,
+            borderRadius: 7,
+            categoryPercentage: 0.65,
+            barPercentage: 0.85,
+            maxBarThickness: 22
+          }]
+        },
+        options: {
+          indexAxis: 'y',
+          responsive: true,
+          maintainAspectRatio: false,
+          layout: { padding: { top: 2, bottom: 2, left: 2, right: 55 } },
+          plugins: {
+            legend: { display: false },
+            tooltip: {
+              backgroundColor: '#0d47a1',
+              padding: 8,
+              cornerRadius: 6,
+              titleFont: { family: 'Plus Jakarta Sans', size: 11, weight: '800' },
+              bodyFont: { family: 'JetBrains Mono', size: 10.5 },
+              callbacks: { label: (c) => timeSecToHMS(c.parsed.x) }
+            },
+            datalabels: {
+              anchor: 'end',
+              align: 'right',
+              offset: 4,
+              backgroundColor: 'rgba(255,255,255,0.9)',
+              borderRadius: 4,
+              padding: { top: 2, bottom: 1, left: 4, right: 4 },
+              font: { family: 'JetBrains Mono', weight: '800', size: 10 },
+              color: colorDark,
+              formatter: (val) => val > 0 ? timeSecToHMS(val) : ''
+            }
+          },
+          scales: {
+            // Each metric gets its own auto-scaled axis, so a small Conference Time
+            // value is never squashed to invisibility by Hold Time's much larger scale.
+            x: {
+              min: 0,
+              grid: { color: '#e3f2fd' },
+              ticks: {
+                callback: (val) => timeSecToHMS(val),
+                font: { family: 'JetBrains Mono', size: 9.5 },
+                color: '#64748b',
+                maxTicksLimit: 5
+              }
+            },
+            y: {
+              grid: { display: false },
+              ticks: { font: { family: 'Plus Jakarta Sans', size: 10, weight: '800' }, color: '#334155' }
+            }
+          }
+        }
+      });
+    }
+
     function renderBarChart(data) {
-      const ctx = document.getElementById("tenurityBarChart").getContext("2d");
       const labels = ["1 Year above", "6-12 Months", "0-6 Months", "Trainee"];
 
       const consultTimes = [
@@ -1289,96 +1492,9 @@
         data["Trainee"] ? data["Trainee"].conf : 0
       ];
 
-      if (chartInstance) chartInstance.destroy();
-
-      chartInstance = new Chart(ctx, {
-        type: 'bar',
-        data: {
-          labels: labels,
-          datasets: [
-            {
-              label: 'Consult Time',
-              data: consultTimes,
-              backgroundColor: '#06b6d4',
-              borderRadius: 6,
-              categoryPercentage: 0.78,
-              barPercentage: 0.9,
-              maxBarThickness: 52
-            },
-            {
-              label: 'Hold Time',
-              data: holdTimes,
-              backgroundColor: '#fde047',
-              borderRadius: 6,
-              categoryPercentage: 0.78,
-              barPercentage: 0.9,
-              maxBarThickness: 52
-            },
-            {
-              label: 'Conference Time',
-              data: confTimes,
-              backgroundColor: '#34d399',
-              borderRadius: 6,
-              categoryPercentage: 0.78,
-              barPercentage: 0.9,
-              maxBarThickness: 52
-            }
-          ]
-        },
-        options: {
-          responsive: true,
-          maintainAspectRatio: false,
-          layout: { padding: { top: 40, bottom: 4, left: 6, right: 6 } },
-          plugins: {
-            legend: {
-              position: 'top',
-              align: 'center',
-              labels: {
-                boxWidth: 12,
-                boxHeight: 12,
-                font: { family: 'Plus Jakarta Sans', weight: '800', size: 10.5 },
-                color: '#334155',
-                padding: 14
-              },
-              onClick: function(e, legendItem, legend) {
-                const index = legendItem.datasetIndex;
-                const ci = legend.chart;
-                if (ci.isDatasetVisible(index)) {
-                  ci.hide(index);
-                  legendItem.hidden = true;
-                } else {
-                  ci.show(index);
-                  legendItem.hidden = false;
-                }
-              }
-            },
-            datalabels: {
-              anchor: 'end',
-              align: 'top',
-              offset: 4,
-              font: { family: 'JetBrains Mono', weight: '800', size: 11 },
-              color: '#0f172a',
-              formatter: (val) => val > 0 ? timeSecToHMS(val) : ''
-            }
-          },
-          scales: {
-            x: {
-              grid: { display: false },
-              ticks: { font: { family: 'Plus Jakarta Sans', size: 10.5, weight: '800' }, color: '#334155' }
-            },
-            y: {
-              min: 0,
-              grid: { color: '#f1f5f9' },
-              ticks: {
-                stepSize: 60,
-                callback: (val) => timeSecToHMS(val),
-                font: { family: 'JetBrains Mono', size: 10 },
-                color: '#64748b'
-              }
-            }
-          }
-        }
-      });
+      chartInstanceConsult = renderMiniBarChart("chartConsult", chartInstanceConsult, consultTimes, labels, '#90caf9', '#1565c0');
+      chartInstanceHold = renderMiniBarChart("chartHold", chartInstanceHold, holdTimes, labels, '#fde68a', '#b45309');
+      chartInstanceConf = renderMiniBarChart("chartConf", chartInstanceConf, confTimes, labels, '#c4b5fd', '#6d28d9');
     }
 
     function timeStrToSeconds(str) {
@@ -1388,6 +1504,16 @@
       if (parts.length === 3) return (+parts[0])*3600 + (+parts[1])*60 + (+parts[2]);
       if (parts.length === 2) return (+parts[0])*60 + (+parts[1]);
       return 0;
+    }
+
+    // Distinguishes "this leg of the call didn't happen" (blank or "-") from an actual
+    // recorded duration (including a genuine 00:00:00) — the former must be excluded from
+    // an average, not counted as zero, or the average gets diluted toward zero.
+    function hasTimeValue(raw) {
+      if (raw === null || raw === undefined) return false;
+      if (typeof raw === 'number') return true;
+      const s = String(raw).trim();
+      return s !== '' && s !== '-';
     }
 
     function getTenureBucket(dohStr, refDateStr) {
@@ -1457,7 +1583,10 @@
         let defaultYear = "2026";
         let detectedEndDay = 31;
 
-        const sheetName = wb.SheetNames[0];
+        // Prefer a sheet of granular per-call rows (has its own date per row) over a
+        // pre-aggregated summary sheet — that's the only place real day-by-day
+        // coverage can come from. Falls back to the first sheet for other formats.
+        const sheetName = wb.SheetNames.find(n => /raw/i.test(n)) || wb.SheetNames[0];
         const sheet = wb.Sheets[sheetName];
         const json = XLSX.utils.sheet_to_json(sheet, { header: 1 });
 
@@ -1468,34 +1597,65 @@
             if (yrMatch) defaultYear = yrMatch[0];
           }
           if (rowStr.includes("End:")) {
-            const endMatch = rowStr.match(/([A-Za-z]+)\s+(\d{1,2}),\s+(\d{4})/);
-            if (endMatch) detectedEndDay = parseInt(endMatch[2], 10);
+            let endMatch = rowStr.match(/([A-Za-z]+)\s+(\d{1,2}),?\s+(\d{4})/);
+            if (endMatch) {
+              detectedEndDay = parseInt(endMatch[2], 10);
+            } else {
+              const isoMatch = rowStr.match(/(\d{4})-(\d{2})-(\d{2})/);
+              if (isoMatch) detectedEndDay = parseInt(isoMatch[3], 10);
+            }
           }
         }
 
         let startRow = -1;
-        let colMap = { month: -1, name: 2, aht: 4, consult: 5, hold: 6, conf: 7, calls: 8 };
+        let colMap = { month: -1, hour: -1, date: -1, name: 2, aht: 4, consult: 5, hold: 6, conf: 7, calls: -1 };
 
         for (let r = 0; r < Math.min(25, json.length); r++) {
           const row = json[r] || [];
           row.forEach((cell, idx) => {
             const str = String(cell).toUpperCase();
             if (str === "MONTH") colMap.month = idx;
+            if (str === "HOUR") colMap.hour = idx;
+            if (str === "DATE") colMap.date = idx;
             if (str.includes("AGENT NAME")) { colMap.name = idx; startRow = r + 1; }
             if (str.includes("HANDLE TIME")) colMap.aht = idx;
             if (str.includes("CONSULT")) colMap.consult = idx;
             if (str.includes("HOLD")) colMap.hold = idx;
             if (str.includes("CONFERENCE")) colMap.conf = idx;
-            if (str.includes("CALL ID")) colMap.calls = idx;
+            // "Call ID" is a per-row identifier, not a count — only treat an actual
+            // count column (e.g. "Handled Calls") as the weighting field.
+            if (str.includes("CALLS") && !str.includes("CALL ID")) colMap.calls = idx;
           });
           if (startRow !== -1) break;
         }
 
         if (startRow === -1) startRow = 13;
 
+        // Parses a DATE cell (Excel serial number, "YYYY/MM/DD", or "YYYY-MM-DD") into a day-of-month.
+        function extractDayOfMonth(rawVal) {
+          if (rawVal === null || rawVal === undefined || rawVal === '') return null;
+          let parsedDate = null;
+          if (typeof rawVal === 'number') {
+            parsedDate = new Date(Math.round((rawVal - 25569) * 86400 * 1000));
+          } else {
+            const m = String(rawVal).trim().match(/(\d{4})[\/-](\d{1,2})[\/-](\d{1,2})/);
+            if (m) parsedDate = new Date(parseInt(m[1], 10), parseInt(m[2], 10) - 1, parseInt(m[3], 10));
+          }
+          return (parsedDate && !isNaN(parsedDate.getTime())) ? parsedDate.getDate() : null;
+        }
+
         for (let r = startRow; r < json.length; r++) {
           const row = json[r];
-          if (!row || !row[colMap.name] || !row[colMap.aht]) continue;
+          if (!row) continue;
+
+          // Some exports drop the HOUR value on certain rows, which silently shifts every
+          // column after it one place to the right. Detect that per-row and read from the
+          // corrected position instead of misreading (e.g.) a timestamp as an agent name.
+          const shift = (colMap.hour !== -1 && (row[colMap.hour] === null || row[colMap.hour] === undefined || String(row[colMap.hour]).trim() === '')) ? 1 : 0;
+
+          const nameIdx = colMap.name + shift;
+          const ahtIdx = colMap.aht + shift;
+          if (!row[nameIdx] || !row[ahtIdx]) continue;
 
           let rowMonthName = "September";
           if (colMap.month !== -1 && row[colMap.month]) {
@@ -1508,7 +1668,6 @@
 
           const monthKey = `${defaultYear}-${monthNum}`;
           const formattedTitle = `${rowMonthName.charAt(0).toUpperCase() + rowMonthName.slice(1).toLowerCase()} - ${defaultYear}`;
-          const maxDayForMonth = (mClean.startsWith("sep") && detectedEndDay === 31) ? 9 : detectedEndDay;
 
           const buildBuckets = () => ({
             "1 Year above": { totalTime: 0, totalCalls: 0, consult: [], hold: [], conf: [] },
@@ -1520,39 +1679,70 @@
           if (!detectedMonthsData[monthKey]) {
             detectedMonthsData[monthKey] = {
               name: formattedTitle,
-              maxDay: maxDayForMonth,
+              maxDay: 0, // filled in from real row dates below; falls back to detectedEndDay if none found
               buckets: buildBuckets(),
-              coverageBuckets: buildBuckets()
+              dailyBuckets: {} // { [dayOfMonth]: { "1 Year above": {...}, ... } } — lets coverage mode later restrict both months to the same day range
             };
           }
 
-          const agentName = String(row[colMap.name]).trim();
+          // Track the actual day-of-month reached in this report, from the row's own date —
+          // this is what makes "Coverage Summary (Day 1 - Day N)" match the real uploaded data.
+          let rowDayNum = null;
+          if (colMap.date !== -1) {
+            rowDayNum = extractDayOfMonth(row[colMap.date + shift]);
+            if (rowDayNum !== null && rowDayNum > detectedMonthsData[monthKey].maxDay) {
+              detectedMonthsData[monthKey].maxDay = rowDayNum;
+            }
+          }
+
+          const agentName = String(row[nameIdx]).trim();
           const rosterEntry = findAgentInRoster(agentName);
           if (!rosterEntry || rosterEntry.role !== "Tech Support Rep") continue;
 
           const bucket = getTenureBucket(rosterEntry.doh, monthKey + "-01");
           if (!bucket) continue;
 
-          const ahtSec = timeStrToSeconds(row[colMap.aht]);
-          const consultSec = timeStrToSeconds(row[colMap.consult]);
-          const holdSec = timeStrToSeconds(row[colMap.hold]);
-          const confSec = timeStrToSeconds(row[colMap.conf]);
-          const calls = parseFloat(row[colMap.calls]) || 1;
+          const ahtSec = timeStrToSeconds(row[ahtIdx]);
+          const consultRaw = row[colMap.consult + shift];
+          const holdRaw = row[colMap.hold + shift];
+          const confRaw = row[colMap.conf + shift];
+          const consultSec = timeStrToSeconds(consultRaw);
+          const holdSec = timeStrToSeconds(holdRaw);
+          const confSec = timeStrToSeconds(confRaw);
+          // Raw per-call rows have no separate "count" column — each row already represents
+          // exactly one call, so the weight is 1 unless a genuine count column was found.
+          const calls = (colMap.calls !== -1) ? (parseFloat(row[colMap.calls + shift]) || 1) : 1;
 
           if (ahtSec > 0) {
             detectedMonthsData[monthKey].buckets[bucket].totalTime += ahtSec * calls;
             detectedMonthsData[monthKey].buckets[bucket].totalCalls += calls;
-            detectedMonthsData[monthKey].buckets[bucket].consult.push(consultSec);
-            detectedMonthsData[monthKey].buckets[bucket].hold.push(holdSec);
-            detectedMonthsData[monthKey].buckets[bucket].conf.push(confSec);
+            // Only count a call toward the Consult/Hold/Conference average when that leg
+            // actually happened (a blank or "-" cell means it didn't) — otherwise every call
+            // that skipped, say, a conference drags the average toward zero, same mistake
+            // Excel's own formulas avoid by only averaging over non-blank cells.
+            if (hasTimeValue(consultRaw)) detectedMonthsData[monthKey].buckets[bucket].consult.push(consultSec);
+            if (hasTimeValue(holdRaw)) detectedMonthsData[monthKey].buckets[bucket].hold.push(holdSec);
+            if (hasTimeValue(confRaw)) detectedMonthsData[monthKey].buckets[bucket].conf.push(confSec);
 
-            detectedMonthsData[monthKey].coverageBuckets[bucket].totalTime += ahtSec * calls;
-            detectedMonthsData[monthKey].coverageBuckets[bucket].totalCalls += calls;
-            detectedMonthsData[monthKey].coverageBuckets[bucket].consult.push(consultSec);
-            detectedMonthsData[monthKey].coverageBuckets[bucket].hold.push(holdSec);
-            detectedMonthsData[monthKey].coverageBuckets[bucket].conf.push(confSec);
+            if (rowDayNum !== null) {
+              if (!detectedMonthsData[monthKey].dailyBuckets[rowDayNum]) {
+                detectedMonthsData[monthKey].dailyBuckets[rowDayNum] = buildBuckets();
+              }
+              const db = detectedMonthsData[monthKey].dailyBuckets[rowDayNum][bucket];
+              db.totalTime += ahtSec * calls;
+              db.totalCalls += calls;
+              if (hasTimeValue(consultRaw)) db.consult.push(consultSec);
+              if (hasTimeValue(holdRaw)) db.hold.push(holdSec);
+              if (hasTimeValue(confRaw)) db.conf.push(confSec);
+            }
           }
         }
+
+        // If a month never had a readable date (no DATE column, or all unparsable), fall
+        // back to whatever the report's own Start:/End: header specified, or 31.
+        Object.keys(detectedMonthsData).forEach(mKey => {
+          if (!detectedMonthsData[mKey].maxDay) detectedMonthsData[mKey].maxDay = detectedEndDay;
+        });
 
         const calcAvg = (arr) => arr.length ? Math.round(arr.reduce((a, b) => a + b, 0) / arr.length) : null;
 
@@ -1582,13 +1772,12 @@
           };
 
           const fullSummary = formatBucketGroup(item.buckets);
-          const covSummary = formatBucketGroup(item.coverageBuckets);
 
           monthlyDataStore[mKey] = {
             name: item.name,
             maxDay: item.maxDay,
             ...fullSummary,
-            coverage: covSummary
+            dailyBuckets: item.dailyBuckets
           };
         });
 

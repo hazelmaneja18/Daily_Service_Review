@@ -11,17 +11,18 @@
   <script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore-compat.js"></script>
   <style>
     :root {
-      --bg: #f8fafc;
+      /* ---- Theme: Sky Blue (matches the rest of the PETRO MNL portal) ---- */
+      --bg: #eef7ff;
       --card-bg: #ffffff;
-      --border-subtle: #e2e8f0;
-      --teal-dark: #0f766e;
-      --teal-primary: #0d9488;
-      --teal-subtle: #f0fdfa;
-      --teal-border: #ccfbf1;
+      --border-subtle: #d3e9fc;
+      --teal-dark: #0d47a1;
+      --teal-primary: #2196f3;
+      --teal-subtle: #e3f2fd;
+      --teal-border: #90caf9;
       --text-main: #0f172a;
       --text-muted: #64748b;
-      --shadow-sm: 0 1px 3px rgba(0,0,0,0.03), 0 1px 2px rgba(0,0,0,0.02);
-      --shadow-card: 0 10px 25px -5px rgba(15, 23, 42, 0.05), 0 8px 10px -6px rgba(15, 23, 42, 0.03);
+      --shadow-sm: 0 1px 3px rgba(13, 71, 161, 0.05), 0 1px 2px rgba(13, 71, 161, 0.03);
+      --shadow-card: 0 10px 25px -5px rgba(13, 71, 161, 0.08), 0 8px 10px -6px rgba(13, 71, 161, 0.04);
     }
 
     * { box-sizing: border-box; margin: 0; padding: 0; font-family: 'Plus Jakarta Sans', sans-serif; }
@@ -55,18 +56,19 @@
       gap: 1rem;
     }
     .section-badge {
-      background: var(--teal-dark);
+      background: linear-gradient(135deg, #0d47a1 0%, #2196f3 100%);
       color: #ffffff;
       padding: 0.35rem 1rem;
       border-radius: 8px;
       font-size: 0.75rem;
       font-weight: 900;
       letter-spacing: 0.05em;
+      box-shadow: 0 2px 6px rgba(13, 71, 161, 0.25);
     }
     .section-sub { font-size: 0.78rem; font-weight: 800; color: var(--text-muted); }
     
     .header-action-btn {
-      background: var(--teal-dark);
+      background: linear-gradient(135deg, #0d47a1 0%, #2196f3 100%);
       color: #ffffff;
       border: none;
       padding: 0.4rem 0.9rem;
@@ -78,9 +80,9 @@
       align-items: center;
       gap: 0.35rem;
       transition: all 0.2s ease;
-      box-shadow: 0 2px 5px rgba(15, 118, 110, 0.25);
+      box-shadow: 0 2px 6px rgba(13, 71, 161, 0.3);
     }
-    .header-action-btn:hover { background: var(--teal-primary); transform: translateY(-1px); }
+    .header-action-btn:hover { filter: brightness(1.07); transform: translateY(-1px); }
 
     /* Main Container */
     .updates-main-container {
@@ -137,7 +139,7 @@
       gap: 0.35rem;
     }
     .action-icon-btn {
-      background: #f8fafc;
+      background: #eef7ff;
       border: 1px solid var(--border-subtle);
       color: var(--text-muted);
       width: 28px; height: 28px;
@@ -149,7 +151,7 @@
       justify-content: center;
       transition: all 0.15s ease;
     }
-    .action-icon-btn.edit:hover { background: #f0fdfa; color: var(--teal-dark); border-color: var(--teal-primary); }
+    .action-icon-btn.edit:hover { background: var(--teal-subtle); color: var(--teal-dark); border-color: var(--teal-primary); }
     .action-icon-btn.delete:hover { background: #fef2f2; color: #ef4444; border-color: #fee2e2; }
 
     .update-body {
@@ -180,7 +182,7 @@
       border-radius: 10px;
       overflow: hidden;
       border: 1px solid var(--border-subtle);
-      background: #f8fafc;
+      background: #eef7ff;
       box-shadow: var(--shadow-sm);
       display: flex;
       align-items: center;
@@ -192,14 +194,14 @@
       height: 100%;
       object-fit: contain;
       display: block;
-      background: #0f172a05;
+      background: #0d2b4505;
     }
 
     /* Modal Styling */
     .modal-overlay {
       position: fixed;
       top: 0; left: 0; width: 100%; height: 100%;
-      background: rgba(15, 23, 42, 0.5);
+      background: rgba(13, 43, 69, 0.5);
       backdrop-filter: blur(4px);
       display: none;
       align-items: center;
@@ -212,7 +214,7 @@
       border-radius: 14px;
       width: min(94vw, 580px);
       padding: 1.5rem;
-      box-shadow: 0 20px 35px -5px rgba(15, 23, 42, 0.15);
+      box-shadow: 0 20px 35px -5px rgba(13, 71, 161, 0.2);
       display: flex;
       flex-direction: column;
       gap: 1rem;
@@ -244,16 +246,16 @@
       font-weight: 500;
       color: var(--text-main);
       outline: none;
-      background: #f8fafc;
+      background: #eef7ff;
       transition: all 0.2s ease;
     }
-    .form-input:focus, .form-textarea:focus { border-color: var(--teal-primary); background: #ffffff; box-shadow: 0 0 0 3px rgba(13, 148, 136, 0.1); }
+    .form-input:focus, .form-textarea:focus { border-color: var(--teal-primary); background: #ffffff; box-shadow: 0 0 0 3px rgba(33, 150, 243, 0.12); }
     .form-textarea { resize: vertical; min-height: 110px; font-family: 'Plus Jakarta Sans', sans-serif; }
 
     .editor-toolbar {
       display: flex;
       gap: 0.35rem;
-      background: #f1f5f9;
+      background: var(--teal-subtle);
       padding: 0.35rem;
       border-radius: 8px 8px 0 0;
       border: 1px solid var(--border-subtle);
@@ -292,7 +294,7 @@
       gap: 0.4rem;
       transition: background 0.2s ease;
     }
-    .file-input-label:hover { background: #ccfbf1; }
+    .file-input-label:hover { background: #bbdefb; }
     input[type="file"] { display: none; }
     .file-name-display { font-size: 0.74rem; font-weight: 700; color: var(--text-muted); }
 
@@ -304,7 +306,7 @@
       padding-top: 0.75rem;
     }
     .btn-secondary {
-      background: #f1f5f9;
+      background: var(--teal-subtle);
       border: 1px solid var(--border-subtle);
       color: var(--text-muted);
       padding: 0.45rem 0.95rem;
@@ -313,9 +315,9 @@
       font-weight: 800;
       cursor: pointer;
     }
-    .btn-secondary:hover { background: #e2e8f0; color: var(--text-main); }
+    .btn-secondary:hover { background: #d3e9fc; color: var(--text-main); }
     .btn-primary {
-      background: var(--teal-dark);
+      background: linear-gradient(135deg, #0d47a1 0%, #2196f3 100%);
       color: #ffffff;
       border: none;
       padding: 0.45rem 1rem;
@@ -323,9 +325,9 @@
       font-size: 0.76rem;
       font-weight: 800;
       cursor: pointer;
-      transition: background 0.2s ease;
+      transition: all 0.2s ease;
     }
-    .btn-primary:hover { background: var(--teal-primary); }
+    .btn-primary:hover { filter: brightness(1.07); }
   </style>
 </head>
 <body>
