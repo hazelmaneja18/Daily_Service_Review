@@ -206,6 +206,10 @@
     .swatch { width: 9px; height: 9px; border-radius: 2px; display: inline-block; }
     .chart-viewport { position: relative; width: 100%; flex: 1; min-height: clamp(420px, 58vh, 680px); }
 
+    .dual-chart-row { display: grid; grid-template-columns: 1fr 1fr; gap: 0.9rem; width: 100%; }
+    .chart-box { position: relative; display: flex; flex-direction: column; min-height: 0; }
+    .chart-box canvas { flex: 1; min-height: 0; }
+
     .summary-panel {
       background: var(--card);
       border: 1px solid var(--border);
@@ -564,6 +568,26 @@
     </div>
   </div>
 
+  <!-- Agent Count vs Calls Received, by hour — two stacked charts, same hour axis,
+       so neither line's points or labels ever overlap the other's. -->
+  <div class="chart-panel" style="flex: none; min-height: 460px;">
+    <div class="panel-heading">Agent Count vs Calls Received</div>
+    <div style="display: flex; flex-direction: column; gap: 0.5rem; flex: 1; min-height: 0;">
+      <div style="display: flex; flex-direction: column; min-height: 0; flex: 1;">
+        <div class="chart-legend-mini"><span><span class="swatch" style="background: var(--coral-deep);"></span>Agents Staffed</span></div>
+        <div class="chart-viewport" style="min-height: 190px;">
+          <canvas id="agentsStaffedChart"></canvas>
+        </div>
+      </div>
+      <div style="display: flex; flex-direction: column; min-height: 0; flex: 1;">
+        <div class="chart-legend-mini"><span><span class="swatch" style="background: var(--coral);"></span>Calls Received</span></div>
+        <div class="chart-viewport" style="min-height: 190px;">
+          <canvas id="callsReceivedChart"></canvas>
+        </div>
+      </div>
+    </div>
+  </div>
+
   <!-- Commentary -->
   <div class="comment-panel">
     <div class="comment-title">SHIFT COMMENTARY &amp; OPERATIONAL REMARKS</div>
@@ -626,30 +650,30 @@
     Chart.register(ChartDataLabels);
 
     const defaultIntervals = [
-      { hour: "00:00", calls: 8, ahtSec: 1228, sla: 0.10 },
-      { hour: "01:00", calls: 6, ahtSec: 615,  sla: 0.50 },
-      { hour: "02:00", calls: 20, ahtSec: 1015, sla: 0.37 },
-      { hour: "03:00", calls: 73, ahtSec: 252,  sla: 0.44 },
-      { hour: "04:00", calls: 61, ahtSec: 311,  sla: 0.89 },
-      { hour: "05:00", calls: 103, ahtSec: 310,  sla: 0.97 },
-      { hour: "06:00", calls: 155, ahtSec: 774,  sla: 0.75 },
-      { hour: "07:00", calls: 177, ahtSec: 1088, sla: 0.67 },
-      { hour: "08:00", calls: 136, ahtSec: 1370, sla: 0.07 },
-      { hour: "09:00", calls: 159, ahtSec: 1242, sla: 0.10 },
-      { hour: "10:00", calls: 146, ahtSec: 1388, sla: 0.13 },
-      { hour: "11:00", calls: 144, ahtSec: 1352, sla: 0.10 },
-      { hour: "12:00", calls: 111, ahtSec: 1314, sla: 0.03 },
-      { hour: "13:00", calls: 99, ahtSec: 1449, sla: 0.09 },
-      { hour: "14:00", calls: 65, ahtSec: 1275, sla: 0.01 },
-      { hour: "15:00", calls: 77, ahtSec: 1479, sla: 0.03 },
-      { hour: "16:00", calls: 58, ahtSec: 1169, sla: 0.02 },
-      { hour: "17:00", calls: 41, ahtSec: 1504, sla: 0.00 },
-      { hour: "18:00", calls: 36, ahtSec: 1234, sla: 0.00 },
-      { hour: "19:00", calls: 25, ahtSec: 855,  sla: 0.00 },
-      { hour: "20:00", calls: 16, ahtSec: 1001, sla: 0.00 },
-      { hour: "21:00", calls: 6, ahtSec: 838,  sla: 0.29 },
-      { hour: "22:00", calls: 10, ahtSec: 784,  sla: 1.00 },
-      { hour: "23:00", calls: 7, ahtSec: 1027, sla: 0.92 }
+      { hour: "00:00", calls: 8, ahtSec: 1228, sla: 0.10, agents: 4 },
+      { hour: "01:00", calls: 6, ahtSec: 615,  sla: 0.50, agents: 3 },
+      { hour: "02:00", calls: 20, ahtSec: 1015, sla: 0.37, agents: 6 },
+      { hour: "03:00", calls: 73, ahtSec: 252,  sla: 0.44, agents: 15 },
+      { hour: "04:00", calls: 61, ahtSec: 311,  sla: 0.89, agents: 13 },
+      { hour: "05:00", calls: 103, ahtSec: 310,  sla: 0.97, agents: 20 },
+      { hour: "06:00", calls: 155, ahtSec: 774,  sla: 0.75, agents: 28 },
+      { hour: "07:00", calls: 177, ahtSec: 1088, sla: 0.67, agents: 30 },
+      { hour: "08:00", calls: 136, ahtSec: 1370, sla: 0.07, agents: 24 },
+      { hour: "09:00", calls: 159, ahtSec: 1242, sla: 0.10, agents: 27 },
+      { hour: "10:00", calls: 146, ahtSec: 1388, sla: 0.13, agents: 25 },
+      { hour: "11:00", calls: 144, ahtSec: 1352, sla: 0.10, agents: 25 },
+      { hour: "12:00", calls: 111, ahtSec: 1314, sla: 0.03, agents: 20 },
+      { hour: "13:00", calls: 99, ahtSec: 1449, sla: 0.09, agents: 18 },
+      { hour: "14:00", calls: 65, ahtSec: 1275, sla: 0.01, agents: 14 },
+      { hour: "15:00", calls: 77, ahtSec: 1479, sla: 0.03, agents: 16 },
+      { hour: "16:00", calls: 58, ahtSec: 1169, sla: 0.02, agents: 12 },
+      { hour: "17:00", calls: 41, ahtSec: 1504, sla: 0.00, agents: 10 },
+      { hour: "18:00", calls: 36, ahtSec: 1234, sla: 0.00, agents: 9 },
+      { hour: "19:00", calls: 25, ahtSec: 855,  sla: 0.00, agents: 7 },
+      { hour: "20:00", calls: 16, ahtSec: 1001, sla: 0.00, agents: 5 },
+      { hour: "21:00", calls: 6, ahtSec: 838,  sla: 0.29, agents: 3 },
+      { hour: "22:00", calls: 10, ahtSec: 784,  sla: 1.00, agents: 4 },
+      { hour: "23:00", calls: 7, ahtSec: 1027, sla: 0.92, agents: 3 }
     ];
 
     const appState = {
@@ -714,6 +738,8 @@
     };
 
     let slaChartInstance = null;
+    let agentsStaffedChartInstance = null;
+    let callsReceivedChartInstance = null;
     let heatmapMode = 'weekday'; // 'weekday' | 'monthly' — controls which period bands the heatmap panel shows
     let heatmapMonthFilter = 'all'; // 'all' or 'YYYY-MM' — narrows the period bands to a single month
     let heatmapPanelVisible = false;
@@ -924,6 +950,8 @@
       document.getElementById("shiftComment").value = appState.commentsByDate[dt] || "";
 
       renderSLABarChart(intervals);
+      renderAgentsStaffedChart(intervals);
+      renderCallsReceivedChart(intervals);
       renderHeatmap();
     }
 
@@ -992,7 +1020,17 @@
               padding: 9,
               titleFont: { family: 'Plus Jakarta Sans', size: 11, weight: '700' },
               bodyFont: { family: 'JetBrains Mono', size: 11 },
-              callbacks: { label: (c) => `${c.dataset.label}: ${c.parsed.y}%` }
+              callbacks: {
+                label: (c) => `${c.dataset.label}: ${c.parsed.y}%`,
+                afterLabel: (c) => {
+                  if (c.dataset.type !== 'bar') return '';
+                  const iv = intervals[c.dataIndex];
+                  if (!iv) return '';
+                  const lines = [`Calls Received: ${iv.calls}`];
+                  if (iv.agents && iv.agents > 0) lines.push(`Agents Staffed: ${iv.agents}`);
+                  return lines;
+                }
+              }
             },
             datalabels: {
               display: (ctx) => ctx.dataset.type === 'bar',
@@ -1022,6 +1060,88 @@
           }
         }
       });
+    }
+
+    /* ---------- Agent Count vs Calls Received, by hour ----------
+       Two stacked charts instead of one combined dual-axis one — same hour
+       axis, same width, lined up one above the other, so you can still read
+       them together as a single comparison, but neither line's points or
+       labels ever cross or crowd the other's anymore. */
+    function renderSingleLineChart(canvasId, existingInstance, values, labels, lineColor, fillColor) {
+      const canvas = document.getElementById(canvasId);
+      if (!canvas) return existingInstance;
+      const ctx = canvas.getContext("2d");
+      if (existingInstance) existingInstance.destroy();
+
+      return new Chart(ctx, {
+        type: 'line',
+        plugins: [ChartDataLabels],
+        data: {
+          labels: labels,
+          datasets: [{
+            data: values,
+            borderColor: lineColor,
+            backgroundColor: fillColor,
+            borderWidth: 2,
+            pointRadius: 3,
+            pointBackgroundColor: lineColor,
+            tension: 0.3,
+            fill: true
+          }]
+        },
+        options: {
+          responsive: true,
+          maintainAspectRatio: false,
+          layout: { padding: { top: 26, bottom: 4 } },
+          plugins: {
+            legend: { display: false },
+            tooltip: {
+              backgroundColor: lineColor,
+              padding: 8,
+              titleFont: { family: 'Plus Jakarta Sans', size: 11, weight: '700' },
+              bodyFont: { family: 'JetBrains Mono', size: 11 }
+            },
+            datalabels: {
+              anchor: 'end',
+              align: 'top',
+              offset: 6,
+              backgroundColor: lineColor,
+              borderRadius: 5,
+              padding: { top: 3, bottom: 2, left: 5, right: 5 },
+              font: { family: 'JetBrains Mono', weight: '800', size: 10 },
+              color: '#ffffff',
+              formatter: (val) => val > 0 ? val : ''
+            }
+          },
+          scales: {
+            x: {
+              grid: { display: false },
+              ticks: { font: { family: 'JetBrains Mono', size: 9.5, weight: '700' }, color: '#5b7fa6', autoSkip: false, maxRotation: 45, minRotation: 0 }
+            },
+            y: {
+              min: 0,
+              ticks: { font: { family: 'JetBrains Mono', size: 9.5 }, color: lineColor },
+              grid: { color: '#d3e9fc' }
+            }
+          }
+        }
+      });
+    }
+
+    function renderAgentsStaffedChart(intervals) {
+      const labels = intervals.map(i => i.hour);
+      const agentValues = intervals.map(i => i.agents || 0);
+      agentsStaffedChartInstance = renderSingleLineChart(
+        "agentsStaffedChart", agentsStaffedChartInstance, agentValues, labels, '#0d47a1', 'rgba(13, 71, 161, 0.12)'
+      );
+    }
+
+    function renderCallsReceivedChart(intervals) {
+      const labels = intervals.map(i => i.hour);
+      const callValues = intervals.map(i => i.calls || 0);
+      callsReceivedChartInstance = renderSingleLineChart(
+        "callsReceivedChart", callsReceivedChartInstance, callValues, labels, '#2196f3', 'rgba(33, 150, 243, 0.1)'
+      );
     }
 
     /* ================= Period bands (new heatmap design) =================
@@ -1328,7 +1448,7 @@
         const json = XLSX.utils.sheet_to_json(sheet, { header: 1 });
 
         let startRow = -1;
-        let colMap = { date: 0, hour: 2, calls: 5, aht: 6, sla: 7 };
+        let colMap = { date: 0, hour: 2, calls: 5, aht: 6, sla: 7, agents: -1 };
 
         for (let r = 0; r < Math.min(30, json.length); r++) {
           const row = json[r] || [];
@@ -1339,6 +1459,7 @@
             if (val === 'CALLS') colMap.calls = idx;
             if (val.includes('HANDLE TIME') || val === 'AHT') colMap.aht = idx;
             if (val.includes('SERVICE LEVEL') || val.includes('SLA')) colMap.sla = idx;
+            if (val.includes('AGENT')) colMap.agents = idx;
           });
           if (startRow !== -1) break;
         }
@@ -1368,7 +1489,8 @@
             hour: hrVal,
             calls: Number(row[colMap.calls]) || 0,
             ahtSec: timeToSeconds(ahtVal),
-            sla: Number(row[colMap.sla]) || 0
+            sla: Number(row[colMap.sla]) || 0,
+            agents: colMap.agents !== -1 ? (Number(row[colMap.agents]) || 0) : 0
           });
         }
 
