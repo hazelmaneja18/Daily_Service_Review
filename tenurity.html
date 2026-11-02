@@ -216,6 +216,18 @@
     }
     .chart-heading { font-size: 0.86rem; font-weight: 800; color: var(--text-main); display: flex; align-items: center; gap: 0.45rem; }
     .chart-heading::before { content: ""; width: 3px; height: 14px; background: var(--teal-primary); border-radius: 2px; display: inline-block; }
+    /* Shows which group (Tech Sup / DIC) the charts and cards are currently built from */
+    .role-badge {
+      background: var(--teal-subtle);
+      color: var(--teal-dark);
+      border: 1px solid var(--teal-border);
+      font-size: 0.64rem;
+      font-weight: 800;
+      letter-spacing: 0.04em;
+      text-transform: uppercase;
+      padding: 0.15rem 0.6rem;
+      border-radius: 12px;
+    }
     .chart-viewport { position: relative; width: 100%; flex: 1; min-height: 0; }
     .multi-chart-grid { display: flex; flex-direction: column; gap: 0.55rem; height: 100%; }
     .mini-chart-block {
@@ -429,6 +441,7 @@
     }
     .footprint-col { display: flex; flex-direction: column; gap: 0.15rem; }
     .footprint-lbl { font-size: 0.6rem; font-weight: 800; color: var(--text-muted); text-transform: uppercase; }
+    .footprint-sub { font-size: 0.54rem; font-weight: 700; color: var(--text-soft); }
     .footprint-val { font-size: 0.82rem; font-weight: 900; color: var(--teal-dark); font-family: 'JetBrains Mono', monospace; }
 
     /* Settings Modal */
@@ -453,7 +466,9 @@
       display: flex;
       flex-direction: column;
       gap: 0.75rem;
+      overflow-y: auto;
     }
+    .modal-box > * { flex-shrink: 0; }
     .modal-header {
       display: flex; justify-content: space-between; align-items: center;
       padding-bottom: 0.5rem; border-bottom: 1px solid var(--border-subtle);
@@ -568,8 +583,23 @@
     }
     .add-btn:hover { background: var(--teal-primary); }
 
+    /* Team leader chips (Settings) */
+    .leader-chips { display: flex; flex-wrap: wrap; gap: 0.35rem; }
+    .leader-chip {
+      display: inline-flex; align-items: center; gap: 0.35rem;
+      background: #ffffff; border: 1px solid var(--teal-border); color: var(--teal-dark);
+      font-size: 0.7rem; font-weight: 800;
+      padding: 0.18rem 0.3rem 0.18rem 0.6rem; border-radius: 12px;
+    }
+    .leader-chip em {
+      font-style: normal; font-family: 'JetBrains Mono', monospace; font-size: 0.62rem;
+      background: var(--teal-subtle); border-radius: 10px; padding: 0 0.4rem;
+    }
+    .leader-chip button { background: none; border: none; color: var(--text-soft); cursor: pointer; font-size: 0.95rem; line-height: 1; padding: 0 0.15rem; }
+    .leader-chip button:hover { color: #ef4444; }
+
     .doh-table-wrap {
-      flex: 1;
+      flex-shrink: 0;
       overflow-y: auto;
       max-height: 240px;
       border: 1px solid var(--border-subtle);
@@ -608,6 +638,14 @@
     </div>
 
     <div class="toolbar-right">
+      <!-- Role view: Tech Support Reps vs DIC. Everything on the page (cards, charts,
+           comparison) follows this switch. -->
+      <span class="label-tag">View:</span>
+      <div class="comp-mode-toggle" id="roleToggle">
+        <button type="button" id="btnRoleTechSup" class="mode-btn active" onclick="setRoleView('techsup')">Tech Sup</button>
+        <button type="button" id="btnRoleDic" class="mode-btn" onclick="setRoleView('dic')">DIC</button>
+      </div>
+
       <span class="label-tag">Monthly:</span>
       <select id="activeMonthSelect" class="dropdown" onchange="onMonthChange()"></select>
       <button class="gear-btn" title="Manage Roster & Upload Report" onclick="toggleModal(true)">⚙</button>
@@ -684,6 +722,7 @@
     <div class="chart-panel">
       <div class="chart-header">
         <div class="chart-heading">Consult, Hold & Conference Times by Tenurity</div>
+        <span class="role-badge" id="roleBadge">Tech Sup</span>
       </div>
       <div class="chart-viewport">
         <div class="multi-chart-grid">
@@ -737,15 +776,27 @@
         </div>
       </div>
 
-      <!-- Cohort Distribution Footprint -->
+      <!-- Roster footprint: Tech Support Agents (Rep + DIC) and Tech Trainees are counted separately, then the whole total -->
       <div class="comp-footprint">
         <div class="footprint-col">
-          <span class="footprint-lbl">Tech Support Rep Roster</span>
-          <span class="footprint-val" id="footprintRosterCount">32 Agents</span>
+          <span class="footprint-lbl">Tech Support Agent Roster</span>
+          <span class="footprint-sub">Tech Support Rep + DIC</span>
+          <span class="footprint-val" id="footprintRosterCount">0 Agents</span>
+        </div>
+        <div class="footprint-col">
+          <span class="footprint-lbl">Tech Trainees</span>
+          <span class="footprint-sub">Tech Support Rep - Trainee</span>
+          <span class="footprint-val" id="footprintTraineeCount">0 Agents</span>
+        </div>
+        <div class="footprint-col">
+          <span class="footprint-lbl">Whole Roster (Total)</span>
+          <span class="footprint-sub">Agents + Trainees</span>
+          <span class="footprint-val" id="footprintTotalCount">0 Agents</span>
         </div>
         <div class="footprint-col">
           <span class="footprint-lbl">Tenure Ratio (1Y+ / Mid)</span>
-          <span class="footprint-val" id="footprintRatio">88% / 12%</span>
+          <span class="footprint-sub">Of the Tech Support Agents</span>
+          <span class="footprint-val" id="footprintRatio">-</span>
         </div>
       </div>
     </div>
@@ -768,45 +819,46 @@
           <span class="upload-status" id="unifiedUploadStatus">Checking Cloud...</span>
         </label>
         <input type="file" id="unifiedFileInput" accept=".xlsx,.xls,.csv" onchange="handleUnifiedUpload(event)">
-        <span style="font-size: 0.68rem; color: var(--text-muted);">Reads DSR & Monthly AHT reports automatically.</span>
+        <span style="font-size: 0.68rem; color: var(--text-muted);">Reads DSR & Monthly AHT reports automatically. Tech Sup and DIC figures are both built from the same upload.</span>
       </div>
+
+      <!-- Roster Excel upload: updates Lead / Role / Date of Hire for everyone listed in the file -->
+      <div class="unified-upload-box">
+        <span class="upload-heading">Update Roster from Excel (.xlsx)</span>
+        <label for="rosterFileInput" class="upload-btn-label">
+          <span>👥 Select Tenurity Info File</span>
+          <span class="upload-status" id="rosterUploadStatus" style="color: var(--text-muted);">Lead · Agent Name · Role · Date of Hire</span>
+        </label>
+        <input type="file" id="rosterFileInput" accept=".xlsx,.xls,.csv" onchange="handleRosterUpload(event)">
+        <label style="display:flex; align-items:center; gap:0.4rem; font-size:0.68rem; color:var(--text-muted); font-weight:700; cursor:pointer;">
+          <input type="checkbox" id="removeMissingCheck"> Also remove agents that are not in the file (Team Leaders are kept)
+        </label>
+        <span style="font-size: 0.68rem; color: var(--text-muted);">Matches agents by name: updates their lead, role and hire date, adds anyone new, and adds new leads to the Team Leaders list. Tenure tiers recalculate from the hire dates. Re-upload the monthly report afterwards so call data is regrouped by the new tenure.</span>
+      </div>
+
+      <!-- Team leaders: add a leader here and they appear in every Team Leader dropdown -->
+      <div style="font-size: 0.74rem; font-weight: 800; color: var(--text-main);">Team Leaders</div>
+      <div class="add-agent-bar">
+        <input type="text" id="newLeaderName" class="add-agent-input" placeholder="New team leader name (e.g. Eizel Payabyab)" onkeydown="if(event.key === 'Enter') addTeamLeader()">
+        <button class="add-btn" onclick="addTeamLeader()">+ Add Leader</button>
+      </div>
+      <div class="leader-chips" id="leaderChips"></div>
 
       <!-- Add New Agent Form -->
       <div style="font-size: 0.74rem; font-weight: 800; color: var(--text-main); margin-top: 0.1rem;">Date of Hire (DOH) Reference Roster</div>
       <div class="add-agent-bar">
         <input type="text" id="newAgentName" class="add-agent-input" placeholder="New Agent Name (e.g. John Doe)">
         <input type="date" id="newAgentDOH" class="add-agent-input" style="flex: 0 0 120px;">
-        <select id="newAgentTeam" class="team-select">
-          <option value="Edwin Cuesta">Edwin Cuesta</option>
-          <option value="Hazel Maneja">Hazel Maneja</option>
-          <option value="Kyle Sioson">Kyle Sioson</option>
-          <option value="Frank Molina" selected>Frank Molina</option>
-        </select>
-        <select id="newAgentRole" class="role-select">
-          <option value="Tech Support Rep" selected>Tech Support Rep</option>
-          <option value="Escalation Lead">Escalation Lead</option>
-          <option value="Team Leader">Team Leader</option>
-          <option value="Others">Others</option>
-        </select>
+        <select id="newAgentTeam" class="team-select" title="Team leader"></select>
+        <select id="newAgentRole" class="role-select" title="Support role"></select>
         <button class="add-btn" onclick="addNewAgent()">+ Add</button>
       </div>
 
       <!-- Search and Filter Tool Strip (Includes Tenure Filter) -->
       <div class="roster-filter-bar" style="grid-template-columns: 1fr 120px 120px 130px;">
         <input type="text" id="searchAgentInput" class="filter-search-input" placeholder="🔍 Search name or surname..." oninput="renderDohTable()">
-        <select id="filterTeamSelect" class="filter-select" onchange="renderDohTable()">
-          <option value="ALL">All Teams</option>
-          <option value="Edwin Cuesta">Edwin Cuesta</option>
-          <option value="Hazel Maneja">Hazel Maneja</option>
-          <option value="Kyle Sioson">Kyle Sioson</option>
-          <option value="Frank Molina">Frank Molina</option>
-        </select>
-        <select id="filterRoleSelect" class="filter-select" onchange="renderDohTable()">
-          <option value="ALL">All Roles</option>
-          <option value="Tech Support Rep">Tech Support Rep</option>
-          <option value="Escalation Lead">Escalation Lead</option>
-          <option value="Team Leader">Team Leader</option>
-        </select>
+        <select id="filterTeamSelect" class="filter-select" onchange="renderDohTable()"></select>
+        <select id="filterRoleSelect" class="filter-select" onchange="renderDohTable()"></select>
         <select id="filterTenureSelect" class="filter-select" onchange="renderDohTable()">
           <option value="ALL">All Tenures</option>
           <option value="1 Year above">1 Year Above</option>
@@ -955,11 +1007,75 @@
     let dohRoster = defaultRoster;
     let monthlyDataStore = defaultMonthlyStore;
 
+    // Roles a roster entry can have (matches the "Role" column of the tenurity Excel)
+    const ROLE_OPTIONS = ["Tech Support Rep", "Tech Support Rep - DIC", "Tech Support Rep - Trainee", "Escalation Lead", "Team Leader", "Others"];
+
+    // Everyone who can be picked as a lead. Add more in Settings, or by uploading the tenurity Excel.
+    let teamLeaders = ["Edwin Cuesta", "Hazel Maneja", "Kyle Sioson", "Frank Molina", "Eizel Payabyab", "AJ Dela Cruz"];
+
+    // Maps any wording of a role (from the Excel or older saved data) onto one of ROLE_OPTIONS
+    function normalizeRole(raw) {
+      const s = String(raw || '').trim().toLowerCase();
+      if (!s) return 'Others';
+      if (/\bdic\b/.test(s)) return 'Tech Support Rep - DIC';
+      if (s.includes('trainee')) return 'Tech Support Rep - Trainee';
+      if (s.includes('escalation')) return 'Escalation Lead';
+      if (s.includes('team lead')) return 'Team Leader';
+      if (s.includes('tech support')) return 'Tech Support Rep';
+      return 'Others';
+    }
+
+    function escapeHtml(str) {
+      return String(str).replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;');
+    }
+
+    // <option> list for a dropdown; keeps an unlisted current value selectable instead of dropping it
+    function selectOptionsHtml(list, selected) {
+      const items = (!selected || list.includes(selected)) ? list : list.concat(selected);
+      return items.map(v => `<option value="${escapeHtml(v)}" ${v === selected ? 'selected' : ''}>${escapeHtml(v)}</option>`).join('');
+    }
+
+    // Any team a roster entry points at is also a valid leader
+    function ensureTeamLeadersFromRoster() {
+      dohRoster.forEach(r => {
+        if (r.team && !teamLeaders.some(t => t.toLowerCase() === r.team.toLowerCase())) teamLeaders.push(r.team);
+      });
+    }
+
+    // Fills every team / role dropdown (add-agent form and roster filters) from the current lists
+    function populateRosterSelects() {
+      const teamSel = document.getElementById('newAgentTeam');
+      const roleSel = document.getElementById('newAgentRole');
+      const fTeam = document.getElementById('filterTeamSelect');
+      const fRole = document.getElementById('filterRoleSelect');
+      if (teamSel) {
+        const prev = teamSel.value;
+        teamSel.innerHTML = selectOptionsHtml(teamLeaders, '');
+        teamSel.value = teamLeaders.includes(prev) ? prev : (teamLeaders.includes('Frank Molina') ? 'Frank Molina' : teamLeaders[0]);
+      }
+      if (roleSel) {
+        const prev = roleSel.value;
+        roleSel.innerHTML = selectOptionsHtml(ROLE_OPTIONS, '');
+        roleSel.value = ROLE_OPTIONS.includes(prev) ? prev : 'Tech Support Rep';
+      }
+      if (fTeam) {
+        const prev = fTeam.value;
+        fTeam.innerHTML = '<option value="ALL">All Teams</option>' + selectOptionsHtml(teamLeaders, '');
+        fTeam.value = (prev === 'ALL' || teamLeaders.includes(prev)) ? prev : 'ALL';
+      }
+      if (fRole) {
+        const prev = fRole.value;
+        fRole.innerHTML = '<option value="ALL">All Roles</option>' + selectOptionsHtml(ROLE_OPTIONS, '');
+        fRole.value = (prev === 'ALL' || ROLE_OPTIONS.includes(prev)) ? prev : 'ALL';
+      }
+    }
+
     // Save state to Firebase Cloud Firestore
     function saveToCloud() {
       db.collection('petro_tenure').doc('roster_data').set({
         dohRoster: dohRoster,
         monthlyDataStore: monthlyDataStore,
+        teamLeaders: teamLeaders,
         updatedAt: new Date()
       }).then(() => {
         console.log("Tenure state synced to Firebase.");
@@ -973,6 +1089,13 @@
           const remote = doc.data();
           if (remote.dohRoster) dohRoster = remote.dohRoster;
           if (remote.monthlyDataStore) monthlyDataStore = remote.monthlyDataStore;
+          if (remote.teamLeaders && remote.teamLeaders.length) teamLeaders = remote.teamLeaders;
+
+          // Older saves used a plain "DIC" role (or no Trainee/DIC wording) — bring them onto the current role names
+          dohRoster.forEach(r => { r.role = normalizeRole(r.role); });
+          ensureTeamLeadersFromRoster();
+          populateRosterSelects();
+          renderLeaderChips();
 
           document.getElementById("unifiedUploadStatus").innerText = "Loaded (Cloud Sync)";
           updateDropdownOptions();
@@ -986,6 +1109,36 @@
     let chartInstanceConsult = null;
     let chartInstanceHold = null;
     let chartInstanceConf = null;
+
+    /* ================= Role view: Tech Sup / DIC =================
+       The "View" switch in the top bar decides whose numbers the whole page shows.
+       Which roster roles belong to each side is set here, in one place:
+         - Tech Sup -> "Tech Support Rep" and "Tech Support Rep - Trainee"
+         - DIC      -> "Tech Support Rep - DIC"
+       Both groups are built from the same uploaded report; each is stored separately. */
+    const ROLE_GROUPS = {
+      techsup: { label: 'Tech Sup', rosterLabel: 'Tech Support Rep Roster', roles: ["Tech Support Rep", "Tech Support Rep - Trainee"] },
+      dic:     { label: 'DIC',      rosterLabel: 'DIC Roster',              roles: ["Tech Support Rep - DIC"] }
+    };
+    let roleView = 'techsup'; // 'techsup' | 'dic'
+
+    function inRoleGroup(role) {
+      return ROLE_GROUPS[roleView].roles.includes(role);
+    }
+
+    // Which group a roster role belongs to (used when building the upload), or null if neither
+    function roleGroupOf(role) {
+      if (ROLE_GROUPS.techsup.roles.includes(role)) return 'techsup';
+      if (ROLE_GROUPS.dic.roles.includes(role)) return 'dic';
+      return null;
+    }
+
+    function setRoleView(view) {
+      roleView = view;
+      document.getElementById('btnRoleTechSup').classList.toggle('active', view === 'techsup');
+      document.getElementById('btnRoleDic').classList.toggle('active', view === 'dic');
+      onMonthChange();
+    }
 
     function setComparisonMode(mode) {
       comparisonMode = mode;
@@ -1035,19 +1188,13 @@
             <td><strong>${r.name}</strong></td>
             <td><input type="date" class="doh-input" value="${r.doh}" onchange="dohRoster[${idx}].doh = this.value; saveToCloud(); onMonthChange();"></td>
             <td>
-              <select class="team-select" onchange="dohRoster[${idx}].team = this.value; saveToCloud();">
-                <option value="Edwin Cuesta" ${r.team === "Edwin Cuesta" ? "selected" : ""}>Edwin Cuesta</option>
-                <option value="Hazel Maneja" ${r.team === "Hazel Maneja" ? "selected" : ""}>Hazel Maneja</option>
-                <option value="Kyle Sioson" ${r.team === "Kyle Sioson" ? "selected" : ""}>Kyle Sioson</option>
-                <option value="Frank Molina" ${r.team === "Frank Molina" ? "selected" : ""}>Frank Molina</option>
+              <select class="team-select" onchange="dohRoster[${idx}].team = this.value; saveToCloud(); renderLeaderChips();">
+                ${selectOptionsHtml(teamLeaders, r.team)}
               </select>
             </td>
             <td>
               <select class="role-select" onchange="dohRoster[${idx}].role = this.value; saveToCloud(); onMonthChange();">
-                <option value="Tech Support Rep" ${r.role === "Tech Support Rep" ? "selected" : ""}>Tech Support Rep</option>
-                <option value="Escalation Lead" ${r.role === "Escalation Lead" ? "selected" : ""}>Escalation Lead</option>
-                <option value="Team Leader" ${r.role === "Team Leader" ? "selected" : ""}>Team Leader</option>
-                <option value="Others" ${r.role === "Others" ? "selected" : ""}>Others</option>
+                ${selectOptionsHtml(ROLE_OPTIONS, r.role)}
               </select>
             </td>
             <td><span style="font-size: 0.7rem; font-weight: 800; color: var(--teal-dark);">${agentTenure}</span></td>
@@ -1183,31 +1330,90 @@
       compSel.value = keys[0];
     }
 
-    function computeLiveMetricsForMonth(monthKey, isCoverage) {
-      const baseData = monthlyDataStore[monthKey];
-      if (!baseData) return null;
+    // The month's data for whichever group is selected (Tech Sup or DIC). Tech Sup is the
+    // month record itself (as before); DIC lives under its `dic` key, and a month with no
+    // DIC data yet simply comes back with every tenure bucket empty.
+    function getRoleSource(monthKey) {
+      const base = monthlyDataStore[monthKey];
+      if (!base) return null;
+      if (roleView !== 'dic') return base;
+      const dic = base.dic || {};
+      return {
+        name: base.name,
+        maxDay: base.maxDay,
+        "1 Year above": dic["1 Year above"] || null,
+        "6-12 Months": dic["6-12 Months"] || null,
+        "0-6 Months": dic["0-6 Months"] || null,
+        "Trainee": dic["Trainee"] || null,
+        dailyBuckets: dic.dailyBuckets || null
+      };
+    }
 
+    // How many roster agents of the selected group fall in each tenure tier for that month
+    function countRosterByBucket(monthKey) {
       const refDateStr = monthKey + "-01";
-      let count1Y = 0, count6M = 0, count0M = 0, countTR = 0;
+      const c = { y1: 0, m6: 0, m0: 0, tr: 0 };
+      const [yy, mm] = monthKey.split('-').map(Number);
+      const monthEnd = new Date(yy, mm, 0, 23, 59, 59);
+      dohRoster.forEach(r => {
+        if (!inRoleGroup(r.role)) return;
+        if (r.doh && new Date(r.doh) > monthEnd) return; // hired after this month — wasn't on the team yet
+        const b = getTenureBucket(r.doh, refDateStr);
+        if (b === "1 Year above") c.y1++;
+        else if (b === "6-12 Months") c.m6++;
+        else if (b === "0-6 Months") c.m0++;
+        else if (b === "Trainee") c.tr++;
+      });
+      return c;
+    }
+
+    // Roster footprint for a month, independent of the Tech Sup / DIC switch:
+    //   Tech Support Agents = Tech Support Rep + DIC
+    //   Tech Trainees       = Tech Support Rep - Trainee (counted separately)
+    //   Whole roster        = both together
+    // Only agents already hired by the end of that month are counted.
+    function renderFootprint(monthKey) {
+      const [yy, mm] = monthKey.split('-').map(Number);
+      const monthEnd = new Date(yy, mm, 0, 23, 59, 59);
+      let agents = 0, trainees = 0, y1 = 0, m6 = 0;
 
       dohRoster.forEach(r => {
-        if (r.role === "Tech Support Rep") {
-          const b = getTenureBucket(r.doh, refDateStr);
-          if (b === "1 Year above") count1Y++;
-          else if (b === "6-12 Months") count6M++;
-          else if (b === "0-6 Months") count0M++;
-          else if (b === "Trainee") countTR++;
+        if (r.doh && new Date(r.doh) > monthEnd) return;
+        if (r.role === "Tech Support Rep - Trainee") { trainees++; return; }
+        if (r.role === "Tech Support Rep" || r.role === "Tech Support Rep - DIC") {
+          agents++;
+          const b = getTenureBucket(r.doh, monthKey + "-01");
+          if (b === "1 Year above") y1++;
+          else if (b === "6-12 Months") m6++;
         }
       });
+
+      const plural = (n) => `${n} Agent${n === 1 ? '' : 's'}`;
+      document.getElementById("footprintRosterCount").innerText = plural(agents);
+      document.getElementById("footprintTraineeCount").innerText = plural(trainees);
+      document.getElementById("footprintTotalCount").innerText = plural(agents + trainees);
+      document.getElementById("footprintRatio").innerText = agents > 0
+        ? `${Math.round((y1 / agents) * 100)}% / ${Math.round((m6 / agents) * 100)}%`
+        : "-";
+    }
+
+    function computeLiveMetricsForMonth(monthKey, isCoverage) {
+      const baseData = getRoleSource(monthKey);
+      if (!baseData) return null;
+
+      const c = countRosterByBucket(monthKey);
 
       const source = (isCoverage && baseData.coverage) ? baseData.coverage : baseData;
       
       return {
         ...source,
-        "1 Year above": source["1 Year above"] ? { ...source["1 Year above"], count: count1Y } : { aht: 1186, consult: 286, hold: 83, conf: 159, count: count1Y },
-        "6-12 Months": source["6-12 Months"] ? { ...source["6-12 Months"], count: count6M } : { aht: 1249, consult: 280, hold: 96, conf: 179, count: count6M },
-        "0-6 Months": count0M > 0 ? (source["0-6 Months"] || { aht: 1200, consult: 270, hold: 90, conf: 160, count: count0M }) : null,
-        "Trainee": countTR > 0 ? (source["Trainee"] || { aht: 1150, consult: 260, hold: 85, conf: 150, count: countTR }) : null
+        // Only real figures from the uploaded report are shown. A tier with no call data stays empty
+        // (it used to be filled with made-up reference numbers, which made empty tiers look like they had data).
+        "1 Year above": source["1 Year above"] ? { ...source["1 Year above"], count: c.y1 } : null,
+        "6-12 Months": source["6-12 Months"] ? { ...source["6-12 Months"], count: c.m6 } : null,
+        "0-6 Months": source["0-6 Months"] ? { ...source["0-6 Months"], count: c.m0 } : null,
+        "Trainee": source["Trainee"] ? { ...source["Trainee"], count: c.tr } : null,
+        _counts: c
       };
     }
 
@@ -1217,20 +1423,10 @@
     // sums the real per-day buckets captured at upload time, up to dayLimit, for both
     // months, instead of reusing the flawed whole-month duplicate the app used before.
     function computeCoverageMetricsForMonth(monthKey, dayLimit) {
-      const baseData = monthlyDataStore[monthKey];
+      const baseData = getRoleSource(monthKey);
       if (!baseData) return null;
 
-      const refDateStr = monthKey + "-01";
-      let count1Y = 0, count6M = 0, count0M = 0, countTR = 0;
-      dohRoster.forEach(r => {
-        if (r.role === "Tech Support Rep") {
-          const b = getTenureBucket(r.doh, refDateStr);
-          if (b === "1 Year above") count1Y++;
-          else if (b === "6-12 Months") count6M++;
-          else if (b === "0-6 Months") count0M++;
-          else if (b === "Trainee") countTR++;
-        }
-      });
+      const c = countRosterByBucket(monthKey);
 
       const bucketKeys = ["1 Year above", "6-12 Months", "0-6 Months", "Trainee"];
 
@@ -1267,10 +1463,11 @@
           : null;
       });
 
-      result["1 Year above"] = result["1 Year above"] ? { ...result["1 Year above"], count: count1Y } : (count1Y > 0 ? { aht: 1186, consult: 286, hold: 83, conf: 159, count: count1Y } : null);
-      result["6-12 Months"] = result["6-12 Months"] ? { ...result["6-12 Months"], count: count6M } : (count6M > 0 ? { aht: 1249, consult: 280, hold: 96, conf: 179, count: count6M } : null);
-      result["0-6 Months"] = count0M > 0 ? (result["0-6 Months"] || { aht: 1200, consult: 270, hold: 90, conf: 160, count: count0M }) : null;
-      result["Trainee"] = countTR > 0 ? (result["Trainee"] || { aht: 1150, consult: 260, hold: 85, conf: 150, count: countTR }) : null;
+      result["1 Year above"] = result["1 Year above"] ? { ...result["1 Year above"], count: c.y1 } : null;
+      result["6-12 Months"] = result["6-12 Months"] ? { ...result["6-12 Months"], count: c.m6 } : null;
+      result["0-6 Months"] = result["0-6 Months"] ? { ...result["0-6 Months"], count: c.m0 } : null;
+      result["Trainee"] = result["Trainee"] ? { ...result["Trainee"], count: c.tr } : null;
+      result._counts = c;
 
       return result;
     }
@@ -1279,33 +1476,31 @@
       const m = document.getElementById("activeMonthSelect").value;
       const data = computeLiveMetricsForMonth(m, comparisonMode === 'coverage');
 
+      // Label everything with the group currently being shown
+      document.getElementById("roleBadge").innerText = ROLE_GROUPS[roleView].label;
+
       if (data) {
         document.getElementById("card1Year").innerText = data["1 Year above"] ? timeSecToHMS(data["1 Year above"].aht) : "No Data";
         document.getElementById("card6to12").innerText = data["6-12 Months"] ? timeSecToHMS(data["6-12 Months"].aht) : "No Data";
         document.getElementById("card0to6").innerText = data["0-6 Months"] ? timeSecToHMS(data["0-6 Months"].aht) : "No Data";
-        document.getElementById("cardTrainee").innerText = data["Trainee"] ? timeSecToHMS(data["Trainee"].aht) : "No Trainees";
+        document.getElementById("cardTrainee").innerText = data["Trainee"] ? timeSecToHMS(data["Trainee"].aht) : ((data._counts && data._counts.tr > 0) ? "No Data" : "No Trainees");
 
-        const count1Y = data["1 Year above"]?.count ?? 0;
-        const count6M = data["6-12 Months"]?.count ?? 0;
-        const count0M = data["0-6 Months"]?.count ?? 0;
-        const countTR = data["Trainee"]?.count ?? 0;
+        // Counts come straight from the roster so they still show when a tier has agents but no calls yet
+        const cnt = data._counts || {};
+        const count1Y = cnt.y1 ?? 0;
+        const count6M = cnt.m6 ?? 0;
+        const count0M = cnt.m0 ?? 0;
+        const countTR = cnt.tr ?? 0;
 
         document.getElementById("count1Year").innerText = `${count1Y} Agents`;
         document.getElementById("count6to12").innerText = `${count6M} Agents`;
         document.getElementById("count0to6").innerText = `${count0M} Agents`;
         document.getElementById("countTrainee").innerText = `${countTR} Agents`;
 
-        const totalReps = count1Y + count6M + count0M + countTR;
-        document.getElementById("footprintRosterCount").innerText = `${totalReps} Agents`;
-        if (totalReps > 0) {
-          const r1Y = Math.round((count1Y / totalReps) * 100);
-          const r6M = Math.round((count6M / totalReps) * 100);
-          document.getElementById("footprintRatio").innerText = `${r1Y}% / ${r6M}%`;
-        }
-
         renderBarChart(data);
       }
 
+      renderFootprint(m);
       recalculateComparison();
       renderDohTable();
     }
@@ -1392,6 +1587,9 @@
       }
       if (diff6M_AHT !== null) {
         items.push(`<div class="summary-item"><span class="summary-dot" style="background:${diff6M_AHT <= 0 ? 'var(--trend-down)' : 'var(--trend-slight)'};"></span><span>6-12 Months: ${formatSimpleSec(diff6M_AHT)} ${diff6M_AHT <= 0 ? 'faster' : 'slower'}</span></div>`);
+      }
+      if (items.length === 0) {
+        items.push(`<div class="summary-item"><span class="summary-dot" style="background:var(--text-muted);"></span><span>No ${ROLE_GROUPS[roleView].label} data to compare for these months</span></div>`);
       }
       items.push(`<div class="summary-item"><span class="summary-dot" style="background:var(--text-muted);"></span><span>0-6 Months & Trainees: No active volume</span></div>`);
 
@@ -1537,30 +1735,221 @@
         .trim();
     }
 
+    // Treats known spelling variants of the same person as one name
+    function canonicalName(str) {
+      let c = normalizeName(str);
+      if (c === "christiann quimno") c = "christian quimno";
+      if (c === "hazell bongalos") c = "hazel bongalos";
+      if (c === "roi lumtao") c = "roi lumato";
+      return c;
+    }
+
+    // Index of an agent in dohRoster (also matches "Last First" order), or -1
+    function findRosterIndex(agentName) {
+      if (!agentName) return -1;
+      const clean = canonicalName(agentName);
+      if (!clean) return -1;
+
+      for (let i = 0; i < dohRoster.length; i++) {
+        if (canonicalName(dohRoster[i].name) === clean) return i;
+      }
+
+      const reversed = clean.split(' ').filter(Boolean).reverse().join(' ');
+      for (let i = 0; i < dohRoster.length; i++) {
+        if (canonicalName(dohRoster[i].name) === reversed) return i;
+      }
+      return -1;
+    }
+
     function findAgentInRoster(agentName) {
-      if (!agentName) return null;
-      let clean = normalizeName(agentName);
-      if (!clean) return null;
+      const idx = findRosterIndex(agentName);
+      return idx >= 0 ? dohRoster[idx] : null;
+    }
 
-      if (clean === "christian quimno" || clean === "christiann quimno") clean = "christian quimno";
-      if (clean === "hazel bongalos" || clean === "hazell bongalos") clean = "hazel bongalos";
-      if (clean === "roi lumato" || clean === "roi lumtao") clean = "roi lumato";
+    /* ================= Team leaders (Settings) ================= */
+    function renderLeaderChips() {
+      const host = document.getElementById('leaderChips');
+      if (!host) return;
+      host.innerHTML = '';
+      teamLeaders.forEach((name, i) => {
+        const n = dohRoster.filter(r => r.team === name).length;
+        const chip = document.createElement('span');
+        chip.className = 'leader-chip';
+        chip.innerHTML = `${escapeHtml(name)} <em title="Agents on this team">${n}</em>`;
+        const rm = document.createElement('button');
+        rm.type = 'button';
+        rm.title = n > 0 ? 'Move this team\'s agents to another leader before removing' : 'Remove this team leader';
+        rm.innerHTML = '&times;';
+        rm.onclick = () => removeTeamLeader(i);
+        chip.appendChild(rm);
+        host.appendChild(chip);
+      });
+    }
 
-      for (let r of dohRoster) {
-        let rClean = normalizeName(r.name);
-        if (rClean === "christian quimno" || rClean === "christiann quimno") rClean = "christian quimno";
-        if (rClean === "hazel bongalos" || rClean === "hazell bongalos") rClean = "hazel bongalos";
-        if (rClean === "roi lumato" || rClean === "roi lumtao") rClean = "roi lumato";
-        if (rClean === clean) return r;
+    function addTeamLeader() {
+      const input = document.getElementById('newLeaderName');
+      const name = (input.value || '').trim().replace(/\s+/g, ' ');
+      if (!name) { alert('Please enter the team leader\'s name.'); return; }
+      if (teamLeaders.some(t => t.toLowerCase() === name.toLowerCase())) {
+        alert(`${name} is already in the Team Leaders list.`);
+        return;
       }
+      teamLeaders.push(name);
+      input.value = '';
+      saveToCloud();
+      populateRosterSelects();
+      renderLeaderChips();
+      renderDohTable();
+    }
 
-      const tokens = clean.split(' ').filter(Boolean);
-      const reversed = [...tokens].reverse().join(' ');
-      for (let r of dohRoster) {
-        if (normalizeName(r.name) === reversed) return r;
+    function removeTeamLeader(index) {
+      const name = teamLeaders[index];
+      const n = dohRoster.filter(r => r.team === name).length;
+      if (n > 0) {
+        alert(`${name} still has ${n} agent${n === 1 ? '' : 's'} on their team. Move them to another leader in the roster table first.`);
+        return;
       }
+      if (!confirm(`Remove ${name} from the Team Leaders list?`)) return;
+      teamLeaders.splice(index, 1);
+      saveToCloud();
+      populateRosterSelects();
+      renderLeaderChips();
+      renderDohTable();
+    }
 
-      return null;
+    /* ================= Roster upload (Settings) =================
+       Reads a sheet with the columns Lead, Agent Name, Role, Date of Hire (like Tenurity_info.xlsx)
+       and merges it into the roster by name: existing agents get their lead / role / hire date
+       updated, new agents are added, and any new lead is added to the Team Leaders list. */
+    function parseHireDate(val) {
+      if (val === null || val === undefined || val === '') return '';
+      if (typeof val === 'number') {
+        const d = new Date(Math.round((val - 25569) * 86400 * 1000));
+        return isNaN(d.getTime()) ? '' : d.toISOString().slice(0, 10);
+      }
+      const str = String(val).trim();
+      let m = str.match(/^(\d{4})[\/-](\d{1,2})[\/-](\d{1,2})/);
+      if (m) return `${m[1]}-${m[2].padStart(2, '0')}-${m[3].padStart(2, '0')}`;
+      m = str.match(/^(\d{1,2})[\/-](\d{1,2})[\/-](\d{4})/); // month/day/year
+      if (m) return `${m[3]}-${m[1].padStart(2, '0')}-${m[2].padStart(2, '0')}`;
+      const d = new Date(str);
+      return isNaN(d.getTime()) ? '' : `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}-${String(d.getDate()).padStart(2, '0')}`;
+    }
+
+    function handleRosterUpload(e) {
+      const input = e.target;
+      const file = input.files[0];
+      if (!file) return;
+      const statusEl = document.getElementById('rosterUploadStatus');
+
+      const reader = new FileReader();
+      reader.onload = function(evt) {
+        try {
+          const wb = XLSX.read(new Uint8Array(evt.target.result), { type: 'array' });
+          const sheet = wb.Sheets[wb.SheetNames[0]];
+          const rows = XLSX.utils.sheet_to_json(sheet, { header: 1, defval: '' });
+
+          // Find the header row and which column is which
+          let hdr = -1;
+          const col = { lead: -1, name: -1, role: -1, doh: -1 };
+          for (let r = 0; r < Math.min(15, rows.length); r++) {
+            const tmp = { lead: -1, name: -1, role: -1, doh: -1 };
+            (rows[r] || []).forEach((cell, idx) => {
+              const t = String(cell).trim().toUpperCase();
+              if (!t) return;
+              if (tmp.name === -1 && (t === 'NAME' || t.includes('AGENT'))) tmp.name = idx;
+              else if (tmp.lead === -1 && (t === 'LEAD' || t === 'TL' || t.includes('TEAM LEAD') || t.includes('SUPERVISOR'))) tmp.lead = idx;
+              else if (tmp.role === -1 && (t.includes('ROLE') || t.includes('POSITION'))) tmp.role = idx;
+              else if (tmp.doh === -1 && (t.includes('HIRE') || t === 'DOH')) tmp.doh = idx;
+            });
+            if (tmp.name !== -1 && tmp.doh !== -1) { hdr = r; Object.assign(col, tmp); break; }
+          }
+          if (hdr === -1) {
+            alert('Could not find the column headers. The file needs columns named: Lead, Agent Name, Role, Date of Hire.');
+            statusEl.innerText = 'Headers not found';
+            return;
+          }
+
+          const parsed = [];
+          for (let r = hdr + 1; r < rows.length; r++) {
+            const row = rows[r];
+            if (!row) continue;
+            const name = String(row[col.name] || '').trim().replace(/\s+/g, ' ');
+            if (!name) continue;
+            const roleRaw = col.role !== -1 ? String(row[col.role] || '').trim() : '';
+            parsed.push({
+              name,
+              lead: col.lead !== -1 ? String(row[col.lead] || '').trim().replace(/\s+/g, ' ') : '',
+              role: roleRaw ? normalizeRole(roleRaw) : '',
+              doh: parseHireDate(row[col.doh])
+            });
+          }
+          if (parsed.length === 0) {
+            alert('No agent rows were found in that file.');
+            statusEl.innerText = 'No rows found';
+            return;
+          }
+
+          let added = 0, updated = 0, unchanged = 0, skipped = 0, removed = 0;
+          const seen = new Set();
+
+          parsed.forEach(p => {
+            // Reuse the existing spelling of a lead if it's already in the list (ignoring capitalisation)
+            if (p.lead) {
+              const existing = teamLeaders.find(t => t.toLowerCase() === p.lead.toLowerCase());
+              if (existing) p.lead = existing; else teamLeaders.push(p.lead);
+            }
+
+            const idx = findRosterIndex(p.name);
+            if (idx >= 0) {
+              seen.add(idx);
+              const rec = dohRoster[idx];
+              let changed = false;
+              if (p.lead && rec.team !== p.lead) { rec.team = p.lead; changed = true; }
+              if (p.role && rec.role !== p.role) { rec.role = p.role; changed = true; }
+              if (p.doh && rec.doh !== p.doh) { rec.doh = p.doh; changed = true; }
+              if (changed) updated++; else unchanged++;
+            } else {
+              if (!p.doh) { skipped++; return; } // a new agent needs a hire date to be placed in a tenure tier
+              dohRoster.push({ name: p.name, doh: p.doh, team: p.lead || teamLeaders[0], role: p.role || 'Tech Support Rep' });
+              seen.add(dohRoster.length - 1);
+              added++;
+            }
+          });
+
+          // Optional clean-up: drop anyone who isn't in the file (Team Leaders are never removed)
+          if (document.getElementById('removeMissingCheck').checked) {
+            const gone = dohRoster.filter((r, i) => !seen.has(i) && r.role !== 'Team Leader');
+            if (gone.length > 0) {
+              const list = gone.slice(0, 15).map(r => r.name).join('\n') + (gone.length > 15 ? `\n…and ${gone.length - 15} more` : '');
+              if (confirm(`Remove ${gone.length} agent${gone.length === 1 ? '' : 's'} that are not in the file?\n\n${list}`)) {
+                dohRoster = dohRoster.filter((r, i) => seen.has(i) || r.role === 'Team Leader');
+                removed = gone.length;
+              }
+            }
+          }
+
+          ensureTeamLeadersFromRoster();
+          saveToCloud();
+          populateRosterSelects();
+          renderLeaderChips();
+          renderDohTable();
+          onMonthChange();
+
+          const bits = [`${updated} updated`, `${added} added`];
+          if (removed) bits.push(`${removed} removed`);
+          if (skipped) bits.push(`${skipped} skipped (no hire date)`);
+          statusEl.style.color = 'var(--trend-down)';
+          statusEl.innerText = bits.join(' · ');
+        } catch (err) {
+          console.error('Roster upload error:', err);
+          alert('That file could not be read. Please upload an .xlsx or .csv with the columns Lead, Agent Name, Role, Date of Hire.');
+          statusEl.innerText = 'Could not read file';
+        } finally {
+          input.value = ''; // lets the same file be chosen again later
+        }
+      };
+      reader.readAsArrayBuffer(file);
     }
 
     function handleUnifiedUpload(e) {
@@ -1681,7 +2070,9 @@
               name: formattedTitle,
               maxDay: 0, // filled in from real row dates below; falls back to detectedEndDay if none found
               buckets: buildBuckets(),
-              dailyBuckets: {} // { [dayOfMonth]: { "1 Year above": {...}, ... } } — lets coverage mode later restrict both months to the same day range
+              dailyBuckets: {}, // { [dayOfMonth]: { "1 Year above": {...}, ... } } — lets coverage mode later restrict both months to the same day range
+              dicBuckets: buildBuckets(), // same two structures again, for the DIC group
+              dicDaily: {}
             };
           }
 
@@ -1697,7 +2088,11 @@
 
           const agentName = String(row[nameIdx]).trim();
           const rosterEntry = findAgentInRoster(agentName);
-          if (!rosterEntry || rosterEntry.role !== "Tech Support Rep") continue;
+          if (!rosterEntry) continue;
+
+          // Tech Sup rows and DIC rows are kept in separate buckets so the View switch can show either.
+          const group = roleGroupOf(rosterEntry.role);
+          if (!group) continue;
 
           const bucket = getTenureBucket(rosterEntry.doh, monthKey + "-01");
           if (!bucket) continue;
@@ -1713,27 +2108,31 @@
           // exactly one call, so the weight is 1 unless a genuine count column was found.
           const calls = (colMap.calls !== -1) ? (parseFloat(row[colMap.calls + shift]) || 1) : 1;
 
+          const monthRec = detectedMonthsData[monthKey];
+          const tBuckets = group === 'dic' ? monthRec.dicBuckets : monthRec.buckets;
+          const tDaily = group === 'dic' ? monthRec.dicDaily : monthRec.dailyBuckets;
+
           if (ahtSec > 0) {
-            detectedMonthsData[monthKey].buckets[bucket].totalTime += ahtSec * calls;
-            detectedMonthsData[monthKey].buckets[bucket].totalCalls += calls;
+            tBuckets[bucket].totalTime += ahtSec * calls;
+            tBuckets[bucket].totalCalls += calls;
             // Only count a call toward the Consult/Hold/Conference average when that leg
             // actually happened (a blank or "-" cell means it didn't) — otherwise every call
             // that skipped, say, a conference drags the average toward zero, same mistake
             // Excel's own formulas avoid by only averaging over non-blank cells.
-            if (hasTimeValue(consultRaw)) detectedMonthsData[monthKey].buckets[bucket].consult.push(consultSec);
-            if (hasTimeValue(holdRaw)) detectedMonthsData[monthKey].buckets[bucket].hold.push(holdSec);
-            if (hasTimeValue(confRaw)) detectedMonthsData[monthKey].buckets[bucket].conf.push(confSec);
+            if (hasTimeValue(consultRaw)) tBuckets[bucket].consult.push(consultSec);
+            if (hasTimeValue(holdRaw)) tBuckets[bucket].hold.push(holdSec);
+            if (hasTimeValue(confRaw)) tBuckets[bucket].conf.push(confSec);
 
             if (rowDayNum !== null) {
-              if (!detectedMonthsData[monthKey].dailyBuckets[rowDayNum]) {
-                detectedMonthsData[monthKey].dailyBuckets[rowDayNum] = buildBuckets();
+              if (!tDaily[rowDayNum]) {
+                tDaily[rowDayNum] = buildBuckets();
               }
-              const db = detectedMonthsData[monthKey].dailyBuckets[rowDayNum][bucket];
-              db.totalTime += ahtSec * calls;
-              db.totalCalls += calls;
-              if (hasTimeValue(consultRaw)) db.consult.push(consultSec);
-              if (hasTimeValue(holdRaw)) db.hold.push(holdSec);
-              if (hasTimeValue(confRaw)) db.conf.push(confSec);
+              const dayB = tDaily[rowDayNum][bucket];
+              dayB.totalTime += ahtSec * calls;
+              dayB.totalCalls += calls;
+              if (hasTimeValue(consultRaw)) dayB.consult.push(consultSec);
+              if (hasTimeValue(holdRaw)) dayB.hold.push(holdSec);
+              if (hasTimeValue(confRaw)) dayB.conf.push(confSec);
             }
           }
         }
@@ -1772,12 +2171,14 @@
           };
 
           const fullSummary = formatBucketGroup(item.buckets);
+          const dicSummary = formatBucketGroup(item.dicBuckets);
 
           monthlyDataStore[mKey] = {
             name: item.name,
             maxDay: item.maxDay,
             ...fullSummary,
-            dailyBuckets: item.dailyBuckets
+            dailyBuckets: item.dailyBuckets,
+            dic: { ...dicSummary, dailyBuckets: item.dicDaily }
           };
         });
 
@@ -1800,6 +2201,8 @@
     }
 
     window.addEventListener("DOMContentLoaded", () => {
+      populateRosterSelects();
+      renderLeaderChips();
       loadFromCloud();
     });
   </script>
