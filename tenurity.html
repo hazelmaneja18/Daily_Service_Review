@@ -323,6 +323,21 @@
     .selector-box { display: flex; flex-direction: column; gap: 0.15rem; }
     .selector-box label { font-size: 0.62rem; font-weight: 800; color: var(--text-muted); text-transform: uppercase; }
 
+    /* Weekly comparison: a week picker sits beside each month picker */
+    .selector-row { display: flex; gap: 0.35rem; }
+    .selector-row .dropdown { min-width: 0; flex: 1; }
+    .selector-row .week-select { flex: 1.15; border-color: var(--teal-border); background-color: var(--teal-subtle); }
+    .comp-selectors.weekly { grid-template-columns: 1fr; }
+    /* Weekly comparison: pick which tenure tier to show */
+    .tier-filter { display: flex; align-items: center; gap: 0.5rem; }
+    .tier-filter-lbl { font-size: 0.62rem; font-weight: 800; color: var(--text-muted); text-transform: uppercase; }
+    .tier-filter .comp-mode-toggle { flex: 1; }
+    .tier-filter .mode-btn { flex: 1; padding: 0.22rem 0.3rem; }
+    /* three comparison modes no longer fit beside the title, so the switch gets its own row */
+    .comp-header-row { flex-wrap: wrap; }
+    .comp-header-row .comp-mode-toggle { flex: 1 1 100%; }
+    .comp-header-row .mode-btn { flex: 1; }
+
     /* Cohort Comparison Cards — replaces the old plain matrix table */
     .comparison-grid {
       display: grid;
@@ -443,6 +458,84 @@
     .footprint-lbl { font-size: 0.6rem; font-weight: 800; color: var(--text-muted); text-transform: uppercase; }
     .footprint-sub { font-size: 0.54rem; font-weight: 700; color: var(--text-soft); }
     .footprint-val { font-size: 0.82rem; font-weight: 900; color: var(--teal-dark); font-family: 'JetBrains Mono', monospace; }
+
+    /* Agent Stats button + view */
+    .pill-btn {
+      height: 32px; padding: 0 0.75rem;
+      border-radius: 7px;
+      background: #eef7ff; border: 1px solid var(--border-subtle);
+      color: var(--teal-dark);
+      font-size: 0.7rem; font-weight: 800; letter-spacing: 0.02em;
+      cursor: pointer; white-space: nowrap;
+      transition: all 0.15s ease;
+    }
+    .pill-btn:hover { background: var(--teal-subtle); border-color: var(--teal-primary); }
+
+    /* The Agent Stats window fills the whole page. (.modal-box.agent-box is needed so these
+       sizes win over the plain .modal-box width, which is declared further down.) */
+    .modal-box.agent-box { width: calc(100vw - 1.2rem); max-width: none; height: calc(100vh - 1.2rem); max-height: none; padding: 0.85rem 1rem; overflow: hidden; gap: 0.5rem; }
+    .agent-filters { display: flex; flex-wrap: wrap; gap: 0.5rem 0.9rem; align-items: flex-end; background: #eef7ff; border: 1px solid var(--border-subtle); border-radius: 8px; padding: 0.45rem 0.65rem; }
+    .agent-filter { display: flex; flex-direction: column; gap: 0.15rem; }
+    .agent-filter label { font-size: 0.6rem; font-weight: 800; color: var(--text-muted); text-transform: uppercase; }
+    .agent-filter .dropdown { min-width: 150px; }
+    .agent-summary { display: grid; grid-template-columns: repeat(auto-fit, minmax(112px, 1fr)); gap: 0.45rem; }
+    .agent-tile { background: #ffffff; border: 1px solid var(--border-subtle); border-radius: 9px; padding: 0.4rem 0.6rem; display: flex; flex-direction: column; gap: 0.1rem; box-shadow: var(--shadow-sm); min-width: 0; }
+    .agent-tile .t-lbl { font-size: 0.56rem; font-weight: 800; color: var(--text-muted); text-transform: uppercase; letter-spacing: 0.04em; }
+    .agent-tile .t-val { font-size: 0.98rem; font-weight: 900; font-family: 'JetBrains Mono', monospace; }
+    .agent-legend { display: flex; flex-wrap: wrap; justify-content: space-between; align-items: center; gap: 0.2rem 1rem; font-size: 0.62rem; color: var(--text-muted); font-weight: 700; }
+    .ag-heat-legend { display: inline-flex; align-items: center; gap: 0.35rem; flex-wrap: wrap; }
+    .ag-sw { display: inline-block; width: 11px; height: 11px; border-radius: 3px; border: 1px solid rgba(13,43,69,0.12); }
+    .agent-box > .agent-list-wrap { flex: 1 1 auto; min-height: 0; flex-shrink: 1; overflow-x: hidden; overflow-y: auto; border: 1px solid var(--border-subtle); border-radius: 9px; background: #ffffff; }
+
+    /* One fluid grid for header and rows, so nothing needs a sideways scroll */
+    .ag-grid { display: grid; grid-template-columns: minmax(140px, 1.5fr) 52px minmax(92px, 1fr) repeat(3, minmax(80px, 1fr)) 62px 56px; align-items: center; column-gap: 0.55rem; padding: 0.4rem 0.7rem; border-bottom: 1px solid #edf5fd; }
+    .ag-grid.ag-head { position: sticky; top: 0; z-index: 2; background: #eef7ff; border-bottom: 1px solid var(--border-subtle); padding-top: 0.5rem; padding-bottom: 0.5rem; }
+    .ag-h { font-size: 0.6rem; font-weight: 900; color: var(--text-muted); text-transform: uppercase; letter-spacing: 0.03em; cursor: pointer; user-select: none; white-space: nowrap; }
+    .ag-h:hover, .ag-h.active { color: var(--teal-dark); }
+    .ag-row:hover { background: #f5fafe; }
+    .ag-name { font-size: 0.76rem; font-weight: 800; color: var(--text-main); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+    .ag-sub { font-size: 0.58rem; color: var(--text-muted); font-weight: 600; display: flex; gap: 0.3rem; align-items: center; white-space: nowrap; overflow: hidden; }
+    .ag-badge { font-size: 0.5rem; font-weight: 900; letter-spacing: 0.04em; padding: 0.05rem 0.35rem; border-radius: 8px; background: var(--teal-subtle); color: var(--teal-dark); border: 1px solid var(--teal-border); }
+    .ag-badge.dic { background: #ede7f6; color: #4527a0; border-color: #b39ddb; }
+    .ag-badge.trainee { background: #fff7e0; color: #9c6c04; border-color: #f0b94d; }
+    .ag-calls { font-family: 'JetBrains Mono', monospace; font-size: 0.72rem; font-weight: 800; color: var(--text-main); }
+
+    /* Handle Time heat-map cell */
+    .ag-heat { display: flex; flex-direction: column; align-items: center; justify-content: center; border-radius: 8px; padding: 0.28rem 0.3rem; border: 1px solid rgba(13,43,69,0.08); line-height: 1.15; }
+    .ag-heat-val { font-family: 'JetBrains Mono', monospace; font-size: 0.8rem; font-weight: 900; }
+    .ag-heat-d { font-family: 'JetBrains Mono', monospace; font-size: 0.56rem; font-weight: 800; opacity: 0.85; }
+
+    /* Consult / Hold / Conference: value over a thin bar */
+    .ag-metric { display: flex; flex-direction: column; gap: 0.2rem; min-width: 0; }
+    .ag-val { font-family: 'JetBrains Mono', monospace; font-size: 0.72rem; font-weight: 800; }
+    .ag-track { position: relative; height: 7px; background: #edf5fd; border-radius: 4px; }
+    .ag-fill { height: 100%; border-radius: 4px; min-width: 2px; }
+    .ag-avg { position: absolute; top: -3px; bottom: -3px; width: 2px; background: #0f172a; opacity: 0.55; border-radius: 1px; }
+    .ag-none { color: var(--text-soft); font-weight: 600; }
+    .agent-empty { padding: 2rem 1rem; text-align: center; font-size: 0.8rem; font-weight: 700; color: var(--text-muted); }
+
+    /* Progress view (weekly / monthly comparison per agent) */
+    .agent-progress { background: #f3eefb; border-color: #d7c9f0; }
+    .chip-row { display: flex; flex-wrap: wrap; gap: 0.3rem; }
+    .pchip { border: 1px solid var(--teal-border); background: #ffffff; color: var(--teal-dark); font-size: 0.64rem; font-weight: 800; padding: 0.24rem 0.6rem; border-radius: 12px; cursor: pointer; white-space: nowrap; }
+    .pchip.on { background: var(--teal-dark); color: #ffffff; border-color: var(--teal-dark); }
+    .pchip.na { opacity: 0.4; cursor: not-allowed; }
+    .ag-pgrid { display: grid; align-items: center; column-gap: 0.5rem; padding: 0.4rem 0.7rem; border-bottom: 1px solid #edf5fd; }
+    .ag-pgrid.ag-head { position: sticky; top: 0; z-index: 2; background: #eef7ff; border-bottom: 1px solid var(--border-subtle); padding-top: 0.45rem; padding-bottom: 0.45rem; }
+    .ag-pgrid.ag-team { background: #f5fafe; border-bottom: 2px solid var(--border-subtle); }
+    .ag-ph { font-size: 0.6rem; font-weight: 900; color: var(--text-muted); text-transform: uppercase; letter-spacing: 0.03em; cursor: pointer; user-select: none; text-align: center; line-height: 1.2; }
+    .ag-ph.left { text-align: left; }
+    .ag-ph.active, .ag-ph:hover { color: var(--teal-dark); }
+    .ag-ph small { display: block; font-size: 0.52rem; font-weight: 700; text-transform: none; color: var(--text-soft); }
+    .ap-cell { display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 0.15rem; border-radius: 8px; padding: 0.3rem 0.25rem; border: 1px solid rgba(13,43,69,0.08); background: #f8fbff; min-height: 46px; }
+    .ap-val { font-family: 'JetBrains Mono', monospace; font-size: 0.78rem; font-weight: 900; }
+    .ap-sub { font-size: 0.52rem; font-weight: 700; color: rgba(15,23,42,0.55); }
+    .ag-dpill { font-family: 'JetBrains Mono', monospace; font-size: 0.54rem; font-weight: 800; padding: 0 0.3rem; border-radius: 6px; background: rgba(255,255,255,0.8); white-space: nowrap; }
+    .ag-dpill.good { color: #0e8a60; } .ag-dpill.bad { color: #c0392b; } .ag-dpill.flat { color: #64748b; } .ag-dpill.neutral { color: #0d47a1; }
+    .ap-change { display: flex; flex-direction: column; align-items: center; gap: 0.1rem; border-radius: 8px; padding: 0.3rem 0.25rem; font-family: 'JetBrains Mono', monospace; }
+    .ap-change.good { background: #dff5e6; color: #0e8a60; } .ap-change.bad { background: #ffe1e1; color: #c0392b; }
+    .ap-change.flat { background: #f1f5f9; color: #64748b; } .ap-change.neutral { background: #e3f2fd; color: #0d47a1; }
+    .ap-change b { font-size: 0.74rem; } .ap-change small { font-size: 0.52rem; font-weight: 800; text-transform: uppercase; letter-spacing: 0.04em; }
 
     /* Settings Modal */
     .modal-overlay {
@@ -648,6 +741,7 @@
 
       <span class="label-tag">Monthly:</span>
       <select id="activeMonthSelect" class="dropdown" onchange="onMonthChange()"></select>
+      <button class="pill-btn" id="agentStatsBtn" title="See each agent's Handle, Consult, Hold and Conference time" onclick="toggleAgentModal(true)">👤 Agent Stats</button>
       <button class="gear-btn" title="Manage Roster & Upload Report" onclick="toggleModal(true)">⚙</button>
     </div>
   </div>
@@ -751,18 +845,37 @@
           <div class="comp-mode-toggle">
             <button id="btnModeCoverage" class="mode-btn active" onclick="setComparisonMode('coverage')">Coverage Data</button>
             <button id="btnModeMonthly" class="mode-btn" onclick="setComparisonMode('monthly')">Monthly Comparison</button>
+            <button id="btnModeWeekly" class="mode-btn" onclick="setComparisonMode('weekly')">Weekly Comparison</button>
           </div>
         </div>
 
-        <!-- Month Selector Box -->
-        <div class="comp-selectors">
+        <!-- Month Selector Box (Weekly Comparison adds a week picker beside each month) -->
+        <div class="comp-selectors" id="compSelectors">
           <div class="selector-box">
-            <label>Baseline Month</label>
-            <select id="targetMonthSelect" class="dropdown" onchange="recalculateComparison()"></select>
+            <label id="baselineLabel">Baseline Month</label>
+            <div class="selector-row">
+              <select id="targetMonthSelect" class="dropdown" onchange="recalculateComparison()"></select>
+              <select id="targetWeekSelect" class="dropdown week-select" style="display:none;" onchange="recalculateComparison()"></select>
+            </div>
           </div>
           <div class="selector-box">
-            <label>Comparison Month</label>
-            <select id="compMonthSelect" class="dropdown" onchange="recalculateComparison()"></select>
+            <label id="comparisonLabel">Comparison Month</label>
+            <div class="selector-row">
+              <select id="compMonthSelect" class="dropdown" onchange="recalculateComparison()"></select>
+              <select id="compWeekSelect" class="dropdown week-select" style="display:none;" onchange="recalculateComparison()"></select>
+            </div>
+          </div>
+        </div>
+
+        <!-- Weekly Comparison: show every tenure tier, or just one -->
+        <div class="tier-filter" id="weeklyTierRow" style="display:none;">
+          <span class="tier-filter-lbl">Show</span>
+          <div class="comp-mode-toggle" id="weeklyTierToggle">
+            <button type="button" class="mode-btn active" data-tier="all" onclick="setWeeklyTier('all')">All</button>
+            <button type="button" class="mode-btn" data-tier="1 Year above" title="1 Year Above" onclick="setWeeklyTier('1 Year above')">1 Year+</button>
+            <button type="button" class="mode-btn" data-tier="6-12 Months" title="6-12 Months" onclick="setWeeklyTier('6-12 Months')">6-12 Mo</button>
+            <button type="button" class="mode-btn" data-tier="0-6 Months" title="0-6 Months" onclick="setWeeklyTier('0-6 Months')">0-6 Mo</button>
+            <button type="button" class="mode-btn" data-tier="Trainee" title="Trainee" onclick="setWeeklyTier('Trainee')">Trainee</button>
           </div>
         </div>
 
@@ -887,6 +1000,73 @@
           <tbody id="dohTableBody"></tbody>
         </table>
       </div>
+    </div>
+  </div>
+
+  <!-- Agent Stats: every agent's Handle / Consult / Hold / Conference time, with group + lead filters -->
+  <div class="modal-overlay" id="agentModal" onclick="if(event.target === this) toggleAgentModal(false)">
+    <div class="modal-box agent-box">
+      <div class="modal-header">
+        <div class="modal-title">👤 Agent Stats — Handle, Consult, Hold &amp; Conference Time</div>
+        <button class="close-btn" onclick="toggleAgentModal(false)">&times;</button>
+      </div>
+
+      <div class="agent-filters">
+        <div class="agent-filter">
+          <label>View</label>
+          <div class="comp-mode-toggle" id="agentViewToggle">
+            <button type="button" class="mode-btn active" data-view="snapshot" onclick="setAgentView('snapshot')">Snapshot</button>
+            <button type="button" class="mode-btn" data-view="progress" onclick="setAgentView('progress')">Progress</button>
+          </div>
+        </div>
+        <div class="agent-filter" id="agentMonthFilter">
+          <label>Month</label>
+          <select id="agentMonthSelect" class="dropdown" onchange="onAgentMonthChange()"></select>
+        </div>
+        <div class="agent-filter">
+          <label>Group</label>
+          <div class="comp-mode-toggle" id="agentGroupToggle"></div>
+        </div>
+        <div class="agent-filter">
+          <label>Team Lead</label>
+          <select id="agentLeadSelect" class="dropdown" onchange="renderAgentStats()"></select>
+        </div>
+        <div class="agent-filter" style="flex: 1; min-width: 160px;">
+          <label>Search</label>
+          <input type="text" id="agentSearchInput" class="filter-search-input" placeholder="🔍 Search agent name..." oninput="renderAgentStats()">
+        </div>
+      </div>
+
+      <!-- Progress view controls: weekly or monthly comparison, which metric, and which weeks / months -->
+      <div class="agent-filters agent-progress" id="agentProgressBar" style="display:none;">
+        <div class="agent-filter">
+          <label>Compare by</label>
+          <div class="comp-mode-toggle" id="progressByToggle">
+            <button type="button" class="mode-btn active" data-by="weekly" onclick="setProgressBy('weekly')">Weekly</button>
+            <button type="button" class="mode-btn" data-by="monthly" onclick="setProgressBy('monthly')">Monthly</button>
+          </div>
+        </div>
+        <div class="agent-filter">
+          <label>Metric</label>
+          <div class="comp-mode-toggle" id="progressMetricToggle"></div>
+        </div>
+        <div class="agent-filter" style="flex: 1; min-width: 220px;">
+          <label id="progressChipsLabel">Weeks to compare</label>
+          <div class="chip-row" id="progressChips"></div>
+        </div>
+      </div>
+
+      <div class="agent-summary" id="agentSummary"></div>
+
+      <div class="agent-legend">
+        <span class="ag-heat-legend" id="agentHeatLegend"></span>
+        <span id="agentNote"></span>
+      </div>
+      <div class="agent-legend" style="margin-top:-0.2rem;">
+        <span id="agentHint"></span>
+      </div>
+
+      <div class="agent-list-wrap" id="agentList"></div>
     </div>
   </div>
 
@@ -1106,6 +1286,7 @@
     }
 
     let comparisonMode = 'coverage';
+    let weeklyTierFilter = 'all'; // Weekly Comparison: 'all' or one tenure tier key
     let chartInstanceConsult = null;
     let chartInstanceHold = null;
     let chartInstanceConf = null;
@@ -1141,10 +1322,95 @@
     }
 
     function setComparisonMode(mode) {
+      const prev = comparisonMode;
       comparisonMode = mode;
       document.getElementById('btnModeCoverage').classList.toggle('active', mode === 'coverage');
       document.getElementById('btnModeMonthly').classList.toggle('active', mode === 'monthly');
+      document.getElementById('btnModeWeekly').classList.toggle('active', mode === 'weekly');
+
+      // Weekly mode: a week picker appears beside each month picker
+      const weekly = mode === 'weekly';
+      document.getElementById('compSelectors').classList.toggle('weekly', weekly);
+      document.getElementById('targetWeekSelect').style.display = weekly ? '' : 'none';
+      document.getElementById('compWeekSelect').style.display = weekly ? '' : 'none';
+      document.getElementById('weeklyTierRow').style.display = weekly ? 'flex' : 'none';
+      document.getElementById('baselineLabel').innerText = weekly ? 'Baseline (Month · Week)' : 'Baseline Month';
+      document.getElementById('comparisonLabel').innerText = weekly ? 'Comparison (Month · Week)' : 'Comparison Month';
+
+      if (weekly && prev !== 'weekly') {
+        // Start on "Week 1 vs Week 2" of the month currently open at the top
+        const active = document.getElementById('activeMonthSelect').value;
+        document.getElementById('targetMonthSelect').value = active;
+        document.getElementById('compMonthSelect').value = active;
+        populateWeekSelects(true);
+      } else if (!weekly && prev === 'weekly') {
+        resetMonthSelectDefaults();
+      }
       recalculateComparison();
+    }
+
+    function setWeeklyTier(tier) {
+      weeklyTierFilter = tier;
+      document.querySelectorAll('#weeklyTierToggle .mode-btn').forEach(b => {
+        b.classList.toggle('active', b.dataset.tier === tier);
+      });
+      recalculateComparison();
+    }
+
+    // Default month pair for Coverage / Monthly: previous month vs latest month
+    function resetMonthSelectDefaults() {
+      const keys = Object.keys(monthlyDataStore).sort().reverse();
+      if (keys.length === 0) return;
+      document.getElementById('targetMonthSelect').value = keys.length > 1 ? keys[1] : keys[0];
+      document.getElementById('compMonthSelect').value = keys[0];
+    }
+
+    /* ================= Weekly comparison =================
+       Weeks are calendar blocks of the month: Week 1 = days 1-7, Week 2 = 8-14, Week 3 = 15-21,
+       Week 4 = 22-28, Week 5 = 29-end. Only weeks the uploaded report actually reaches are listed,
+       and a partly-covered last week shows the days it really has (e.g. "Sep 22–26"). */
+    function availableWeeks(monthKey) {
+      const rec = monthlyDataStore[monthKey];
+      if (!rec) return [];
+      const [y, m] = monthKey.split('-').map(Number);
+      const dim = new Date(y, m, 0).getDate();
+      const last = Math.min(rec.maxDay || dim, dim);
+      const mon = new Date(y, m - 1, 1).toLocaleString('en-US', { month: 'short' });
+      const weeks = [];
+      for (let n = 1; (n - 1) * 7 + 1 <= last; n++) {
+        const from = (n - 1) * 7 + 1;
+        const to = Math.min(n * 7, last);
+        const short = to > from ? `${mon} ${from}–${to}` : `${mon} ${from}`;
+        weeks.push({ n, from, to, short, label: `Week ${n} (${short})` });
+      }
+      return weeks;
+    }
+
+    function getSelectedWeek(monthKey, selectId) {
+      const sel = document.getElementById(selectId);
+      const n = sel ? parseInt(sel.value, 10) : NaN;
+      return availableWeeks(monthKey).find(w => w.n === n) || null;
+    }
+
+    // Rebuilds both week pickers for the months chosen beside them. reset = true goes back to Week 1 vs Week 2.
+    function populateWeekSelects(reset) {
+      const tMonth = document.getElementById('targetMonthSelect').value;
+      const cMonth = document.getElementById('compMonthSelect').value;
+      const tSel = document.getElementById('targetWeekSelect');
+      const cSel = document.getElementById('compWeekSelect');
+
+      const tWant = reset ? 1 : (parseInt(tSel.value, 10) || 1);
+      const cWant = reset ? (tMonth === cMonth ? 2 : 1) : (parseInt(cSel.value, 10) || 1);
+
+      const fill = (sel, monthKey, want) => {
+        const weeks = availableWeeks(monthKey);
+        sel.innerHTML = weeks.length
+          ? weeks.map(w => `<option value="${w.n}">${w.label}</option>`).join('')
+          : '<option value="">No data</option>';
+        sel.value = weeks.some(w => w.n === want) ? String(want) : (weeks[0] ? String(weeks[0].n) : '');
+      };
+      fill(tSel, tMonth, tWant);
+      fill(cSel, cMonth, cWant);
     }
 
     function toggleModal(show) {
@@ -1328,6 +1594,13 @@
       activeSel.value = keys.includes(currentActive) ? currentActive : keys[0];
       targetSel.value = keys.length > 1 ? keys[1] : keys[0];
       compSel.value = keys[0];
+
+      if (comparisonMode === 'weekly') {
+        // keep Weekly Comparison on the open month, Week 1 vs Week 2
+        targetSel.value = activeSel.value;
+        compSel.value = activeSel.value;
+        populateWeekSelects(true);
+      }
     }
 
     // The month's data for whichever group is selected (Tech Sup or DIC). Tech Sup is the
@@ -1422,7 +1695,14 @@
     // otherwise a full month is silently being compared against a partial one. This
     // sums the real per-day buckets captured at upload time, up to dayLimit, for both
     // months, instead of reusing the flawed whole-month duplicate the app used before.
+    // Whole-month coverage: Day 1 up to dayLimit
     function computeCoverageMetricsForMonth(monthKey, dayLimit) {
+      return computeRangeMetrics(monthKey, 1, dayLimit, false);
+    }
+
+    // Metrics for just days dayFrom..dayTo of a month (used by Coverage and by Weekly Comparison).
+    // strict = true: a month with no day-by-day data gives empty tiers instead of falling back to whole-month figures.
+    function computeRangeMetrics(monthKey, dayFrom, dayTo, strict) {
       const baseData = getRoleSource(monthKey);
       if (!baseData) return null;
 
@@ -1431,6 +1711,7 @@
       const bucketKeys = ["1 Year above", "6-12 Months", "0-6 Months", "Trainee"];
 
       if (!baseData.dailyBuckets) {
+        if (strict) return { "1 Year above": null, "6-12 Months": null, "0-6 Months": null, "Trainee": null, _counts: c, _noDaily: true };
         // No per-day breakdown captured for this month (e.g. bootstrap/demo data) —
         // fall back to whatever whole-month data is available.
         return computeLiveMetricsForMonth(monthKey, true);
@@ -1440,7 +1721,8 @@
       bucketKeys.forEach(k => agg[k] = { totalTime: 0, totalCalls: 0, consult: [], hold: [], conf: [] });
 
       Object.keys(baseData.dailyBuckets).forEach(dayStr => {
-        if (parseInt(dayStr, 10) > dayLimit) return; // outside the shared coverage window
+        const dn = parseInt(dayStr, 10);
+        if (dn < dayFrom || dn > dayTo) return; // outside the requested day window
         const dayData = baseData.dailyBuckets[dayStr];
         bucketKeys.forEach(k => {
           const d = dayData[k];
@@ -1513,18 +1795,32 @@
       const rawCmp = monthlyDataStore[compM];
       const effectiveDaySpan = Math.min(rawTgt?.maxDay || 31, rawCmp?.maxDay || 31);
 
-      const tgt = comparisonMode === 'coverage'
-        ? computeCoverageMetricsForMonth(targetM, effectiveDaySpan)
-        : computeLiveMetricsForMonth(targetM, false);
-      const cmp = comparisonMode === 'coverage'
-        ? computeCoverageMetricsForMonth(compM, effectiveDaySpan)
-        : computeLiveMetricsForMonth(compM, false);
+      const weekly = comparisonMode === 'weekly';
+      const noMetrics = () => ({ "1 Year above": null, "6-12 Months": null, "0-6 Months": null, "Trainee": null });
+      let tgt, cmp, tw = null, cw = null;
+
+      if (weekly) {
+        populateWeekSelects(false); // keep the week lists in step with the months chosen beside them
+        tw = getSelectedWeek(targetM, 'targetWeekSelect');
+        cw = getSelectedWeek(compM, 'compWeekSelect');
+        tgt = (tw && computeRangeMetrics(targetM, tw.from, tw.to, true)) || noMetrics();
+        cmp = (cw && computeRangeMetrics(compM, cw.from, cw.to, true)) || noMetrics();
+      } else {
+        tgt = comparisonMode === 'coverage'
+          ? computeCoverageMetricsForMonth(targetM, effectiveDaySpan)
+          : computeLiveMetricsForMonth(targetM, false);
+        cmp = comparisonMode === 'coverage'
+          ? computeCoverageMetricsForMonth(compM, effectiveDaySpan)
+          : computeLiveMetricsForMonth(compM, false);
+      }
 
       if (!tgt || !cmp) return;
 
       const summaryTitle = document.getElementById("summaryBoxModeTitle");
 
-      if (comparisonMode === 'coverage') {
+      if (weekly) {
+        summaryTitle.innerText = `Weekly Summary (${tw ? tw.short : '-'} vs ${cw ? cw.short : '-'})`;
+      } else if (comparisonMode === 'coverage') {
         summaryTitle.innerText = `Coverage Summary (Day 1 - Day ${effectiveDaySpan})`;
       } else {
         summaryTitle.innerText = `Monthly Summary (Full Month Cycle)`;
@@ -1537,61 +1833,67 @@
         { label: "CONFERENCE", field: "conf" }
       ];
 
-      const cohorts = [
-        { key: "1 Year above" },
-        { key: "6-12 Months" },
-        { key: "0-6 Months" }
-      ];
+      const tierName = { "1 Year above": "1 Year+", "6-12 Months": "6-12 Months", "0-6 Months": "0-6 Months", "Trainee": "Trainee" };
+
+      // Weekly Comparison can be narrowed to a single tenure tier; otherwise every tier with data is shown
+      const filterTier = (weekly && weeklyTierFilter !== 'all') ? weeklyTierFilter : null;
+      let shown;
+      if (filterTier) {
+        shown = [filterTier];
+        summaryTitle.innerText += ` \u00b7 ${tierName[filterTier]}`;
+      } else {
+        shown = ["1 Year above", "6-12 Months", "0-6 Months"];
+        if (tgt["Trainee"] || cmp["Trainee"]) shown.push("Trainee"); // only once trainees actually have calls
+      }
+
+      const diffOf = (tier, field) => {
+        const a = tgt[tier] ? tgt[tier][field] : null;
+        const b = cmp[tier] ? cmp[tier][field] : null;
+        return (a != null && b != null) ? b - a : null;
+      };
 
       const container = document.getElementById("matrixTableBody");
       container.innerHTML = "";
+      container.style.gridTemplateColumns = shown.length === 4 ? 'repeat(2, 1fr)' : `repeat(${shown.length}, 1fr)`;
 
-      let diff1Y_AHT = null;
-      let diff6M_AHT = null;
-
-      // Group the same diff computations by cohort instead of by metric, for the card layout
-      const cohortMetricDiffs = {};
-      cohorts.forEach(c => { cohortMetricDiffs[c.key] = []; });
-
-      metrics.forEach(m => {
-        cohorts.forEach(c => {
-          const tgtVal = tgt[c.key] ? tgt[c.key][m.field] : null;
-          const cmpVal = cmp[c.key] ? cmp[c.key][m.field] : null;
-          const diff = (tgtVal !== null && cmpVal !== null) ? cmpVal - tgtVal : null;
-
-          if (c.key === "1 Year above" && m.field === "aht") diff1Y_AHT = diff;
-          if (c.key === "6-12 Months" && m.field === "aht") diff6M_AHT = diff;
-
-          cohortMetricDiffs[c.key].push({ label: m.label, diff });
-        });
-      });
-
-      cohorts.forEach(c => {
+      shown.forEach(tier => {
         const card = document.createElement("div");
         card.className = "cohort-card";
-        const rowsHtml = cohortMetricDiffs[c.key].map(item => `
+        const rowsHtml = metrics.map(m => `
           <div class="cohort-metric-row">
-            <span class="cohort-metric-label">${item.label}</span>
-            ${renderTrendCell(item.diff)}
+            <span class="cohort-metric-label">${m.label}</span>
+            ${renderTrendCell(diffOf(tier, m.field))}
           </div>
         `).join('');
-        card.innerHTML = `<div class="cohort-card-title">${c.key}</div>${rowsHtml}`;
+        card.innerHTML = `<div class="cohort-card-title">${tier}</div>${rowsHtml}`;
         container.appendChild(card);
       });
 
       const summaryList = document.getElementById("compSummaryList");
-      let items = [];
+      const items = [];
+      const dot = (color, text) => `<div class="summary-item"><span class="summary-dot" style="background:${color};"></span><span>${text}</span></div>`;
 
-      if (diff1Y_AHT !== null) {
-        items.push(`<div class="summary-item"><span class="summary-dot" style="background:${diff1Y_AHT <= 0 ? 'var(--trend-down)' : 'var(--trend-slight)'};"></span><span>1 Year+: ${formatSimpleSec(diff1Y_AHT)} ${diff1Y_AHT <= 0 ? 'faster' : 'slower'}</span></div>`);
-      }
-      if (diff6M_AHT !== null) {
-        items.push(`<div class="summary-item"><span class="summary-dot" style="background:${diff6M_AHT <= 0 ? 'var(--trend-down)' : 'var(--trend-slight)'};"></span><span>6-12 Months: ${formatSimpleSec(diff6M_AHT)} ${diff6M_AHT <= 0 ? 'faster' : 'slower'}</span></div>`);
-      }
+      shown.forEach(tier => {
+        const d = diffOf(tier, "aht");
+        if (d !== null) items.push(dot(d <= 0 ? 'var(--trend-down)' : 'var(--trend-slight)', `${tierName[tier]}: ${formatSimpleSec(d)} ${d <= 0 ? 'faster' : 'slower'}`));
+      });
       if (items.length === 0) {
-        items.push(`<div class="summary-item"><span class="summary-dot" style="background:var(--text-muted);"></span><span>No ${ROLE_GROUPS[roleView].label} data to compare for these months</span></div>`);
+        items.push(dot('var(--text-muted)', filterTier
+          ? `No ${tierName[filterTier]} data for this selection`
+          : `No ${ROLE_GROUPS[roleView].label} data to compare for this selection`));
       }
-      items.push(`<div class="summary-item"><span class="summary-dot" style="background:var(--text-muted);"></span><span>0-6 Months & Trainees: No active volume</span></div>`);
+      if (weekly) {
+        if (tgt._noDaily || cmp._noDaily) {
+          items.push(dot('var(--trend-slight)', 'Week-by-week figures need a report with a DATE column. Re-upload the monthly report.'));
+        }
+        if (tw && cw && (tw.to - tw.from) !== (cw.to - cw.from)) {
+          items.push(dot('var(--text-muted)', `Baseline covers ${tw.to - tw.from + 1} day(s), comparison ${cw.to - cw.from + 1} day(s)`));
+        }
+      }
+      if (!filterTier) {
+        const idle = ["0-6 Months", "Trainee"].filter(t => diffOf(t, "aht") === null).map(t => tierName[t]);
+        if (idle.length) items.push(dot('var(--text-muted)', `${idle.join(' & ')}: No active volume`));
+      }
 
       summaryList.innerHTML = items.join('');
     }
@@ -1952,6 +2254,674 @@
       reader.readAsArrayBuffer(file);
     }
 
+    /* ================= Agent Stats =================
+       One row per agent with Handle / Consult / Hold / Conference time as bars, for the chosen month.
+       Filters: Group (All Tech Support, Tech Support Rep, DIC, Trainee, Escalation Lead), Team Lead, name search.
+       Figures come from the per-agent totals saved when the monthly report is uploaded; group and lead
+       always follow the current roster, so changing someone's role or team updates this view straight away. */
+    const AGENT_GROUPS = {
+      all:     { label: 'All Tech Support', roles: ["Tech Support Rep", "Tech Support Rep - DIC", "Tech Support Rep - Trainee"] },
+      rep:     { label: 'Tech Support Rep', roles: ["Tech Support Rep"] },
+      dic:     { label: 'DIC',              roles: ["Tech Support Rep - DIC"] },
+      trainee: { label: 'Trainee',          roles: ["Tech Support Rep - Trainee"] },
+      lead:    { label: 'Escalation Lead',  roles: ["Escalation Lead"] }
+    };
+    const AGENT_METRICS = [
+      { key: 'aht',     label: 'Handle Time', bar: '#0d47a1', text: '#0d47a1' },
+      { key: 'consult', label: 'Consult',     bar: '#42a5f5', text: '#1565c0' },
+      { key: 'hold',    label: 'Hold',        bar: '#f59e0b', text: '#b45309' },
+      { key: 'conf',    label: 'Conference',  bar: '#8b5cf6', text: '#6d28d9' }
+    ];
+    let agentGroup = 'all';
+    let agentSort = { key: 'aht', dir: 'asc' };
+    let agentView = 'snapshot';    // 'snapshot' (one month) | 'progress' (weekly / monthly comparison)
+    let progressBy = 'weekly';     // 'weekly' | 'monthly'
+    let progressMetric = 'aht';
+    let progressWeeks = null;      // Set of week numbers to compare; null = every week of the month
+    let progressMonths = null;     // Set of month keys to compare; null = the latest three months
+    let progressSort = { key: 'change', dir: 'asc' };
+
+    /* ---- per-agent totals: small helpers ----
+       Every agent/period is kept as plain running totals so periods can be added together:
+       calls, time (sum of handle seconds), cS/cN (consult sum / how many calls had one), hS/hN hold,
+       fS/fN conference, sS/sN survey (score sum / survey count). */
+    const RAW_KEYS = ['calls', 'time', 'cS', 'cN', 'hS', 'hN', 'fS', 'fN', 'sS', 'sN'];
+    function emptyRaw() { return { calls: 0, time: 0, cS: 0, cN: 0, hS: 0, hN: 0, fS: 0, fN: 0, sS: 0, sN: 0 }; }
+    function addRaw(t, a) { RAW_KEYS.forEach(k => { t[k] += (a[k] || 0); }); }
+    function rawToMetrics(a) {
+      return {
+        calls: a.calls || 0,
+        aht: a.calls > 0 ? a.time / a.calls : null,
+        consult: a.cN > 0 ? a.cS / a.cN : null,
+        hold: a.hN > 0 ? a.hS / a.hN : null,
+        conf: a.fN > 0 ? a.fS / a.fN : null,
+        survey: a.sN > 0 ? a.sS / a.sN : null,
+        surveyN: a.sN || 0
+      };
+    }
+    function fmtSurvey(v) { return Number(v).toFixed(2); }
+    function parseSurveyScore(raw) {
+      if (raw === null || raw === undefined) return null;
+      if (typeof raw === 'number') return isFinite(raw) ? raw : null;
+      const t = String(raw).trim();
+      if (!t || t === '-') return null;
+      const n = parseFloat(t.replace('%', '').replace(',', '.'));
+      return isNaN(n) ? null : n;
+    }
+
+    // Week-by-week totals are saved as one flat list of numbers per agent (11 per week) to keep the saved data small
+    function packAgent(a) {
+      const w = [];
+      Object.keys(a.weeks || {}).map(Number).sort((x, y) => x - y).forEach(n => {
+        const t = a.weeks[n];
+        w.push(n, t.calls, t.time, t.cS, t.cN, t.hS, t.hN, t.fS, t.fN, t.sS, t.sN);
+      });
+      const out = Object.assign({}, a);
+      delete out.weeks;
+      out.w = w;
+      return out;
+    }
+    function unpackWeeks(a) {
+      const out = {};
+      const w = a.w || [];
+      for (let i = 0; i + 10 < w.length; i += 11) {
+        out[w[i]] = { calls: w[i + 1], time: w[i + 2], cS: w[i + 3], cN: w[i + 4], hS: w[i + 5], hN: w[i + 6], fS: w[i + 7], fN: w[i + 8], sS: w[i + 9], sN: w[i + 10] };
+      }
+      return out;
+    }
+
+    // Decides whether an agent belongs in the current Group / Team Lead / Search filter, using the current roster
+    function makeAgentMatcher(groupKey, lead, search) {
+      const roles = AGENT_GROUPS[groupKey].roles;
+      const q = (search || '').trim().toLowerCase();
+      const test = (name, role, team) => roles.includes(role) && (lead === 'ALL' || team === lead) && (!q || name.toLowerCase().includes(q));
+      return {
+        test,
+        forName(name) {
+          const idx = findRosterIndex(name);
+          const r = idx >= 0 ? dohRoster[idx] : null;
+          const role = r ? r.role : 'Others';
+          const team = r ? r.team : '-';
+          return test(name, role, team) ? { role, team, doh: r ? r.doh : '' } : null;
+        }
+      };
+    }
+
+    function monthShort(key) {
+      const [y, m] = key.split('-').map(Number);
+      return new Date(y, m - 1, 1).toLocaleString('en-US', { month: 'short' }) + ' ' + String(y).slice(2);
+    }
+
+    // Rows + group averages for a month and set of filters (kept separate from the drawing code)
+    function buildAgentRows(monthKey, groupKey, lead, search) {
+      const rec = monthlyDataStore[monthKey];
+      const none = { rec: rec || null, rows: [], avg: {}, missing: 0, hasData: false, hasSurvey: false };
+      if (!rec || !rec.agents || !rec.agents.length) return none;
+
+      const matcher = makeAgentMatcher(groupKey, lead, search);
+      const [yy, mm] = monthKey.split('-').map(Number);
+      const monthEnd = new Date(yy, mm, 0, 23, 59, 59);
+
+      const rows = [];
+      const tot = emptyRaw();
+      rec.agents.forEach(a => {
+        const info = matcher.forName(a.name);
+        if (!info) return;
+        rows.push(Object.assign({ name: a.name }, info, rawToMetrics(a), { raw: a }));
+        addRaw(tot, a);
+      });
+
+      // Group averages: handle time is call-weighted; consult / hold / conference / survey average over the calls that had them
+      const avg = rawToMetrics(tot);
+
+      // Roster agents who fit the filters but have no calls this month
+      const have = new Set(rows.map(x => canonicalName(x.name)));
+      const missing = dohRoster.filter(r =>
+        matcher.test(r.name, r.role, r.team) && !(r.doh && new Date(r.doh) > monthEnd) && !have.has(canonicalName(r.name))
+      ).length;
+
+      return { rec, rows, avg, missing, hasData: true, hasSurvey: rows.some(r => r.surveyN > 0) };
+    }
+
+    function toggleAgentModal(show) {
+      document.getElementById('agentModal').style.display = show ? 'flex' : 'none';
+      if (show) {
+        populateAgentFilters(true);
+        populateProgressControls();
+        renderAgentStats();
+      }
+    }
+
+    function populateAgentFilters(resetMonth) {
+      // month
+      const mSel = document.getElementById('agentMonthSelect');
+      const prevM = mSel.value;
+      const keys = Object.keys(monthlyDataStore).sort().reverse();
+      mSel.innerHTML = keys.map(k => `<option value="${k}">${escapeHtml(monthlyDataStore[k].name || k)}</option>`).join('');
+      const active = document.getElementById('activeMonthSelect').value;
+      mSel.value = (!resetMonth && keys.includes(prevM)) ? prevM : (keys.includes(active) ? active : keys[0]);
+
+      // team lead
+      const lSel = document.getElementById('agentLeadSelect');
+      const prevL = lSel.value;
+      lSel.innerHTML = '<option value="ALL">All Leads</option>' + selectOptionsHtml(teamLeaders, '');
+      lSel.value = (prevL === 'ALL' || teamLeaders.includes(prevL)) ? prevL : 'ALL';
+
+      // group buttons
+      document.getElementById('agentGroupToggle').innerHTML = Object.keys(AGENT_GROUPS).map(k =>
+        `<button type="button" class="mode-btn ${k === agentGroup ? 'active' : ''}" onclick="setAgentGroup('${k}')">${AGENT_GROUPS[k].label}</button>`
+      ).join('');
+    }
+
+    function setAgentGroup(key) {
+      agentGroup = key;
+      document.querySelectorAll('#agentGroupToggle .mode-btn').forEach((b, i) => {
+        b.classList.toggle('active', Object.keys(AGENT_GROUPS)[i] === key);
+      });
+      renderAgentStats();
+    }
+
+    function setAgentSort(key) {
+      if (agentSort.key === key) agentSort.dir = agentSort.dir === 'asc' ? 'desc' : 'asc';
+      else agentSort = { key, dir: key === 'calls' ? 'desc' : 'asc' };
+      renderAgentStats();
+    }
+
+    /* ================= Handle Time heat map =================
+       Each agent's Handle Time is coloured against a target (default 19:30 for every tenure tier):
+         green  - at or under the target
+         yellow - just over it (up to +closeBy)
+         red    - well over it (+hotBy or more); in between it blends from yellow to red
+       Change the numbers here to tune it, or give a tier its own target. */
+    const AGENT_AHT = {
+      targets: { "1 Year above": 1170, "6-12 Months": 1170, "0-6 Months": 1170, "Trainee": 1170 }, // seconds (1170 = 19:30)
+      closeBy: 0.08,
+      hotBy: 0.18
+    };
+
+    function mmss(sec) {
+      const s = Math.round(Math.abs(sec));
+      return `${Math.floor(s / 60)}:${String(s % 60).padStart(2, '0')}`;
+    }
+
+    function ahtTargetFor(tier) {
+      return AGENT_AHT.targets[tier] || AGENT_AHT.targets["1 Year above"];
+    }
+
+    function heatForAht(sec, tier) {
+      const T = ahtTargetFor(tier);
+      const yellowEnd = T * (1 + AGENT_AHT.closeBy);
+      const redStart = T * (1 + AGENT_AHT.hotBy);
+      const G = [143, 227, 172], Y = [255, 216, 115], R = [255, 125, 125];
+      const mix = (a, b, t) => `rgb(${a.map((v, i) => Math.round(v + (b[i] - v) * t)).join(',')})`;
+
+      if (sec <= T)        return { bg: mix(G, G, 0), text: '#17653a' };
+      if (sec <= yellowEnd) return { bg: mix(Y, Y, 0), text: '#7a5600' };
+      if (sec >= redStart)  return { bg: mix(R, R, 0), text: '#9b1f27' };
+      const t = (sec - yellowEnd) / (redStart - yellowEnd);
+      return { bg: mix(Y, R, t), text: t < 0.5 ? '#7a5600' : '#9b1f27' };
+    }
+
+    function renderAgentStats() {
+      if (agentView === 'progress') { renderAgentProgress(); return; }
+
+      const list = document.getElementById('agentList');
+      const summary = document.getElementById('agentSummary');
+      const note = document.getElementById('agentNote');
+      const legend = document.getElementById('agentHeatLegend');
+      if (!list) return;
+
+      document.getElementById('agentHint').innerHTML = 'Bars are scaled to the longest agent in view &nbsp;·&nbsp; <b style="color:#0f172a;">|</b> marks the group average &nbsp;·&nbsp; click a column title to sort';
+
+      // heat-map key (uses the 1 Year Above target as the reference)
+      const T0 = ahtTargetFor("1 Year above");
+      const sw = (color) => `<span class="ag-sw" style="background:${color};"></span>`;
+      legend.style.display = '';
+      legend.innerHTML = `<b style="color:var(--text-main);">Handle Time target ${mmss(T0)}</b>`
+        + `${sw('rgb(143,227,172)')} ${mmss(T0)} or less`
+        + `${sw('rgb(255,216,115)')} up to ${mmss(T0 * (1 + AGENT_AHT.closeBy))}`
+        + `${sw('rgb(255,125,125)')} ${mmss(T0 * (1 + AGENT_AHT.hotBy))}+`;
+
+      const monthKey = document.getElementById('agentMonthSelect').value;
+      const lead = document.getElementById('agentLeadSelect').value || 'ALL';
+      const search = document.getElementById('agentSearchInput').value;
+      const res = buildAgentRows(monthKey, agentGroup, lead, search);
+
+      if (!res.rec) {
+        summary.innerHTML = ''; note.innerText = '';
+        list.innerHTML = '<div class="agent-empty">No month selected.</div>';
+        return;
+      }
+      if (!res.hasData) {
+        summary.innerHTML = ''; note.innerText = '';
+        list.innerHTML = `<div class="agent-empty">No agent-level data is saved for ${escapeHtml(res.rec.name || monthKey)} yet.<br>Re-upload the monthly report in Settings (⚙) to build it.</div>`;
+        return;
+      }
+
+      // sort
+      const dir = agentSort.dir === 'asc' ? 1 : -1;
+      const rows = res.rows.slice().sort((a, b) => {
+        if (agentSort.key === 'name') return a.name.localeCompare(b.name) * dir;
+        const av = a[agentSort.key], bv = b[agentSort.key];
+        if (av == null && bv == null) return 0;
+        if (av == null) return 1;
+        if (bv == null) return -1;
+        return (av - bv) * dir;
+      });
+
+      // summary tiles (Avg Handle Time is heat-coloured like the table)
+      const a = res.avg;
+      const fmt = (v) => v == null ? '–' : timeSecToHMS(v);
+      const tile = (lbl, val, color, bg) => `<div class="agent-tile"${bg ? ` style="background:${bg};"` : ''}><span class="t-lbl">${lbl}</span><span class="t-val" style="color:${color};">${val}</span></div>`;
+      const avgHeat = a.aht != null ? heatForAht(a.aht, "1 Year above") : null;
+      summary.innerHTML =
+        tile('Agents shown', rows.length, 'var(--text-main)') +
+        tile('Calls handled', (a.calls || 0).toLocaleString(), 'var(--text-main)') +
+        tile('Avg Handle Time', fmt(a.aht), avgHeat ? avgHeat.text : AGENT_METRICS[0].text, avgHeat ? avgHeat.bg : '') +
+        tile('Avg Consult', fmt(a.consult), AGENT_METRICS[1].text) +
+        tile('Avg Hold', fmt(a.hold), AGENT_METRICS[2].text) +
+        tile('Avg Conference', fmt(a.conf), AGENT_METRICS[3].text) +
+        tile('Avg Survey', a.survey != null ? fmtSurvey(a.survey) : '–', 'var(--teal-dark)') +
+        tile('Surveys', a.surveyN > 0 ? Math.round(a.surveyN).toLocaleString() : '–', 'var(--text-main)');
+
+      const notes = [];
+      if (res.missing > 0) notes.push(`${res.missing} agent${res.missing === 1 ? '' : 's'} in this filter ${res.missing === 1 ? 'has' : 'have'} no calls recorded for ${res.rec.name || monthKey}.`);
+      if (!res.hasSurvey) {
+        notes.push(res.rec.surveyCol === false
+          ? 'No survey column was found in this month\'s report (looking for a column with "Survey" in its title).'
+          : (res.rec.surveyCol === true ? 'No survey responses recorded for these agents.' : 'No survey data saved for this month yet. Re-upload the report.'));
+      }
+      note.innerText = notes.join(' · ');
+
+      if (rows.length === 0) {
+        list.innerHTML = '<div class="agent-empty">No agents match these filters for this month.</div>';
+        return;
+      }
+
+      // bar scale for Consult / Hold / Conference
+      const barMetrics = AGENT_METRICS.filter(m => m.key !== 'aht');
+      const max = {};
+      barMetrics.forEach(m => { max[m.key] = Math.max(0, ...rows.map(r => r[m.key] || 0)); });
+
+      const arrow = (k) => agentSort.key === k ? (agentSort.dir === 'asc' ? ' ▲' : ' ▼') : '';
+      const head = (k, label) => `<div class="ag-h ${agentSort.key === k ? 'active' : ''}" onclick="setAgentSort('${k}')">${label}${arrow(k)}</div>`;
+      let html = `<div class="ag-grid ag-head">${head('name', 'Agent')}${head('calls', 'Calls')}${head('aht', 'Handle Time')}${barMetrics.map(m => head(m.key, m.label)).join('')}${head('survey', 'Survey')}${head('surveyN', 'Surveys')}</div>`;
+
+      const tierShort = { "1 Year above": "1Y+", "6-12 Months": "6-12M", "0-6 Months": "0-6M", "Trainee": "Trainee" };
+      const badge = (role) => role === 'Tech Support Rep - DIC' ? '<span class="ag-badge dic">DIC</span>'
+        : role === 'Tech Support Rep - Trainee' ? '<span class="ag-badge trainee">TRAINEE</span>'
+        : role === 'Escalation Lead' ? '<span class="ag-badge">ESC LEAD</span>'
+        : role === 'Tech Support Rep' ? '<span class="ag-badge">REP</span>' : '';
+
+      rows.forEach(r => {
+        const tier = r.doh ? getTenureBucket(r.doh, monthKey + '-01') : null;
+
+        // Handle Time: heat-map cell, with how far over / under the target
+        let ahtCell;
+        if (r.aht == null) {
+          ahtCell = `<div class="ag-heat" style="background:#f1f5f9;"><span class="ag-heat-val ag-none">–</span></div>`;
+        } else {
+          const h = heatForAht(r.aht, tier);
+          const T = ahtTargetFor(tier);
+          const d = r.aht - T;
+          const dTxt = Math.round(Math.abs(d)) === 0 ? 'on target' : `${d < 0 ? '−' : '+'}${mmss(d)} ${d < 0 ? 'under' : 'over'}`;
+          ahtCell = `<div class="ag-heat" style="background:${h.bg}; color:${h.text};" title="Handle Time ${timeSecToHMS(r.aht)} · target ${mmss(T)}">
+            <span class="ag-heat-val">${timeSecToHMS(r.aht)}</span><span class="ag-heat-d">${dTxt}</span></div>`;
+        }
+
+        const cells = barMetrics.map(m => {
+          const v = r[m.key];
+          if (v == null) return `<div class="ag-metric"><span class="ag-val ag-none">–</span><div class="ag-track"></div></div>`;
+          const pct = max[m.key] > 0 ? (v / max[m.key]) * 100 : 0;
+          const avgPct = (a[m.key] != null && max[m.key] > 0) ? Math.min(100, (a[m.key] / max[m.key]) * 100) : null;
+          return `<div class="ag-metric" title="${escapeHtml(m.label)}: ${timeSecToHMS(v)} (group average ${fmt(a[m.key])})">
+            <span class="ag-val" style="color:${m.text};">${timeSecToHMS(v)}</span>
+            <div class="ag-track"><div class="ag-fill" style="width:${pct.toFixed(1)}%; background:${m.bar};"></div>${avgPct !== null ? `<div class="ag-avg" style="left:${avgPct.toFixed(1)}%;"></div>` : ''}</div>
+          </div>`;
+        }).join('');
+
+        const surveyAvg = r.survey != null
+          ? `<div class="ag-calls" style="color:var(--teal-dark);" title="Average survey score">${fmtSurvey(r.survey)}</div>`
+          : `<div class="ag-calls ag-none">–</div>`;
+        const surveyCount = r.surveyN > 0
+          ? `<div class="ag-calls">${Math.round(r.surveyN).toLocaleString()}</div>`
+          : `<div class="ag-calls ag-none">–</div>`;
+
+        html += `<div class="ag-grid ag-row">
+          <div style="min-width:0;"><div class="ag-name" title="${escapeHtml(r.name)}">${escapeHtml(r.name)}</div><div class="ag-sub">${badge(r.role)}<span>${escapeHtml(r.team)}</span>${tier ? `<span>· ${tierShort[tier] || ''}</span>` : ''}</div></div>
+          <div class="ag-calls">${Math.round(r.calls).toLocaleString()}</div>
+          ${ahtCell}
+          ${cells}
+          ${surveyAvg}
+          ${surveyCount}
+        </div>`;
+      });
+      list.innerHTML = html;
+    }
+
+    /* ================= Agent Progress (weekly / monthly comparison per agent) =================
+       Pick one metric and a set of weeks (inside one month) or months. Every agent gets a value per period,
+       an arrow showing the change from the period before, a little trend line, and an overall Change from
+       the first to the last period chosen. Green = getting better, red = getting worse. */
+    const PROGRESS_METRICS = [
+      { key: 'aht',     label: 'Handle Time', better: 'lower',  kind: 'time',  text: '#0d47a1' },
+      { key: 'consult', label: 'Consult',     better: 'lower',  kind: 'time',  text: '#1565c0' },
+      { key: 'hold',    label: 'Hold',        better: 'lower',  kind: 'time',  text: '#b45309' },
+      { key: 'conf',    label: 'Conference',  better: 'lower',  kind: 'time',  text: '#6d28d9' },
+      { key: 'survey',  label: 'Survey',      better: 'higher', kind: 'score', text: '#0d47a1' },
+      { key: 'calls',   label: 'Calls',       better: null,     kind: 'count', text: '#0d47a1' }
+    ];
+
+    function fmtMetric(metric, v) {
+      if (v == null) return '–';
+      if (metric.kind === 'time') return timeSecToHMS(v);
+      if (metric.kind === 'score') return fmtSurvey(v);
+      return Math.round(v).toLocaleString();
+    }
+
+    // Turns a difference into text + a colour class (good / bad / flat / neutral)
+    function progressDelta(metric, d) {
+      if (d == null) return null;
+      const eps = metric.kind === 'time' ? 1 : (metric.kind === 'score' ? 0.005 : 0.5);
+      if (Math.abs(d) < eps) return { cls: 'flat', text: '▬ no change', flat: true, d: 0 };
+      const cls = metric.better === null ? 'neutral' : (((d < 0) === (metric.better === 'lower')) ? 'good' : 'bad');
+      const mag = metric.kind === 'time' ? mmss(d) : (metric.kind === 'score' ? Math.abs(d).toFixed(2) : Math.round(Math.abs(d)).toLocaleString());
+      return { cls, text: `${d > 0 ? '▲' : '▼'} ${mag}`, flat: false, d };
+    }
+
+    function sparkline(values, color) {
+      const pts = [];
+      values.forEach((v, i) => { if (v != null) pts.push({ v, i }); });
+      if (pts.length < 2) return '<span class="ag-none">–</span>';
+      const w = 76, h = 26, n = values.length;
+      const lo = Math.min(...pts.map(p => p.v)), hi = Math.max(...pts.map(p => p.v));
+      const x = (i) => n === 1 ? w / 2 : 5 + (i / (n - 1)) * (w - 10);
+      const y = (v) => hi === lo ? h / 2 : (h - 5) - ((v - lo) / (hi - lo)) * (h - 10);
+      const path = pts.map(p => `${x(p.i).toFixed(1)},${y(p.v).toFixed(1)}`).join(' ');
+      const last = pts[pts.length - 1];
+      return `<svg width="${w}" height="${h}" viewBox="0 0 ${w} ${h}"><polyline points="${path}" fill="none" stroke="${color}" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>`
+        + pts.map(p => `<circle cx="${x(p.i).toFixed(1)}" cy="${y(p.v).toFixed(1)}" r="${p === last ? 3.2 : 2}" fill="${color}"/>`).join('') + '</svg>';
+    }
+
+    function selectedWeekNums(monthKey) {
+      const avail = availableWeeks(monthKey).map(w => w.n);
+      return progressWeeks ? avail.filter(n => progressWeeks.has(n)) : avail;
+    }
+    function selectedMonthKeys() {
+      const keys = Object.keys(monthlyDataStore).sort();
+      return progressMonths ? keys.filter(k => progressMonths.has(k)) : keys.slice(-3);
+    }
+
+    function setAgentView(view) {
+      agentView = view;
+      document.querySelectorAll('#agentViewToggle .mode-btn').forEach(b => b.classList.toggle('active', b.dataset.view === view));
+      populateProgressControls();
+      renderAgentStats();
+    }
+    function setProgressBy(by) {
+      progressBy = by;
+      populateProgressControls();
+      renderAgentStats();
+    }
+    function setProgressMetric(key) {
+      progressMetric = key;
+      populateProgressControls();
+      renderAgentStats();
+    }
+    function setProgressSort(key) {
+      if (progressSort.key === key) progressSort.dir = progressSort.dir === 'asc' ? 'desc' : 'asc';
+      else progressSort = { key, dir: 'asc' };
+      renderAgentStats();
+    }
+    function onAgentMonthChange() {
+      populateProgressControls();
+      renderAgentStats();
+    }
+
+    // Chip for one week / one month: clicking adds or removes it from the comparison (at least one stays on)
+    function toggleProgressPeriod(key) {
+      if (progressBy === 'weekly') {
+        const monthKey = document.getElementById('agentMonthSelect').value;
+        const cur = new Set(selectedWeekNums(monthKey));
+        const n = Number(key);
+        if (cur.has(n)) { if (cur.size > 1) cur.delete(n); } else cur.add(n);
+        progressWeeks = cur;
+      } else {
+        const cur = new Set(selectedMonthKeys());
+        if (cur.has(key)) { if (cur.size > 1) cur.delete(key); } else cur.add(key);
+        progressMonths = cur;
+      }
+      populateProgressControls();
+      renderAgentStats();
+    }
+
+    function populateProgressControls() {
+      const bar = document.getElementById('agentProgressBar');
+      if (!bar) return;
+      const inProgress = agentView === 'progress';
+      bar.style.display = inProgress ? 'flex' : 'none';
+
+      // the month picker is only needed for Snapshot and Weekly comparison
+      document.getElementById('agentMonthFilter').style.display = (!inProgress || progressBy === 'weekly') ? '' : 'none';
+      if (!inProgress) return;
+
+      document.querySelectorAll('#progressByToggle .mode-btn').forEach(b => b.classList.toggle('active', b.dataset.by === progressBy));
+      document.getElementById('progressMetricToggle').innerHTML = PROGRESS_METRICS.map(m =>
+        `<button type="button" class="mode-btn ${m.key === progressMetric ? 'active' : ''}" onclick="setProgressMetric('${m.key}')">${m.label}</button>`
+      ).join('');
+
+      const chips = document.getElementById('progressChips');
+      const label = document.getElementById('progressChipsLabel');
+      if (progressBy === 'weekly') {
+        const monthKey = document.getElementById('agentMonthSelect').value;
+        const sel = new Set(selectedWeekNums(monthKey));
+        label.innerText = 'Weeks to compare (' + (monthlyDataStore[monthKey] ? monthlyDataStore[monthKey].name : '') + ')';
+        chips.innerHTML = availableWeeks(monthKey).map(w =>
+          `<button type="button" class="pchip ${sel.has(w.n) ? 'on' : ''}" title="${w.label}" onclick="toggleProgressPeriod('${w.n}')">W${w.n} · ${w.short}</button>`
+        ).join('') || '<span style="font-size:0.7rem;color:var(--text-muted);">No weeks available for this month.</span>';
+      } else {
+        const sel = new Set(selectedMonthKeys());
+        label.innerText = 'Months to compare';
+        chips.innerHTML = Object.keys(monthlyDataStore).sort().map(k => {
+          const has = monthlyDataStore[k].agents && monthlyDataStore[k].agents.length;
+          return `<button type="button" class="pchip ${sel.has(k) ? 'on' : ''} ${has ? '' : 'na'}" ${has ? '' : 'disabled'} title="${has ? '' : 'No agent data saved for this month. Re-upload its report.'}" onclick="toggleProgressPeriod('${k}')">${monthShort(k)}</button>`;
+        }).join('');
+      }
+    }
+
+    // Works out every agent's totals per chosen period, plus the group total per period
+    function buildProgress() {
+      const lead = document.getElementById('agentLeadSelect').value || 'ALL';
+      const search = document.getElementById('agentSearchInput').value;
+      const matcher = makeAgentMatcher(agentGroup, lead, search);
+      const periods = []; // { label, sub, monthKey, week }
+
+      if (progressBy === 'weekly') {
+        const monthKey = document.getElementById('agentMonthSelect').value;
+        const rec = monthlyDataStore[monthKey];
+        if (!rec || !rec.agents || !rec.agents.length) return { state: 'nodata', rec };
+        if (!rec.agents.some(a => a.w && a.w.length)) return { state: 'noweeks', rec };
+        const weeks = availableWeeks(monthKey);
+        selectedWeekNums(monthKey).forEach(n => {
+          const w = weeks.find(x => x.n === n);
+          periods.push({ label: `Week ${n}`, sub: w ? w.short : '', monthKey, week: n });
+        });
+      } else {
+        selectedMonthKeys().forEach(k => {
+          const rec = monthlyDataStore[k];
+          if (!rec || !rec.agents || !rec.agents.length) return;
+          periods.push({ label: monthShort(k).split(' ')[0], sub: k.split('-')[0], monthKey: k, week: null });
+        });
+      }
+      if (periods.length === 0) return { state: 'noperiods' };
+
+      const byAgent = new Map();
+      periods.forEach((p, pi) => {
+        monthlyDataStore[p.monthKey].agents.forEach(a => {
+          const key = canonicalName(a.name);
+          let ent = byAgent.get(key);
+          if (!ent) { ent = { name: a.name, cells: periods.map(() => null) }; byAgent.set(key, ent); }
+          const raw = p.week ? (unpackWeeks(a)[p.week] || null) : a;
+          if (raw && raw.calls > 0) ent.cells[pi] = raw;
+        });
+      });
+
+      const rows = [];
+      const teamRaw = periods.map(() => emptyRaw());
+      byAgent.forEach(ent => {
+        const info = matcher.forName(ent.name);
+        if (!info || ent.cells.every(c => c === null)) return;
+        ent.cells.forEach((c, i) => { if (c) addRaw(teamRaw[i], c); });
+        rows.push(Object.assign({ name: ent.name }, info, { cells: ent.cells.map(c => c ? rawToMetrics(c) : null) }));
+      });
+
+      return { state: 'ok', periods, rows, team: teamRaw.map(t => t.calls > 0 ? rawToMetrics(t) : null) };
+    }
+
+    // For one row of values: the change from each period to the one before, and first-to-last overall
+    function analyseSeries(metric, vals) {
+      let prev = null;
+      const deltas = vals.map(v => {
+        if (v == null) return null;
+        const d = prev == null ? null : v - prev;
+        prev = v;
+        return d;
+      });
+      const present = vals.map((v, i) => ({ v, i })).filter(x => x.v != null);
+      const change = present.length >= 2 ? present[present.length - 1].v - present[0].v : null;
+      return { deltas, change, verdict: progressDelta(metric, change) };
+    }
+
+    function renderAgentProgress() {
+      const list = document.getElementById('agentList');
+      const summary = document.getElementById('agentSummary');
+      const note = document.getElementById('agentNote');
+      const legend = document.getElementById('agentHeatLegend');
+      const metric = PROGRESS_METRICS.find(m => m.key === progressMetric);
+
+      document.getElementById('agentHint').innerHTML = 'Each period is compared with the one before it &nbsp;·&nbsp; <b style="color:#0e8a60;">green</b> = better, <b style="color:#c0392b;">red</b> = worse &nbsp;·&nbsp; Change = last period vs first &nbsp;·&nbsp; click a column title to sort';
+      note.innerText = '';
+
+      const T0 = ahtTargetFor("1 Year above");
+      const sw = (color) => `<span class="ag-sw" style="background:${color};"></span>`;
+      legend.style.display = metric.key === 'aht' ? '' : 'none';
+      legend.innerHTML = `<b style="color:var(--text-main);">Handle Time target ${mmss(T0)}</b>`
+        + `${sw('rgb(143,227,172)')} ${mmss(T0)} or less`
+        + `${sw('rgb(255,216,115)')} up to ${mmss(T0 * (1 + AGENT_AHT.closeBy))}`
+        + `${sw('rgb(255,125,125)')} ${mmss(T0 * (1 + AGENT_AHT.hotBy))}+`;
+
+      const data = buildProgress();
+      if (data.state !== 'ok') {
+        summary.innerHTML = '';
+        const msg = data.state === 'noweeks'
+          ? `Week-by-week figures weren't saved for ${escapeHtml(data.rec.name || 'this month')} yet.<br>Re-upload the monthly report in Settings (⚙) to build them.`
+          : (data.state === 'nodata' ? 'No agent-level data is saved for this selection yet.<br>Re-upload the monthly report in Settings (⚙) to build it.' : 'Pick at least one week or month to compare.');
+        list.innerHTML = `<div class="agent-empty">${msg}</div>`;
+        return;
+      }
+
+      const { periods } = data;
+      const n = periods.length;
+      const tierOf = (r, pi) => r.doh ? getTenureBucket(r.doh, periods[pi].monthKey + '-01') : '1 Year above';
+
+      // analyse each agent
+      const rows = data.rows.map(r => {
+        const vals = r.cells.map(c => c ? c[metric.key] : null);
+        return Object.assign({}, r, { vals }, analyseSeries(metric, vals));
+      });
+      const teamVals = data.team.map(c => c ? c[metric.key] : null);
+      const team = analyseSeries(metric, teamVals);
+
+      // sort (default: most improved first)
+      const dir = progressSort.dir === 'asc' ? 1 : -1;
+      const score = (r) => r.change == null ? null : (metric.better === 'lower' ? r.change : -r.change);
+      rows.sort((a, b) => {
+        if (progressSort.key === 'name') return a.name.localeCompare(b.name) * dir;
+        let av, bv;
+        if (progressSort.key === 'change') { av = score(a); bv = score(b); }
+        else { const i = Number(progressSort.key.slice(1)); av = a.vals[i]; bv = b.vals[i]; }
+        if (av == null && bv == null) return 0;
+        if (av == null) return 1;
+        if (bv == null) return -1;
+        return (av - bv) * dir;
+      });
+
+      // summary tiles
+      const up = rows.filter(r => r.verdict && r.verdict.cls === 'good').length;
+      const down = rows.filter(r => r.verdict && r.verdict.cls === 'bad').length;
+      const flat = rows.filter(r => r.verdict && r.verdict.flat).length;
+      const noData = rows.filter(r => !r.verdict).length;
+      const goodWord = metric.better === null ? 'Went up' : 'Improved', badWord = metric.better === null ? 'Went down' : 'Declined';
+      const upCount = metric.better === null ? rows.filter(r => r.verdict && !r.verdict.flat && r.verdict.d > 0).length : up;
+      const downCount = metric.better === null ? rows.filter(r => r.verdict && !r.verdict.flat && r.verdict.d < 0).length : down;
+      const tile = (lbl, val, color) => `<div class="agent-tile"><span class="t-lbl">${lbl}</span><span class="t-val" style="color:${color};">${val}</span></div>`;
+      const tv = team.verdict;
+      const tc = tv ? ({ good: '#0e8a60', bad: '#c0392b', flat: '#64748b', neutral: '#0d47a1' })[tv.cls] : 'var(--text-muted)';
+      summary.innerHTML =
+        tile('Agents compared', rows.length, 'var(--text-main)') +
+        tile(goodWord, upCount, '#0e8a60') +
+        tile(badWord, downCount, '#c0392b') +
+        tile('No change', flat, '#64748b') +
+        tile('Not enough data', noData, 'var(--text-muted)') +
+        tile(`Group ${metric.label}: ${periods[0].label} → ${periods[n - 1].label}`, tv ? tv.text : '–', tc);
+
+      if (rows.length === 0) {
+        list.innerHTML = '<div class="agent-empty">No agents match these filters for the selected periods.</div>';
+        return;
+      }
+
+      const cols = `minmax(150px, 1.4fr) repeat(${n}, minmax(86px, 1fr)) 84px 100px`;
+      const arrow = (k) => progressSort.key === k ? (progressSort.dir === 'asc' ? ' ▲' : ' ▼') : '';
+      const ph = (k, label, sub, left) => `<div class="ag-ph ${left ? 'left' : ''} ${progressSort.key === k ? 'active' : ''}" onclick="setProgressSort('${k}')">${label}${arrow(k)}${sub ? `<small>${sub}</small>` : ''}</div>`;
+      let html = `<div class="ag-pgrid ag-head" style="grid-template-columns:${cols};">`
+        + ph('name', 'Agent', '', true)
+        + periods.map((p, i) => ph('p' + i, p.label, p.sub)).join('')
+        + `<div class="ag-ph" style="cursor:default;">Trend</div>`
+        + ph('change', 'Change', metric.better === 'lower' ? 'lower is better' : (metric.better === 'higher' ? 'higher is better' : ''))
+        + `</div>`;
+
+      const cell = (c, v, delta, tier) => {
+        if (v == null) return `<div class="ap-cell"><span class="ap-val ag-none">–</span></div>`;
+        let style = '', color = metric.text;
+        if (metric.key === 'aht') { const h = heatForAht(v, tier); style = `background:${h.bg};`; color = h.text; }
+        const extra = (metric.key === 'survey' && c && c.surveyN) ? `<span class="ap-sub">${Math.round(c.surveyN)} surveys</span>` : '';
+        const pill = delta ? `<span class="ag-dpill ${delta.cls}">${delta.text}</span>` : '';
+        return `<div class="ap-cell" style="${style}"><span class="ap-val" style="color:${color};">${fmtMetric(metric, v)}</span>${extra}${pill}</div>`;
+      };
+      const changeCell = (verdict) => {
+        if (!verdict) return `<div class="ap-change flat"><b>–</b><small>need 2 periods</small></div>`;
+        const word = verdict.flat ? 'No change'
+          : (metric.better === null ? (verdict.d > 0 ? 'Up' : 'Down') : (verdict.cls === 'good' ? 'Improved' : 'Declined'));
+        return `<div class="ap-change ${verdict.cls}"><b>${verdict.flat ? '▬' : verdict.text}</b><small>${word}</small></div>`;
+      };
+      const trendColor = (verdict) => verdict ? ({ good: '#10b981', bad: '#ef4444', flat: '#94a3b8', neutral: '#2196f3' })[verdict.cls] : '#94a3b8';
+
+      // group row first
+      html += `<div class="ag-pgrid ag-team" style="grid-template-columns:${cols};">`
+        + `<div><div class="ag-name">Group average</div><div class="ag-sub"><span>${rows.length} agent${rows.length === 1 ? '' : 's'} in this filter</span></div></div>`
+        + teamVals.map((v, i) => cell(data.team[i], v, team.deltas[i] == null ? null : progressDelta(metric, team.deltas[i]), '1 Year above')).join('')
+        + `<div style="display:flex;justify-content:center;">${sparkline(teamVals, trendColor(team.verdict))}</div>`
+        + changeCell(team.verdict)
+        + `</div>`;
+
+      const tierShort = { "1 Year above": "1Y+", "6-12 Months": "6-12M", "0-6 Months": "0-6M", "Trainee": "Trainee" };
+      const badge = (role) => role === 'Tech Support Rep - DIC' ? '<span class="ag-badge dic">DIC</span>'
+        : role === 'Tech Support Rep - Trainee' ? '<span class="ag-badge trainee">TRAINEE</span>'
+        : role === 'Escalation Lead' ? '<span class="ag-badge">ESC LEAD</span>'
+        : role === 'Tech Support Rep' ? '<span class="ag-badge">REP</span>' : '';
+
+      rows.forEach(r => {
+        const lastTier = tierOf(r, n - 1);
+        html += `<div class="ag-pgrid ag-row" style="grid-template-columns:${cols};">`
+          + `<div style="min-width:0;"><div class="ag-name" title="${escapeHtml(r.name)}">${escapeHtml(r.name)}</div><div class="ag-sub">${badge(r.role)}<span>${escapeHtml(r.team)}</span>${lastTier ? `<span>· ${tierShort[lastTier] || ''}</span>` : ''}</div></div>`
+          + r.vals.map((v, i) => cell(r.cells[i], v, r.deltas[i] == null ? null : progressDelta(metric, r.deltas[i]), tierOf(r, i))).join('')
+          + `<div style="display:flex;justify-content:center;">${sparkline(r.vals, trendColor(r.verdict))}</div>`
+          + changeCell(r.verdict)
+          + `</div>`;
+      });
+      list.innerHTML = html;
+    }
+
     function handleUnifiedUpload(e) {
       const file = e.target.files[0];
       if (!file) return;
@@ -1997,7 +2967,7 @@
         }
 
         let startRow = -1;
-        let colMap = { month: -1, hour: -1, date: -1, name: 2, aht: 4, consult: 5, hold: 6, conf: 7, calls: -1 };
+        let colMap = { month: -1, hour: -1, date: -1, name: 2, aht: 4, consult: 5, hold: 6, conf: 7, calls: -1, survey: -1, surveyN: -1 };
 
         for (let r = 0; r < Math.min(25, json.length); r++) {
           const row = json[r] || [];
@@ -2014,6 +2984,12 @@
             // "Call ID" is a per-row identifier, not a count — only treat an actual
             // count column (e.g. "Handled Calls") as the weighting field.
             if (str.includes("CALLS") && !str.includes("CALL ID")) colMap.calls = idx;
+            // Survey: a column with "survey" (or CSAT) in its title holds the score; one that also says
+            // count / responses holds how many surveys that row represents.
+            if (str.includes("SURVEY") || str.includes("CSAT")) {
+              if (/COUNT|RESPONSE|TOTAL|#|QTY/.test(str)) colMap.surveyN = idx;
+              else if (colMap.survey === -1) colMap.survey = idx;
+            }
           });
           if (startRow !== -1) break;
         }
@@ -2072,7 +3048,9 @@
               buckets: buildBuckets(),
               dailyBuckets: {}, // { [dayOfMonth]: { "1 Year above": {...}, ... } } — lets coverage mode later restrict both months to the same day range
               dicBuckets: buildBuckets(), // same two structures again, for the DIC group
-              dicDaily: {}
+              dicDaily: {},
+              agents: {}, // per-agent totals for the Agent Stats view
+              surveyCol: colMap.survey !== -1 // did the report have a survey column at all?
             };
           }
 
@@ -2090,13 +3068,6 @@
           const rosterEntry = findAgentInRoster(agentName);
           if (!rosterEntry) continue;
 
-          // Tech Sup rows and DIC rows are kept in separate buckets so the View switch can show either.
-          const group = roleGroupOf(rosterEntry.role);
-          if (!group) continue;
-
-          const bucket = getTenureBucket(rosterEntry.doh, monthKey + "-01");
-          if (!bucket) continue;
-
           const ahtSec = timeStrToSeconds(row[ahtIdx]);
           const consultRaw = row[colMap.consult + shift];
           const holdRaw = row[colMap.hold + shift];
@@ -2109,6 +3080,39 @@
           const calls = (colMap.calls !== -1) ? (parseFloat(row[colMap.calls + shift]) || 1) : 1;
 
           const monthRec = detectedMonthsData[monthKey];
+
+          // Per-agent running totals (any roster role) — feed the Agent Stats view, both the monthly
+          // numbers and a week-by-week split (week = day of month / 7, rounded up).
+          // Consult / Hold / Conference only count calls where that leg happened, same rule as the tiers below.
+          if (ahtSec > 0) {
+            const surveyScore = colMap.survey !== -1 ? parseSurveyScore(row[colMap.survey + shift]) : null;
+            const surveyW = surveyScore === null ? 0 : (colMap.surveyN !== -1 ? (parseFloat(row[colMap.surveyN + shift]) || 0) : 1);
+
+            let ag = monthRec.agents[rosterEntry.name];
+            if (!ag) ag = monthRec.agents[rosterEntry.name] = Object.assign({ name: rosterEntry.name, weeks: {} }, emptyRaw());
+            const targets = [ag];
+            if (rowDayNum !== null) {
+              const wk = Math.ceil(rowDayNum / 7);
+              if (!ag.weeks[wk]) ag.weeks[wk] = emptyRaw();
+              targets.push(ag.weeks[wk]);
+            }
+            targets.forEach(t => {
+              t.calls += calls;
+              t.time += ahtSec * calls;
+              if (hasTimeValue(consultRaw)) { t.cS += consultSec; t.cN++; }
+              if (hasTimeValue(holdRaw)) { t.hS += holdSec; t.hN++; }
+              if (hasTimeValue(confRaw)) { t.fS += confSec; t.fN++; }
+              if (surveyW > 0) { t.sS += surveyScore * surveyW; t.sN += surveyW; }
+            });
+          }
+
+          // Tech Sup rows and DIC rows are kept in separate buckets so the View switch can show either.
+          const group = roleGroupOf(rosterEntry.role);
+          if (!group) continue;
+
+          const bucket = getTenureBucket(rosterEntry.doh, monthKey + "-01");
+          if (!bucket) continue;
+
           const tBuckets = group === 'dic' ? monthRec.dicBuckets : monthRec.buckets;
           const tDaily = group === 'dic' ? monthRec.dicDaily : monthRec.dailyBuckets;
 
@@ -2178,7 +3182,9 @@
             maxDay: item.maxDay,
             ...fullSummary,
             dailyBuckets: item.dailyBuckets,
-            dic: { ...dicSummary, dailyBuckets: item.dicDaily }
+            dic: { ...dicSummary, dailyBuckets: item.dicDaily },
+            agents: Object.values(item.agents).map(packAgent),
+            surveyCol: item.surveyCol
           };
         });
 
