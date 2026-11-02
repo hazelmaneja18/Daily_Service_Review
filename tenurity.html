@@ -499,6 +499,7 @@
     .ag-badge.dic { background: #ede7f6; color: #4527a0; border-color: #b39ddb; }
     .ag-badge.trainee { background: #fff7e0; color: #9c6c04; border-color: #f0b94d; }
     .ag-calls { font-family: 'JetBrains Mono', monospace; font-size: 0.72rem; font-weight: 800; color: var(--text-main); }
+    .ag-sheat { font-family: 'JetBrains Mono', monospace; font-size: 0.74rem; font-weight: 900; text-align: center; border-radius: 7px; padding: 0.32rem 0; border: 1px solid rgba(13,43,69,0.08); }
 
     /* Handle Time heat-map cell */
     .ag-heat { display: flex; flex-direction: column; align-items: center; justify-content: center; border-radius: 8px; padding: 0.28rem 0.3rem; border: 1px solid rgba(13,43,69,0.08); line-height: 1.15; }
@@ -2462,6 +2463,48 @@
       return { bg: mix(Y, R, t), text: t < 0.5 ? '#7a5600' : '#9b1f27' };
     }
 
+    /* ================= Survey heat map =================
+       Average survey score coloured against a target (default 4.70, on a 5-point scale):
+         green  - at or above the target
+         yellow - just under it (down to target - closeBy)
+         red    - well under (target - hotBy or lower); in between it blends from yellow to red
+       Change the numbers here to tune it. */
+    const SURVEY_HEAT = { target: 4.70, closeBy: 0.20, hotBy: 0.70 };
+
+    function heatForSurvey(v) {
+      const x = Math.round(v * 100) / 100; // colour what is shown (2 decimals), so 4.70 is green
+      const T = SURVEY_HEAT.target;
+      const yellowStart = T - SURVEY_HEAT.closeBy;
+      const redAt = T - SURVEY_HEAT.hotBy;
+      const G = [143, 227, 172], Y = [255, 216, 115], R = [255, 125, 125];
+      const mix = (a, b, t) => `rgb(${a.map((c, i) => Math.round(c + (b[i] - c) * t)).join(',')})`;
+
+      if (x >= T)           return { bg: mix(G, G, 0), text: '#17653a' };
+      if (x >= yellowStart) return { bg: mix(Y, Y, 0), text: '#7a5600' };
+      if (x <= redAt)       return { bg: mix(R, R, 0), text: '#9b1f27' };
+      const t = (yellowStart - x) / (yellowStart - redAt);
+      return { bg: mix(Y, R, t), text: t < 0.5 ? '#7a5600' : '#9b1f27' };
+    }
+
+    // Colour key shown above the table: 'aht', 'survey' or 'both'
+    function heatLegendHtml(which) {
+      const sw = (c) => `<span class="ag-sw" style="background:${c};"></span>`;
+      const G = 'rgb(143,227,172)', Y = 'rgb(255,216,115)', R = 'rgb(255,125,125)';
+      const aht = () => {
+        const T0 = ahtTargetFor("1 Year above");
+        return `<b style="color:var(--text-main);">Handle Time target ${mmss(T0)}</b>`
+          + `${sw(G)} ${mmss(T0)} or less${sw(Y)} up to ${mmss(T0 * (1 + AGENT_AHT.closeBy))}${sw(R)} ${mmss(T0 * (1 + AGENT_AHT.hotBy))}+`;
+      };
+      const sv = () => {
+        const T = SURVEY_HEAT.target;
+        return `<b style="color:var(--text-main);">Survey target ${T.toFixed(2)}</b>`
+          + `${sw(G)} ${T.toFixed(2)} or more${sw(Y)} down to ${(T - SURVEY_HEAT.closeBy).toFixed(2)}${sw(R)} ${(T - SURVEY_HEAT.hotBy).toFixed(2)} or less`;
+      };
+      if (which === 'aht') return aht();
+      if (which === 'survey') return sv();
+      return aht() + ' &nbsp;&nbsp;│&nbsp;&nbsp; ' + sv();
+    }
+
     function renderAgentStats() {
       if (agentView === 'progress') { renderAgentProgress(); return; }
 
@@ -2477,10 +2520,7 @@
       const T0 = ahtTargetFor("1 Year above");
       const sw = (color) => `<span class="ag-sw" style="background:${color};"></span>`;
       legend.style.display = '';
-      legend.innerHTML = `<b style="color:var(--text-main);">Handle Time target ${mmss(T0)}</b>`
-        + `${sw('rgb(143,227,172)')} ${mmss(T0)} or less`
-        + `${sw('rgb(255,216,115)')} up to ${mmss(T0 * (1 + AGENT_AHT.closeBy))}`
-        + `${sw('rgb(255,125,125)')} ${mmss(T0 * (1 + AGENT_AHT.hotBy))}+`;
+      legend.innerHTML = heatLegendHtml('both');
 
       const monthKey = document.getElementById('agentMonthSelect').value;
       const lead = document.getElementById('agentLeadSelect').value || 'ALL';
@@ -2514,6 +2554,7 @@
       const fmt = (v) => v == null ? '–' : timeSecToHMS(v);
       const tile = (lbl, val, color, bg) => `<div class="agent-tile"${bg ? ` style="background:${bg};"` : ''}><span class="t-lbl">${lbl}</span><span class="t-val" style="color:${color};">${val}</span></div>`;
       const avgHeat = a.aht != null ? heatForAht(a.aht, "1 Year above") : null;
+      const avgSvHeat = a.survey != null ? heatForSurvey(a.survey) : null;
       summary.innerHTML =
         tile('Agents shown', rows.length, 'var(--text-main)') +
         tile('Calls handled', (a.calls || 0).toLocaleString(), 'var(--text-main)') +
@@ -2521,7 +2562,7 @@
         tile('Avg Consult', fmt(a.consult), AGENT_METRICS[1].text) +
         tile('Avg Hold', fmt(a.hold), AGENT_METRICS[2].text) +
         tile('Avg Conference', fmt(a.conf), AGENT_METRICS[3].text) +
-        tile('Avg Survey', a.survey != null ? fmtSurvey(a.survey) : '–', 'var(--teal-dark)') +
+        tile('Avg Survey', a.survey != null ? fmtSurvey(a.survey) : '–', avgSvHeat ? avgSvHeat.text : 'var(--teal-dark)', avgSvHeat ? avgSvHeat.bg : '') +
         tile('Surveys', a.surveyN > 0 ? Math.round(a.surveyN).toLocaleString() : '–', 'var(--text-main)');
 
       const notes = [];
@@ -2580,9 +2621,13 @@
           </div>`;
         }).join('');
 
-        const surveyAvg = r.survey != null
-          ? `<div class="ag-calls" style="color:var(--teal-dark);" title="Average survey score">${fmtSurvey(r.survey)}</div>`
-          : `<div class="ag-calls ag-none">–</div>`;
+        let surveyAvg;
+        if (r.survey != null) {
+          const sh = heatForSurvey(r.survey);
+          surveyAvg = `<div class="ag-sheat" style="background:${sh.bg}; color:${sh.text};" title="Average survey ${fmtSurvey(r.survey)} · target ${SURVEY_HEAT.target.toFixed(2)}">${fmtSurvey(r.survey)}</div>`;
+        } else {
+          surveyAvg = `<div class="ag-calls ag-none" style="text-align:center;">–</div>`;
+        }
         const surveyCount = r.surveyN > 0
           ? `<div class="ag-calls">${Math.round(r.surveyN).toLocaleString()}</div>`
           : `<div class="ag-calls ag-none">–</div>`;
@@ -2804,11 +2849,8 @@
 
       const T0 = ahtTargetFor("1 Year above");
       const sw = (color) => `<span class="ag-sw" style="background:${color};"></span>`;
-      legend.style.display = metric.key === 'aht' ? '' : 'none';
-      legend.innerHTML = `<b style="color:var(--text-main);">Handle Time target ${mmss(T0)}</b>`
-        + `${sw('rgb(143,227,172)')} ${mmss(T0)} or less`
-        + `${sw('rgb(255,216,115)')} up to ${mmss(T0 * (1 + AGENT_AHT.closeBy))}`
-        + `${sw('rgb(255,125,125)')} ${mmss(T0 * (1 + AGENT_AHT.hotBy))}+`;
+      legend.style.display = (metric.key === 'aht' || metric.key === 'survey') ? '' : 'none';
+      legend.innerHTML = metric.key === 'survey' ? heatLegendHtml('survey') : heatLegendHtml('aht');
 
       const data = buildProgress();
       if (data.state !== 'ok') {
@@ -2884,6 +2926,7 @@
         if (v == null) return `<div class="ap-cell"><span class="ap-val ag-none">–</span></div>`;
         let style = '', color = metric.text;
         if (metric.key === 'aht') { const h = heatForAht(v, tier); style = `background:${h.bg};`; color = h.text; }
+        else if (metric.key === 'survey') { const h = heatForSurvey(v); style = `background:${h.bg};`; color = h.text; }
         const extra = (metric.key === 'survey' && c && c.surveyN) ? `<span class="ap-sub">${Math.round(c.surveyN)} surveys</span>` : '';
         const pill = delta ? `<span class="ag-dpill ${delta.cls}">${delta.text}</span>` : '';
         return `<div class="ap-cell" style="${style}"><span class="ap-val" style="color:${color};">${fmtMetric(metric, v)}</span>${extra}${pill}</div>`;
