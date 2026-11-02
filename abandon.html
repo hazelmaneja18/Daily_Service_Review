@@ -25,6 +25,11 @@
       --border:       #d3e9fc;
       --bg:           #f4faff;
 
+      /* comparison accent (used only by the Compare feature) */
+      --cmp:          #7e57c2;
+      --cmp-deep:     #4527a0;
+      --cmp-bg:       #f3eefb;
+
       /* semantic traffic-light tones (unchanged thresholds) */
       --good-bg:      #dff5e6;
       --good-line:    #59c284;
@@ -82,7 +87,7 @@
     .brand-title { font-size: 0.95rem; font-weight: 800; color: var(--ink); letter-spacing: -0.01em; }
     .brand-sub { font-family: 'JetBrains Mono', monospace; font-size: 0.62rem; color: var(--coral); letter-spacing: 0.05em; font-weight: 700; }
 
-    .toolbar-right { display: flex; align-items: center; gap: 0.55rem; }
+    .toolbar-right { display: flex; align-items: center; gap: 0.55rem; flex-wrap: wrap; justify-content: flex-end; }
     .label-tag { font-family: 'JetBrains Mono', monospace; font-size: 0.64rem; font-weight: 700; color: var(--muted); letter-spacing: 0.06em; }
 
     .dropdown {
@@ -115,6 +120,47 @@
     }
     .gear-btn:hover { background: var(--pink); border-color: var(--coral); }
     .gear-btn.toggle-active { background: var(--coral); color: #fff; border-color: var(--coral); }
+    .gear-btn.compare-active { background: var(--cmp); color: #fff; border-color: var(--cmp); }
+    .gear-btn.compare-active:hover { background: var(--cmp-deep); border-color: var(--cmp-deep); }
+
+    /* ---- Compare: second date picker (only visible while compare is on) ---- */
+    .compare-wrap { display: none; align-items: center; gap: 0.45rem; }
+    .compare-wrap.show { display: flex; }
+    .compare-wrap .label-tag { color: var(--cmp-deep); }
+    .dropdown.compare-select {
+      border-color: var(--cmp);
+      color: var(--cmp-deep);
+      background-color: var(--cmp-bg);
+    }
+    .dropdown.compare-select:focus { border-color: var(--cmp-deep); }
+    .dropdown.compare-select:disabled { opacity: 0.6; cursor: not-allowed; }
+    .dropdown.compare-select { min-width: 128px; background-color: var(--cmp-bg); }
+
+    /* ---- Compare: add / remove dates ---- */
+    .compare-selects { display: flex; align-items: center; gap: 0.4rem; flex-wrap: wrap; }
+    .cmp-item { display: flex; align-items: center; gap: 0.2rem; }
+    .cmp-remove {
+      width: 20px; height: 20px; border-radius: 6px;
+      border: 1px solid var(--border); background: var(--card); color: var(--muted);
+      cursor: pointer; font-size: 0.85rem; line-height: 1;
+      display: flex; align-items: center; justify-content: center;
+    }
+    .cmp-remove:hover { color: var(--bad-text); border-color: var(--bad-line); background: var(--bad-bg); }
+    .cmp-add {
+      height: 28px; padding: 0 0.6rem; border-radius: 8px;
+      border: 1px dashed var(--cmp); background: var(--cmp-bg); color: var(--cmp-deep);
+      font-family: 'JetBrains Mono', monospace; font-size: 0.66rem; font-weight: 700;
+      cursor: pointer; white-space: nowrap;
+    }
+    .cmp-add:hover:not(:disabled) { background: var(--cmp); color: #fff; }
+    .cmp-add:disabled { opacity: 0.45; cursor: not-allowed; }
+    .cmp-chip {
+      margin-left: auto;
+      border: 1px solid var(--cmp); background: var(--card); color: var(--cmp-deep);
+      border-radius: 6px; padding: 0.12rem 0.5rem;
+      font-family: 'JetBrains Mono', monospace; font-size: 0.6rem; font-weight: 700; cursor: pointer;
+    }
+    .cmp-chip.on { background: var(--cmp); color: #fff; }
 
     /* ---------------- KPI Strip ---------------- */
     .kpi-row {
@@ -162,6 +208,23 @@
       border-top: 1px dashed var(--border); padding-top: 0.35rem;
     }
 
+    /* ---- Compare: delta line under each KPI value ---- */
+    .kpi-delta {
+      display: none;
+      font-family: 'JetBrains Mono', monospace;
+      font-size: 0.62rem;
+      font-weight: 700;
+      width: 100%;
+      text-align: center;
+      white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
+      margin-bottom: 0.3rem;
+    }
+    .kpi-delta > div { white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+    .delta-good    { color: var(--good-text); }
+    .delta-bad     { color: var(--bad-text); }
+    .delta-flat    { color: var(--muted); }
+    .delta-neutral { color: var(--coral-deep); }
+
     .drivers-stack { width: 100%; display: flex; flex-direction: column; gap: 0.14rem; margin: 0.08rem 0; }
     .driver-row { display: flex; justify-content: space-between; align-items: center; font-size: 0.68rem; font-weight: 600; color: var(--ink); padding: 0 0.35rem; }
     .driver-num { font-family: 'JetBrains Mono', monospace; color: var(--coral-deep); font-weight: 700; }
@@ -185,7 +248,7 @@
       align-items: stretch;
       min-height: 0;
     }
-    .dual-view-col { display: flex; flex-direction: column; min-height: 0; }
+    .dual-view-col { display: flex; flex-direction: column; min-height: 0; gap: 0.75rem; }
     .chart-panel {
       background: var(--card);
       border: 1px solid var(--border);
@@ -201,6 +264,7 @@
     .panel-heading::before { content: ""; width: 3px; height: 14px; background: var(--coral); border-radius: 2px; display: inline-block; }
     .chart-legend-mini {
       display: flex; gap: 0.85rem; margin-bottom: 0.4rem; font-family: 'JetBrains Mono', monospace; font-size: 0.62rem; color: var(--muted);
+      flex-wrap: wrap;
     }
     .chart-legend-mini span { display: flex; align-items: center; gap: 0.3rem; }
     .swatch { width: 9px; height: 9px; border-radius: 2px; display: inline-block; }
@@ -242,6 +306,33 @@
     .analysis-hours { font-size: 0.7rem; font-weight: 600; display: flex; flex-direction: column; gap: 0.35rem; line-height: 1.45; font-family: 'JetBrains Mono', monospace; }
     .hr-crit { color: #ffc4c4; }
     .hr-peak { color: #9fd6ff; }
+
+    /* ---- Compare: compact table, sits in the right-hand column under Summary ---- */
+    .compare-panel {
+      background: var(--card);
+      border: 1px solid var(--border);
+      border-left: 3px solid var(--cmp);
+      border-radius: 12px;
+      padding: 0.75rem 0.8rem 0.65rem;
+      box-shadow: var(--shadow);
+      display: none;
+      flex-direction: column;
+      gap: 0.4rem;
+    }
+    .compare-panel .panel-heading { font-size: 0.78rem; margin-bottom: 0; }
+    .cmp-grid { display: grid; grid-template-columns: 1.15fr 0.9fr 0.9fr 1fr; font-family: 'JetBrains Mono', monospace; }
+    .cmp-grid .c {
+      padding: 0.3rem 0.2rem;
+      font-size: 0.64rem; font-weight: 700; color: var(--ink);
+      border-top: 1px dashed var(--border);
+      display: flex; align-items: center; justify-content: flex-end;
+      white-space: nowrap;
+    }
+    .cmp-grid .c.m { justify-content: flex-start; color: var(--muted); font-size: 0.58rem; }
+    .cmp-grid .c.h { border-top: none; flex-direction: column; align-items: flex-end; gap: 0.05rem; font-size: 0.68rem; }
+    .cmp-grid .c.h .sub { font-size: 0.48rem; color: var(--muted); letter-spacing: 0.04em; }
+    .cmp-foot { font-size: 0.6rem; color: var(--muted); line-height: 1.4; }
+    .cmp-foot b { color: var(--ink); }
 
     .period-row {
       background: var(--bg);
@@ -417,6 +508,22 @@
     <div class="toolbar-right">
       <span class="label-tag">DATE</span>
       <select id="dateDropdown" class="dropdown" onchange="onDateSelectionChanged()"></select>
+
+      <!-- Compare: second date picker, only shown while compare mode is on -->
+      <div class="compare-wrap" id="compareWrap">
+        <span class="label-tag">VS</span>
+        <div class="compare-selects" id="compareSelects"></div>
+      </div>
+
+      <button class="gear-btn" id="compareToggleBtn" title="Compare with another date" onclick="toggleCompare()">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="width:16px;height:16px;">
+          <path d="M16 3l4 4-4 4"></path>
+          <path d="M20 7H4"></path>
+          <path d="M8 21l-4-4 4-4"></path>
+          <path d="M4 17h16"></path>
+        </svg>
+      </button>
+
       <button class="gear-btn" id="heatmapToggleBtn" title="Show Service Level by Period" onclick="toggleHeatmapPanel()">
         <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="width:16px;height:16px;">
           <rect x="3" y="12" width="4" height="8"></rect>
@@ -438,6 +545,7 @@
         </div>
         <div class="kpi-val" id="dispCalls">1,415</div>
       </div>
+      <div class="kpi-delta" id="deltaCalls"></div>
       <div class="kpi-subtext">Cumulative shift volume</div>
     </div>
 
@@ -449,6 +557,7 @@
         </div>
         <div class="kpi-val" id="dispSLA">3%</div>
       </div>
+      <div class="kpi-delta" id="deltaSLA"></div>
       <div class="kpi-subtext">Target: &ge; 80% threshold</div>
     </div>
 
@@ -460,6 +569,7 @@
         </div>
         <div class="kpi-val" id="dispAHT">0:20:34</div>
       </div>
+      <div class="kpi-delta" id="deltaAHT"></div>
       <div class="kpi-subtext">Weighted duration avg</div>
     </div>
 
@@ -491,7 +601,9 @@
           <span><span class="swatch" style="background: var(--good-line);"></span>&ge; 80%</span>
           <span><span class="swatch" style="background: var(--warn-line);"></span>60&ndash;79%</span>
           <span><span class="swatch" style="background: var(--bad-line);"></span>&lt; 60%</span>
-          <span><span class="swatch" style="background: var(--coral-deep); border-radius: 50%;"></span>Trend line</span>
+          <span id="legendTrend"><span class="swatch" style="background: var(--coral-deep); border-radius: 50%;"></span>Trend line</span>
+          <span id="legendCmpSla" style="display:none; gap:0.85rem;"></span>
+          <button type="button" class="cmp-chip on" id="cmpLabelToggle" style="display:none;" onclick="toggleCmpLabels()" title="Show or hide the % on the comparison lines">% labels</button>
         </div>
         <div class="chart-viewport">
           <canvas id="slaBarChart"></canvas>
@@ -559,6 +671,13 @@
         </div>
       </div>
 
+      <!-- Compare: this date vs the compared date (shown only while compare is on) -->
+      <div class="compare-panel" id="comparePanel">
+        <div class="panel-heading" id="cmpPanelTitle">Date Comparison</div>
+        <div class="cmp-grid" id="cmpGrid"></div>
+        <div class="cmp-foot" id="cmpFoot"></div>
+      </div>
+
       <!-- Swaps in alongside the period heatmap: which hour is strongest / most
            critical for each row currently shown (each weekday, or each month). -->
       <div class="summary-panel" id="periodSummaryPanel" style="display:none; overflow-y:auto;">
@@ -574,13 +693,19 @@
     <div class="panel-heading">Agent Count vs Calls Received</div>
     <div style="display: flex; flex-direction: column; gap: 0.5rem; flex: 1; min-height: 0;">
       <div style="display: flex; flex-direction: column; min-height: 0; flex: 1;">
-        <div class="chart-legend-mini"><span><span class="swatch" style="background: var(--coral-deep);"></span>Agents Staffed</span></div>
+        <div class="chart-legend-mini">
+          <span><span class="swatch" style="background: var(--coral-deep);"></span>Agents Staffed</span>
+          <span id="legendCmpAgents" style="display:none; gap:0.85rem;"></span>
+        </div>
         <div class="chart-viewport" style="min-height: 190px;">
           <canvas id="agentsStaffedChart"></canvas>
         </div>
       </div>
       <div style="display: flex; flex-direction: column; min-height: 0; flex: 1;">
-        <div class="chart-legend-mini"><span><span class="swatch" style="background: var(--coral);"></span>Calls Received</span></div>
+        <div class="chart-legend-mini">
+          <span><span class="swatch" style="background: var(--coral);"></span>Calls Received</span>
+          <span id="legendCmpCalls" style="display:none; gap:0.85rem;"></span>
+        </div>
         <div class="chart-viewport" style="min-height: 190px;">
           <canvas id="callsReceivedChart"></canvas>
         </div>
@@ -690,7 +815,8 @@
       },
       casesByDate: {},
       commentsByDate: {},
-      currentDate: "2026-08-20"
+      currentDate: "2026-08-20",
+      compareDates: [] // view-only: which dates are being compared against (not saved to the cloud)
     };
 
     function saveState() {
@@ -743,6 +869,11 @@
     let heatmapMode = 'weekday'; // 'weekday' | 'monthly' — controls which period bands the heatmap panel shows
     let heatmapMonthFilter = 'all'; // 'all' or 'YYYY-MM' — narrows the period bands to a single month
     let heatmapPanelVisible = false;
+    let compareEnabled = false; // true while the "compare with another date" mode is on
+
+    const CMP_COLORS = ['#7e57c2', '#00897b', '#8d6e63']; // violet, teal, brown — one per compared date
+    const MAX_COMPARE = 1; // one compared date at a time (raise this up to CMP_COLORS.length and re-add the "+ Add date" button to compare more)
+    let cmpLabelsOn = true; // show the % on each comparison line in the hourly chart
 
     function toggleHeatmapPanel() {
       heatmapPanelVisible = !heatmapPanelVisible;
@@ -762,6 +893,8 @@
         btn.classList.toggle('toggle-active', heatmapPanelVisible);
         btn.title = heatmapPanelVisible ? 'Show Hourly Interval Chart' : 'Show Service Level by Period';
       }
+
+      updateComparePanelVisibility();
 
       if (heatmapPanelVisible) {
         renderHeatmap();
@@ -784,6 +917,10 @@
       const dd = parts[2];
       const yy = parts[0].slice(-2);
       return `${mm}-${dd}-${yy} (${dayName})`;
+    }
+
+    function shortDate(isoDateStr) {
+      return formatDisplayDate(isoDateStr).split(' ')[0]; // "MM-DD-YY"
     }
 
     function toISODate(val) {
@@ -869,12 +1006,331 @@
       if (appState.dates[appState.currentDate]) {
         appState.dates[appState.currentDate].absences = Number(val) || 0;
         saveState();
+        if (compareEnabled) renderDashboard(appState.currentDate);
       }
+    }
+
+    /* ================= Compare dates =================
+       Turn on with the compare button in the top bar, then pick any other logged
+       date in the "VS" dropdown. "+ Add date" lines up more days at once (up to 3),
+       each with its own color. While it's on:
+         - each KPI (calls / SLA / AHT) shows the change vs. every compared date
+         - the hourly SLA chart overlays each compared date as a colored line with
+           its % at every hour (the "% labels" chip hides them if it gets busy)
+         - the Agents / Calls charts overlay the same dates as dashed lines
+         - a Date Comparison table under the charts lists every date side by side
+       View-only: nothing here is written to Firestore. */
+
+    function toggleCompare() {
+      compareEnabled = !compareEnabled;
+
+      // Comparison lives on the hourly view, so leave the period heatmap if it's open.
+      if (compareEnabled && heatmapPanelVisible) toggleHeatmapPanel();
+
+      const wrap = document.getElementById('compareWrap');
+      const btn = document.getElementById('compareToggleBtn');
+      if (wrap) wrap.classList.toggle('show', compareEnabled);
+      if (btn) {
+        btn.classList.toggle('compare-active', compareEnabled);
+        btn.title = compareEnabled ? 'Turn off date comparison' : 'Compare with another date';
+      }
+      renderDashboard(appState.currentDate);
+    }
+
+    function toggleCmpLabels() {
+      cmpLabelsOn = !cmpLabelsOn;
+      const chip = document.getElementById('cmpLabelToggle');
+      if (chip) chip.classList.toggle('on', cmpLabelsOn);
+      renderDashboard(appState.currentDate);
+    }
+
+    function getOtherDates(currentDt) {
+      return Object.keys(appState.dates).sort().reverse().filter(d => d !== currentDt);
+    }
+
+    // Cleans up the chosen compare dates (drops the current date, duplicates and
+    // dates that no longer exist), picks a default if none are left, redraws the controls.
+    function syncCompareDates(currentDt) {
+      const available = getOtherDates(currentDt);
+      let list = [];
+      (appState.compareDates || []).forEach(d => {
+        if (available.includes(d) && !list.includes(d)) list.push(d);
+      });
+      list = list.slice(0, MAX_COMPARE);
+      if (list.length === 0 && available.length > 0) {
+        list = [available.find(d => d < currentDt) || available[0]]; // closest earlier date
+      }
+      appState.compareDates = list;
+      renderCompareControls(available);
+    }
+
+    function renderCompareControls(available) {
+      const host = document.getElementById('compareSelects');
+      const addBtn = document.getElementById('cmpAddBtn');
+      if (!host) return;
+      const chosen = appState.compareDates;
+      host.innerHTML = '';
+
+      if (available.length === 0) {
+        const note = document.createElement('span');
+        note.className = 'label-tag';
+        note.textContent = 'No other dates';
+        host.appendChild(note);
+      }
+
+      chosen.forEach((d, i) => {
+        const color = CMP_COLORS[i % CMP_COLORS.length];
+        const item = document.createElement('div');
+        item.className = 'cmp-item';
+
+        const sel = document.createElement('select');
+        sel.className = 'dropdown compare-select';
+        sel.style.borderColor = color;
+        sel.style.color = color;
+        available.filter(x => x === d || !chosen.includes(x)).forEach(x => {
+          const opt = document.createElement('option');
+          opt.value = x;
+          opt.textContent = formatDisplayDate(x);
+          sel.appendChild(opt);
+        });
+        sel.value = d;
+        sel.onchange = () => onCompareChanged(i, sel.value);
+        item.appendChild(sel);
+
+        if (chosen.length > 1) {
+          const rm = document.createElement('button');
+          rm.type = 'button';
+          rm.className = 'cmp-remove';
+          rm.title = 'Remove this date from the comparison';
+          rm.innerHTML = '&times;';
+          rm.onclick = () => removeCompareDate(i);
+          item.appendChild(rm);
+        }
+        host.appendChild(item);
+      });
+
+      if (addBtn) {
+        const remaining = available.filter(x => !chosen.includes(x));
+        const full = chosen.length >= MAX_COMPARE;
+        addBtn.disabled = full || remaining.length === 0;
+        addBtn.title = full ? `Up to ${MAX_COMPARE} dates can be compared at once`
+          : (remaining.length === 0 ? 'No more logged dates to add' : 'Add another date to compare');
+      }
+    }
+
+    function onCompareChanged(index, value) {
+      appState.compareDates[index] = value;
+      renderDashboard(appState.currentDate);
+    }
+
+    function addCompareDate() {
+      const chosen = appState.compareDates || [];
+      if (chosen.length >= MAX_COMPARE) return;
+      const remaining = getOtherDates(appState.currentDate).filter(d => !chosen.includes(d));
+      if (remaining.length === 0) return;
+      const last = chosen[chosen.length - 1];
+      appState.compareDates = chosen.concat(remaining.find(d => !last || d < last) || remaining[0]);
+      renderDashboard(appState.currentDate);
+    }
+
+    function removeCompareDate(index) {
+      appState.compareDates.splice(index, 1);
+      renderDashboard(appState.currentDate);
+    }
+
+    function updateComparePanelVisibility() {
+      const panel = document.getElementById('comparePanel');
+      if (!panel) return;
+      panel.style.display = (panel.dataset.active === '1' && !heatmapPanelVisible) ? 'flex' : 'none';
+    }
+
+    function getIntervalStats(intervals) {
+      let totalCalls = 0, sumAHT = 0, sumSLA = 0;
+      let peak = intervals[0], low = intervals[0], critHours = 0;
+      intervals.forEach(i => {
+        totalCalls += i.calls;
+        sumAHT += i.calls * i.ahtSec;
+        sumSLA += i.calls * i.sla;
+        if (i.sla > peak.sla) peak = i;
+        if (i.sla < low.sla) low = i;
+        if (i.sla < 0.60) critHours++;
+      });
+      return {
+        totalCalls,
+        aht: totalCalls > 0 ? Math.round(sumAHT / totalCalls) : 0,
+        sla: totalCalls > 0 ? sumSLA / totalCalls : 0,
+        peak, low, critHours
+      };
+    }
+
+    function fmtSigned(n) { return (n > 0 ? '+' : n < 0 ? '-' : '\u00b1') + Math.abs(n); }
+    function arrowFor(n) { return n > 0 ? '\u25B2' : n < 0 ? '\u25BC' : '\u25AC'; }
+    function fmtDur(sec) {
+      const s = Math.abs(Math.round(sec));
+      return s >= 3600 ? secondsToHMS(s) : `${Math.floor(s / 60)}:${String(s % 60).padStart(2, '0')}`;
+    }
+    function fmtSignedDur(sec) { return (sec > 0 ? '+' : sec < 0 ? '-' : '\u00b1') + fmtDur(sec); }
+    // class for a delta: higherIsBetter true/false, or null for "neutral" (e.g. call volume)
+    function deltaClass(diff, higherIsBetter) {
+      if (diff === 0) return 'delta-flat';
+      if (higherIsBetter === null) return 'delta-neutral';
+      return ((diff > 0) === higherIsBetter) ? 'delta-good' : 'delta-bad';
+    }
+
+    // items: [{ text, cls, color }] — one line per compared date
+    function setKpiDelta(id, items) {
+      const el = document.getElementById(id);
+      if (!el) return;
+      if (!items || items.length === 0) { el.style.display = 'none'; el.innerHTML = ''; return; }
+      el.className = 'kpi-delta';
+      el.style.display = 'block';
+      el.innerHTML = items.map(it =>
+        `<div class="${it.cls}"><span style="color:${it.color}">&#9670;</span> ${it.text}</div>`
+      ).join('');
+    }
+
+    // items: [{ label, color }]
+    function setCmpLegend(id, items) {
+      const el = document.getElementById(id);
+      if (!el) return;
+      if (!items || items.length === 0) { el.style.display = 'none'; el.innerHTML = ''; return; }
+      el.style.display = 'flex';
+      el.innerHTML = items.map(it =>
+        `<span><span class="swatch" style="background:${it.color}; transform: rotate(45deg);"></span>vs ${it.label}</span>`
+      ).join('');
+    }
+
+    function renderComparison(dt, record, cmpList) {
+      const panel = document.getElementById('comparePanel');
+      const grid = document.getElementById('cmpGrid');
+      const foot = document.getElementById('cmpFoot');
+      const title = document.getElementById('cmpPanelTitle');
+      const legendTrend = document.getElementById('legendTrend');
+      const chip = document.getElementById('cmpLabelToggle');
+
+      const clearKpis = () => { setKpiDelta('deltaCalls', []); setKpiDelta('deltaSLA', []); setKpiDelta('deltaAHT', []); };
+      const clearLegends = () => { setCmpLegend('legendCmpSla', []); setCmpLegend('legendCmpAgents', []); setCmpLegend('legendCmpCalls', []); };
+
+      // Compare is off: clear everything the feature adds
+      if (!compareEnabled) {
+        clearKpis(); clearLegends();
+        if (legendTrend) legendTrend.style.display = 'flex';
+        if (chip) chip.style.display = 'none';
+        panel.dataset.active = '';
+        updateComparePanelVisibility();
+        return;
+      }
+
+      // Compare is on, but there's no second date to compare against yet
+      if (cmpList.length === 0) {
+        clearKpis(); clearLegends();
+        if (legendTrend) legendTrend.style.display = 'flex';
+        if (chip) chip.style.display = 'none';
+        title.textContent = 'Date Comparison';
+        grid.innerHTML = '';
+        foot.textContent = 'Only one date is logged so far. Upload another day in the DSR sheet to compare.';
+        panel.dataset.active = '1';
+        updateComparePanelVisibility();
+        return;
+      }
+
+      const a = getIntervalStats(record.intervals);
+      a.abs = record.absences ?? 1;
+      const others = cmpList.map(c => {
+        const s = getIntervalStats(c.intervals);
+        s.abs = c.record.absences ?? 1;
+        return Object.assign({}, c, { s });
+      });
+
+      // --- KPI deltas: one line per compared date ---
+      const callItems = [], slaItems = [], ahtItems = [];
+      others.forEach(o => {
+        const callsDiff = a.totalCalls - o.s.totalCalls;
+        const callsPct = o.s.totalCalls > 0 ? Math.round((callsDiff / o.s.totalCalls) * 100) : 0;
+        callItems.push({ color: o.color, cls: deltaClass(callsDiff, null),
+          text: `${arrowFor(callsDiff)} ${fmtSigned(callsDiff)} (${fmtSigned(callsPct)}%) vs ${o.label}` });
+
+        const slaDiff = Math.round(a.sla * 100) - Math.round(o.s.sla * 100);
+        slaItems.push({ color: o.color, cls: deltaClass(slaDiff, true),
+          text: `${arrowFor(slaDiff)} ${fmtSigned(slaDiff)} pts vs ${o.label}` });
+
+        const ahtDiff = a.aht - o.s.aht;
+        ahtItems.push({ color: o.color, cls: deltaClass(ahtDiff, false),
+          text: `${arrowFor(ahtDiff)} ${fmtSignedDur(ahtDiff)} vs ${o.label}` });
+      });
+      setKpiDelta('deltaCalls', callItems);
+      setKpiDelta('deltaSLA', slaItems);
+      setKpiDelta('deltaAHT', ahtItems);
+
+      // --- legends / chart helpers ---
+      const legendItems = others.map(o => ({ label: o.label, color: o.color }));
+      setCmpLegend('legendCmpSla', legendItems);
+      setCmpLegend('legendCmpAgents', legendItems);
+      setCmpLegend('legendCmpCalls', legendItems);
+      if (legendTrend) legendTrend.style.display = 'none'; // trend line is swapped for the compare lines
+      if (chip) { chip.style.display = 'inline-block'; chip.classList.toggle('on', cmpLabelsOn); }
+
+      // --- compact side-by-side table (sits in the right-hand column) ---
+      const pct = (x) => Math.round(x * 100);
+      const o = others[0]; // one compared date at a time
+      const dayOf = (d) => ((formatDisplayDate(d).match(/\((\w+)\)/) || [])[1] || '').toUpperCase();
+      const md = (d) => shortDate(d).slice(0, 5);
+
+      const metrics = [
+        { m: 'Calls', val: x => x.totalCalls.toLocaleString(), diff: (x, y) => x.totalCalls - y.totalCalls, fmtD: fmtSigned, better: null },
+        { m: 'SLA', val: x => `${pct(x.sla)}%`, diff: (x, y) => pct(x.sla) - pct(y.sla), fmtD: d => fmtSigned(d) + ' pts', better: true },
+        { m: 'AHT', val: x => fmtDur(x.aht), diff: (x, y) => x.aht - y.aht, fmtD: fmtSignedDur, better: false },
+        { m: 'Peak', val: x => `${pct(x.peak.sla)}%`, diff: (x, y) => pct(x.peak.sla) - pct(y.peak.sla), fmtD: fmtSigned, better: true },
+        { m: 'Lowest', val: x => `${pct(x.low.sla)}%`, diff: (x, y) => pct(x.low.sla) - pct(y.low.sla), fmtD: fmtSigned, better: true },
+        { m: 'Crit hrs', val: x => String(x.critHours), diff: (x, y) => x.critHours - y.critHours, fmtD: fmtSigned, better: false },
+        { m: 'Absent', val: x => String(x.abs), diff: (x, y) => x.abs - y.abs, fmtD: fmtSigned, better: false }
+      ];
+
+      let html = `<div class="c m h"></div>`;
+      html += `<div class="c h"><span>${md(dt)}</span><span class="sub">THIS &middot; ${dayOf(dt)}</span></div>`;
+      html += `<div class="c h"><span style="color:${o.color}">&#9670; ${md(o.date)}</span><span class="sub">VS &middot; ${dayOf(o.date)}</span></div>`;
+      html += `<div class="c h"><span>&nbsp;</span><span class="sub">CHANGE</span></div>`;
+
+      metrics.forEach(mt => {
+        const d = mt.diff(a, o.s);
+        html += `<div class="c m">${mt.m}</div><div class="c">${mt.val(a)}</div><div class="c">${mt.val(o.s)}</div>`;
+        html += `<div class="c ${deltaClass(d, mt.better)}">${mt.fmtD(d)}</div>`;
+      });
+
+      // hour-by-hour: in how many hours is this date's SLA higher / lower?
+      const byHour = {};
+      o.intervals.forEach(i => { byHour[i.hour] = i; });
+      let better = 0, worse = 0;
+      record.intervals.forEach(i => {
+        const other = byHour[i.hour];
+        if (!other) return;
+        const x = pct(i.sla), y = pct(other.sla);
+        if (x > y) better++; else if (x < y) worse++;
+      });
+
+      grid.innerHTML = html;
+      title.textContent = 'Date Comparison';
+      foot.innerHTML = `SLA higher in <b class="delta-good">${better} hr</b>, lower in <b class="delta-bad">${worse} hr</b>.<br>Change = this date minus ${o.label}. Green = this date is better.`;
+      panel.dataset.active = '1';
+      updateComparePanelVisibility();
     }
 
     function renderDashboard(dt) {
       const record = appState.dates[dt];
       if (!record) return;
+
+      // Compare setup: which dates (if any) are being laid over this one, each with its own color
+      if (compareEnabled) syncCompareDates(dt);
+      const cmpList = compareEnabled
+        ? appState.compareDates.filter(d => d !== dt && appState.dates[d]).map((d, i) => ({
+            date: d,
+            record: appState.dates[d],
+            intervals: appState.dates[d].intervals,
+            label: shortDate(d),
+            color: CMP_COLORS[i % CMP_COLORS.length]
+          }))
+        : [];
+      const curLabel = shortDate(dt);
 
       const intervals = record.intervals;
       let totalCalls = 0;
@@ -949,9 +1405,11 @@
 
       document.getElementById("shiftComment").value = appState.commentsByDate[dt] || "";
 
-      renderSLABarChart(intervals);
-      renderAgentsStaffedChart(intervals);
-      renderCallsReceivedChart(intervals);
+      renderComparison(dt, record, cmpList);
+
+      renderSLABarChart(intervals, cmpList, curLabel);
+      renderAgentsStaffedChart(intervals, cmpList, curLabel);
+      renderCallsReceivedChart(intervals, cmpList, curLabel);
       renderHeatmap();
     }
 
@@ -964,54 +1422,111 @@
       return { bg: '#ff9494', border: '#e0676d', text: '#c33f45' };
     }
 
-    function renderSLABarChart(intervals) {
+    function renderSLABarChart(intervals, cmpList, curLabel) {
       const ctx = document.getElementById("slaBarChart").getContext("2d");
       const labels = intervals.map(i => i.hour);
       const slaValues = intervals.map(i => Math.round(i.sla * 100));
+      const hasCmp = cmpList && cmpList.length > 0;
 
       const barColors = intervals.map(i => colorForPct(i.sla).bg);
       const borderColors = intervals.map(i => colorForPct(i.sla).border);
 
       if (slaChartInstance) slaChartInstance.destroy();
 
+      const datasets = [
+        {
+          type: 'bar',
+          label: hasCmp ? curLabel : 'Service Level',
+          data: slaValues,
+          backgroundColor: barColors,
+          borderColor: borderColors,
+          borderWidth: 1.5,
+          borderRadius: 5,
+          maxBarThickness: 28,
+          categoryPercentage: 0.72,
+          barPercentage: 0.85,
+          order: 2
+        }
+      ];
+
+      if (hasCmp) {
+        // One colored line per compared date, matched to this date's hours (gap where an hour is missing),
+        // with the % shown right on the line so it can be read without hovering.
+        cmpList.forEach((c, ci) => {
+          const byHour = {};
+          c.intervals.forEach(i => { byHour[i.hour] = i; });
+          const vals = labels.map(h => (byHour[h] ? Math.round(byHour[h].sla * 100) : null));
+
+          datasets.push({
+            type: 'line',
+            label: `vs ${c.label}`,
+            data: vals,
+            isCompare: true,
+            cmpByHour: byHour,
+            borderColor: c.color,
+            backgroundColor: c.color,
+            borderWidth: 2.25,
+            pointRadius: 4,
+            pointHoverRadius: 6,
+            pointStyle: 'rectRot',
+            pointBackgroundColor: '#ffffff',
+            pointBorderColor: c.color,
+            pointBorderWidth: 2,
+            tension: 0.3,
+            fill: false,
+            spanGaps: false,
+            order: 1,
+            datalabels: {
+              display: (dctx) => cmpLabelsOn && dctx.dataset.data[dctx.dataIndex] != null,
+              anchor: 'center',
+              // Keep clear of the bar's own % label: above the point when the line is well
+              // above the bar, below it when well under, and off to the side when they're close.
+              align: (dctx) => {
+                const diff = dctx.dataset.data[dctx.dataIndex] - slaValues[dctx.dataIndex];
+                if (diff >= 12) return 'top';
+                if (diff <= -12) return 'bottom';
+                return ['right', 'left', 'bottom'][ci % 3];
+              },
+              offset: 5,
+              backgroundColor: '#ffffff',
+              borderColor: c.color,
+              borderWidth: 1,
+              borderRadius: 4,
+              padding: { top: 1, bottom: 1, left: 3, right: 3 },
+              color: c.color,
+              font: { family: 'JetBrains Mono', weight: '800', size: 8.5 },
+              formatter: (val) => `${val}%`
+            }
+          });
+        });
+      } else {
+        // Subtle overlay line so the up/down trend across the shift is visible at a glance
+        datasets.push({
+          type: 'line',
+          label: 'Trend',
+          data: slaValues,
+          borderColor: 'rgba(13, 71, 161, 0.45)',
+          backgroundColor: 'rgba(13, 71, 161, 0.45)',
+          borderWidth: 1.75,
+          borderDash: [4, 3],
+          pointRadius: 2,
+          pointHoverRadius: 4,
+          pointBackgroundColor: 'rgba(13, 71, 161, 0.65)',
+          tension: 0.35,
+          fill: false,
+          order: 1
+        });
+      }
+
       slaChartInstance = new Chart(ctx, {
         data: {
           labels: labels,
-          datasets: [
-            {
-              type: 'bar',
-              label: 'Service Level',
-              data: slaValues,
-              backgroundColor: barColors,
-              borderColor: borderColors,
-              borderWidth: 1.5,
-              borderRadius: 5,
-              maxBarThickness: 28,
-              categoryPercentage: 0.72,
-              barPercentage: 0.85,
-              order: 2
-            },
-            {
-              // Subtle overlay line so the up/down trend across the shift is visible at a glance
-              type: 'line',
-              label: 'Trend',
-              data: slaValues,
-              borderColor: 'rgba(13, 71, 161, 0.45)',
-              backgroundColor: 'rgba(13, 71, 161, 0.45)',
-              borderWidth: 1.75,
-              borderDash: [4, 3],
-              pointRadius: 2,
-              pointHoverRadius: 4,
-              pointBackgroundColor: 'rgba(13, 71, 161, 0.65)',
-              tension: 0.35,
-              fill: false,
-              order: 1
-            }
-          ]
+          datasets: datasets
         },
         options: {
           responsive: true,
           maintainAspectRatio: false,
+          interaction: hasCmp ? { mode: 'index', intersect: false } : undefined,
           layout: { padding: { top: 32, bottom: 4, left: 4, right: 4 } },
           plugins: {
             legend: { display: false },
@@ -1021,10 +1536,11 @@
               titleFont: { family: 'Plus Jakarta Sans', size: 11, weight: '700' },
               bodyFont: { family: 'JetBrains Mono', size: 11 },
               callbacks: {
-                label: (c) => `${c.dataset.label}: ${c.parsed.y}%`,
+                label: (c) => c.parsed.y == null ? `${c.dataset.label}: no data` : `${c.dataset.label}: ${c.parsed.y}%`,
                 afterLabel: (c) => {
-                  if (c.dataset.type !== 'bar') return '';
-                  const iv = intervals[c.dataIndex];
+                  const isCmp = !!c.dataset.isCompare;
+                  if (c.dataset.type !== 'bar' && !isCmp) return '';
+                  const iv = isCmp ? c.dataset.cmpByHour[labels[c.dataIndex]] : intervals[c.dataIndex];
                   if (!iv) return '';
                   const lines = [`Calls Received: ${iv.calls}`];
                   if (iv.agents && iv.agents > 0) lines.push(`Agents Staffed: ${iv.agents}`);
@@ -1066,32 +1582,59 @@
        Two stacked charts instead of one combined dual-axis one — same hour
        axis, same width, lined up one above the other, so you can still read
        them together as a single comparison, but neither line's points or
-       labels ever cross or crowd the other's anymore. */
-    function renderSingleLineChart(canvasId, existingInstance, values, labels, lineColor, fillColor) {
+       labels ever cross or crowd the other's anymore.
+       When compare mode is on, each compared date is drawn as a dashed line in
+       its own color (no value labels, so the main line stays readable — hover
+       for the numbers). */
+    function renderSingleLineChart(canvasId, existingInstance, values, labels, lineColor, fillColor, cmpSeries, mainLabel) {
       const canvas = document.getElementById(canvasId);
       if (!canvas) return existingInstance;
       const ctx = canvas.getContext("2d");
       if (existingInstance) existingInstance.destroy();
+
+      const datasets = [{
+        label: mainLabel || '',
+        data: values,
+        borderColor: lineColor,
+        backgroundColor: fillColor,
+        borderWidth: 2,
+        pointRadius: 3,
+        pointBackgroundColor: lineColor,
+        tension: 0.3,
+        fill: true
+      }];
+
+      (cmpSeries || []).forEach(sr => {
+        datasets.push({
+          label: sr.label,
+          data: sr.values,
+          borderColor: sr.color,
+          backgroundColor: sr.color,
+          borderWidth: 2,
+          borderDash: [5, 4],
+          pointRadius: 3.5,
+          pointStyle: 'rectRot',
+          pointBackgroundColor: '#ffffff',
+          pointBorderColor: sr.color,
+          pointBorderWidth: 2,
+          tension: 0.3,
+          fill: false,
+          spanGaps: false,
+          datalabels: { display: false }
+        });
+      });
 
       return new Chart(ctx, {
         type: 'line',
         plugins: [ChartDataLabels],
         data: {
           labels: labels,
-          datasets: [{
-            data: values,
-            borderColor: lineColor,
-            backgroundColor: fillColor,
-            borderWidth: 2,
-            pointRadius: 3,
-            pointBackgroundColor: lineColor,
-            tension: 0.3,
-            fill: true
-          }]
+          datasets: datasets
         },
         options: {
           responsive: true,
           maintainAspectRatio: false,
+          interaction: (cmpSeries && cmpSeries.length) ? { mode: 'index', intersect: false } : undefined,
           layout: { padding: { top: 26, bottom: 4 } },
           plugins: {
             legend: { display: false },
@@ -1128,19 +1671,32 @@
       });
     }
 
-    function renderAgentsStaffedChart(intervals) {
+    // A compared date's value for each of the current date's hours (null where that hour isn't logged)
+    function alignCompareValues(labels, c, key) {
+      const byHour = {};
+      c.intervals.forEach(i => { byHour[i.hour] = i; });
+      return labels.map(h => (byHour[h] ? (byHour[h][key] || 0) : null));
+    }
+
+    function buildCmpSeries(labels, cmpList, key) {
+      return (cmpList || []).map(c => ({ label: `vs ${c.label}`, color: c.color, values: alignCompareValues(labels, c, key) }));
+    }
+
+    function renderAgentsStaffedChart(intervals, cmpList, curLabel) {
       const labels = intervals.map(i => i.hour);
       const agentValues = intervals.map(i => i.agents || 0);
       agentsStaffedChartInstance = renderSingleLineChart(
-        "agentsStaffedChart", agentsStaffedChartInstance, agentValues, labels, '#0d47a1', 'rgba(13, 71, 161, 0.12)'
+        "agentsStaffedChart", agentsStaffedChartInstance, agentValues, labels, '#0d47a1', 'rgba(13, 71, 161, 0.12)',
+        buildCmpSeries(labels, cmpList, 'agents'), (cmpList && cmpList.length) ? curLabel : ''
       );
     }
 
-    function renderCallsReceivedChart(intervals) {
+    function renderCallsReceivedChart(intervals, cmpList, curLabel) {
       const labels = intervals.map(i => i.hour);
       const callValues = intervals.map(i => i.calls || 0);
       callsReceivedChartInstance = renderSingleLineChart(
-        "callsReceivedChart", callsReceivedChartInstance, callValues, labels, '#2196f3', 'rgba(33, 150, 243, 0.1)'
+        "callsReceivedChart", callsReceivedChartInstance, callValues, labels, '#2196f3', 'rgba(33, 150, 243, 0.1)',
+        buildCmpSeries(labels, cmpList, 'calls'), (cmpList && cmpList.length) ? curLabel : ''
       );
     }
 
