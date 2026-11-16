@@ -122,6 +122,27 @@
     .gear-btn.toggle-active { background: var(--coral); color: #fff; border-color: var(--coral); }
     .gear-btn.compare-active { background: var(--cmp); color: #fff; border-color: var(--cmp); }
     .gear-btn.compare-active:hover { background: var(--cmp-deep); border-color: var(--cmp-deep); }
+    .gear-btn:disabled { opacity: 0.4; cursor: not-allowed; }
+    .gear-btn:disabled:hover { background: var(--blush); border-color: var(--border); }
+
+    /* ---- Week view: month + week pickers (only visible in Week mode) ---- */
+    .week-wrap { display: none; align-items: center; gap: 0.4rem; }
+    .week-wrap.show { display: flex; }
+    .dropdown.week-select { min-width: 230px; border-color: var(--coral); background-color: var(--blush); color: var(--coral-deep); }
+    .dropdown.week-month { min-width: 140px; }
+    .period-banner {
+      background: var(--blush);
+      border: 1px solid var(--pink);
+      border-left: 3px solid var(--coral);
+      border-radius: 10px;
+      padding: 0.5rem 0.85rem;
+      font-family: 'JetBrains Mono', monospace;
+      font-size: 0.68rem;
+      font-weight: 700;
+      color: var(--coral-deep);
+      line-height: 1.5;
+    }
+    .period-banner small { display: block; font-size: 0.6rem; font-weight: 600; color: var(--muted); }
 
     /* ---- Compare: second date picker (only visible while compare is on) ---- */
     .compare-wrap { display: none; align-items: center; gap: 0.45rem; }
@@ -239,6 +260,7 @@
       text-align: center; outline: none; padding: 0.08rem;
     }
     .absence-field:focus { border-color: var(--coral-deep); background: #fff; }
+    .absence-field:read-only { border-style: solid; background: var(--card); cursor: default; }
 
     /* ---------------- Main Split ---------------- */
     .dashboard-layout {
@@ -465,6 +487,7 @@
       font-size: 0.78rem; color: var(--ink); background: var(--bg); resize: vertical; outline: none;
     }
     .comment-textarea:focus { border-color: var(--coral); background: #fff; }
+    .comment-textarea:read-only { background: var(--card); color: var(--muted); }
 
     /* ---------------- Settings Modal ---------------- */
     .modal-overlay {
@@ -506,8 +529,20 @@
       </div>
     </div>
     <div class="toolbar-right">
-      <span class="label-tag">DATE</span>
+      <!-- NEW: switch between a single day and a whole week (Week 1-5) of a month -->
+      <div class="tab-group" id="viewModeToggle">
+        <button type="button" class="heatmap-tab active" data-vm="day" onclick="setViewMode('day')">Day</button>
+        <button type="button" class="heatmap-tab" data-vm="week" onclick="setViewMode('week')">Week</button>
+      </div>
+
+      <span class="label-tag" id="dateLabelTag">DATE</span>
       <select id="dateDropdown" class="dropdown" onchange="onDateSelectionChanged()"></select>
+
+      <!-- NEW: month + week pickers (only visible in Week mode) -->
+      <div class="week-wrap" id="weekWrap">
+        <select id="weekMonthSelect" class="dropdown week-month" onchange="onWeekControlChanged(false)"></select>
+        <select id="weekNumSelect" class="dropdown week-select" onchange="onWeekControlChanged(true)"></select>
+      </div>
 
       <!-- Compare: second date picker, only shown while compare mode is on -->
       <div class="compare-wrap" id="compareWrap">
@@ -535,6 +570,9 @@
     </div>
   </div>
 
+  <!-- NEW: tells you which week the numbers below are built from -->
+  <div class="period-banner" id="periodBanner" style="display:none;"></div>
+
   <!-- KPI Strip -->
   <div class="kpi-row">
     <div class="kpi-card">
@@ -546,7 +584,7 @@
         <div class="kpi-val" id="dispCalls">1,415</div>
       </div>
       <div class="kpi-delta" id="deltaCalls"></div>
-      <div class="kpi-subtext">Cumulative shift volume</div>
+      <div class="kpi-subtext" id="subCalls">Cumulative shift volume</div>
     </div>
 
     <div class="kpi-card">
@@ -588,7 +626,7 @@
       <div class="kpi-core" style="justify-content: center;">
         <input type="number" id="absenceInput" class="absence-field" value="1" min="0" onchange="onAbsenceChanged(this.value)">
       </div>
-      <div class="kpi-subtext">Unplanned exceptions</div>
+      <div class="kpi-subtext" id="subAbsence">Unplanned exceptions</div>
     </div>
   </div>
 
@@ -596,7 +634,7 @@
   <div class="dashboard-layout">
     <div class="dual-view-col">
       <div class="chart-panel" id="hourlyChartPanel">
-        <div class="panel-heading">Service Level % by Hourly Interval</div>
+        <div class="panel-heading" id="hourlyHeading">Service Level % by Hourly Interval</div>
         <div class="chart-legend-mini">
           <span><span class="swatch" style="background: var(--good-line);"></span>&ge; 80%</span>
           <span><span class="swatch" style="background: var(--warn-line);"></span>60&ndash;79%</span>
@@ -622,8 +660,10 @@
           <div class="heatmap-controls">
             <div class="tab-group">
               <button type="button" class="heatmap-tab active" data-mode="weekday" onclick="setHeatmapMode('weekday')">By Weekday</button>
+              <button type="button" class="heatmap-tab" data-mode="weekly" onclick="setHeatmapMode('weekly')">Weekly</button>
               <button type="button" class="heatmap-tab" data-mode="monthly" onclick="setHeatmapMode('monthly')">Monthly</button>
             </div>
+            <select id="hmWeekSelect" class="filter-select" style="display:none; min-width:210px;" title="Choose which week to show" onchange="onHeatmapWeekChanged()"></select>
             <select id="monthFilter" class="filter-select" onchange="onMonthFilterChanged()">
               <option value="all">All Months</option>
             </select>
@@ -690,11 +730,11 @@
   <!-- Agent Count vs Calls Received, by hour — two stacked charts, same hour axis,
        so neither line's points or labels ever overlap the other's. -->
   <div class="chart-panel" style="flex: none; min-height: 460px;">
-    <div class="panel-heading">Agent Count vs Calls Received</div>
+    <div class="panel-heading" id="agentsHeading">Agent Count vs Calls Received</div>
     <div style="display: flex; flex-direction: column; gap: 0.5rem; flex: 1; min-height: 0;">
       <div style="display: flex; flex-direction: column; min-height: 0; flex: 1;">
         <div class="chart-legend-mini">
-          <span><span class="swatch" style="background: var(--coral-deep);"></span>Agents Staffed</span>
+          <span><span class="swatch" style="background: var(--coral-deep);"></span><span id="legendAgentsLbl">Agents Staffed</span></span>
           <span id="legendCmpAgents" style="display:none; gap:0.85rem;"></span>
         </div>
         <div class="chart-viewport" style="min-height: 190px;">
@@ -703,7 +743,7 @@
       </div>
       <div style="display: flex; flex-direction: column; min-height: 0; flex: 1;">
         <div class="chart-legend-mini">
-          <span><span class="swatch" style="background: var(--coral);"></span>Calls Received</span>
+          <span><span class="swatch" style="background: var(--coral);"></span><span id="legendCallsLbl">Calls Received</span></span>
           <span id="legendCmpCalls" style="display:none; gap:0.85rem;"></span>
         </div>
         <div class="chart-viewport" style="min-height: 190px;">
@@ -715,7 +755,7 @@
 
   <!-- Commentary -->
   <div class="comment-panel">
-    <div class="comment-title">SHIFT COMMENTARY &amp; OPERATIONAL REMARKS</div>
+    <div class="comment-title" id="commentTitle">SHIFT COMMENTARY &amp; OPERATIONAL REMARKS</div>
     <textarea id="shiftComment" class="comment-textarea" placeholder="Add brief notes regarding spikes, outages, or staffing exceptions for this day..." oninput="saveComment(this.value)"></textarea>
   </div>
 
@@ -875,6 +915,234 @@
     const MAX_COMPARE = 1; // one compared date at a time (raise this up to CMP_COLORS.length and re-add the "+ Add date" button to compare more)
     let cmpLabelsOn = true; // show the % on each comparison line in the hourly chart
 
+    /* ================= Week view (NEW) =================
+       Day  = one logged date (how the dashboard always worked).
+       Week = pick a month and Week 1-5; every logged date inside that whole 7-day week is combined.
+         Weeks start on the day chosen in the "Week" selector (default Monday, so Mon-Sun).
+         A week belongs to the month it starts in. Combined figures:
+         calls        -> added up for each hour
+         SLA / AHT    -> weighted by calls (same rule as the daily KPI cards)
+         agents       -> average staffed in that hour across the logged days
+         absences     -> added up
+         call drivers -> added up across the days
+       View-only: nothing about the selected week is saved to the cloud. */
+    let viewMode = 'day';   // 'day' | 'week'
+    let weekMonth = null;   // 'YYYY-MM'
+    let weekNum = 1;        // 1..5
+    const WEEK_KEY_PREFIX = 'W|';
+
+    // Weeks are real 7-day weeks that begin on the chosen start day (default Monday -> Sunday).
+    // A week belongs to the month its FIRST day falls in, and is numbered 1-5 within that month
+    // (start on day 1-7 = Week 1, 8-14 = Week 2, 15-21 = Week 3, 22-28 = Week 4, 29-31 = Week 5).
+    // So Week totals always cover a whole week, even when it crosses into the next month.
+    const weekStartDay = 1; // weeks run Monday to Sunday
+
+    function parseISO(dateStr) {
+      const p = dateStr.split('-');
+      return new Date(parseInt(p[0], 10), parseInt(p[1], 10) - 1, parseInt(p[2], 10));
+    }
+
+    function weekInfoForDate(dateStr) {
+      const d = parseISO(dateStr);
+      const back = (d.getDay() - weekStartDay + 7) % 7;
+      const start = new Date(d.getFullYear(), d.getMonth(), d.getDate() - back);
+      const end = new Date(start.getFullYear(), start.getMonth(), start.getDate() + 6);
+      return {
+        monthKey: `${start.getFullYear()}-${String(start.getMonth() + 1).padStart(2, '0')}`,
+        wk: Math.ceil(start.getDate() / 7),
+        start, end
+      };
+    }
+
+    function fmtWeekSpan(start, end) {
+      const mn = x => x.toLocaleString('en-US', { month: 'short' });
+      return start.getMonth() === end.getMonth()
+        ? `${mn(start)} ${start.getDate()}\u2013${end.getDate()}`
+        : `${mn(start)} ${start.getDate()} \u2013 ${mn(end)} ${end.getDate()}`;
+    }
+
+    function datesInWeek(monthKey, n) {
+      if (!monthKey) return [];
+      return Object.keys(appState.dates).filter(d => {
+        const i = weekInfoForDate(d);
+        return i.monthKey === monthKey && i.wk === n;
+      }).sort();
+    }
+
+    function availableWeekNums(monthKey) {
+      return [1, 2, 3, 4, 5].filter(n => datesInWeek(monthKey, n).length > 0);
+    }
+
+    function weekMonthKeys() {
+      const set = new Set();
+      Object.keys(appState.dates).forEach(d => set.add(weekInfoForDate(d).monthKey));
+      return Array.from(set).sort().reverse();
+    }
+
+    function weekLabel(monthKey, n) {
+      const dates = datesInWeek(monthKey, n);
+      const days = dates.length;
+      const span = days ? (() => { const i = weekInfoForDate(dates[0]); return fmtWeekSpan(i.start, i.end); })() : '';
+      return { text: `Week ${n} (${span}) \u00b7 ${days} day${days === 1 ? '' : 's'} logged`, span, days };
+    }
+
+    function populateWeekControls() {
+      const mSel = document.getElementById('weekMonthSelect');
+      const wSel = document.getElementById('weekNumSelect');
+      if (!mSel || !wSel) return;
+
+      const months = weekMonthKeys();
+      if (!weekMonth || !months.includes(weekMonth)) {
+        const cur = appState.currentDate && appState.dates[appState.currentDate] ? weekInfoForDate(appState.currentDate).monthKey : '';
+        weekMonth = months.includes(cur) ? cur : (months[0] || null);
+      }
+      mSel.innerHTML = months.map(k => `<option value="${k}">${monthKeyToLabel(k)}</option>`).join('');
+      if (weekMonth) mSel.value = weekMonth;
+
+      const weeks = weekMonth ? availableWeekNums(weekMonth) : [];
+      if (!weeks.includes(weekNum)) weekNum = weeks[0] || 1;
+      wSel.innerHTML = weeks.length
+        ? weeks.map(n => `<option value="${n}">${weekLabel(weekMonth, n).text}</option>`).join('')
+        : '<option value="">No data</option>';
+      if (weeks.length) wSel.value = String(weekNum);
+    }
+
+    function onWeekControlChanged(weekOnly) {
+      const mSel = document.getElementById('weekMonthSelect');
+      const wSel = document.getElementById('weekNumSelect');
+      if (mSel && mSel.value) weekMonth = mSel.value;
+      if (weekOnly && wSel && wSel.value) {
+        weekNum = parseInt(wSel.value, 10);
+      } else if (!weekOnly) {
+        weekNum = (availableWeekNums(weekMonth)[0]) || 1; // new month -> start at its first logged week
+      }
+      populateWeekControls();
+      renderDashboard(currentViewKey());
+    }
+
+    function currentViewKey() {
+      return viewMode === 'week' ? `${WEEK_KEY_PREFIX}${weekMonth}|${weekNum}` : appState.currentDate;
+    }
+
+    function setViewMode(mode) {
+      if (mode === viewMode) return;
+      // comparing dates only makes sense day-by-day, so switch it off before entering Week view
+      if (mode === 'week' && compareEnabled) toggleCompare();
+      viewMode = mode;
+      const isWeek = mode === 'week';
+
+      document.querySelectorAll('#viewModeToggle .heatmap-tab').forEach(b => b.classList.toggle('active', b.dataset.vm === mode));
+      document.getElementById('dateDropdown').style.display = isWeek ? 'none' : '';
+      document.getElementById('dateLabelTag').innerText = isWeek ? 'WEEK' : 'DATE';
+      document.getElementById('weekWrap').classList.toggle('show', isWeek);
+
+      const cbtn = document.getElementById('compareToggleBtn');
+      if (cbtn) {
+        cbtn.disabled = isWeek;
+        cbtn.title = isWeek ? 'Date comparison is available in Day view' : 'Compare with another date';
+      }
+
+      if (isWeek) populateWeekControls();
+      renderDashboard(currentViewKey());
+    }
+
+    // Combines every logged date of the chosen week into one record shaped like a normal day record
+    function buildWeekRecord(monthKey, n) {
+      return buildRecordFromDates(datesInWeek(monthKey, n));
+    }
+
+    function buildRecordFromDates(dates) {
+      if (!dates || dates.length === 0) return null;
+
+      const acc = {};
+      let absences = 0;
+      const driverTotals = {};
+      const notes = [];
+
+      dates.forEach(d => {
+        const rec = appState.dates[d];
+        absences += (rec.absences ?? 1);
+
+        rec.intervals.forEach(iv => {
+          const a = acc[iv.hour] || (acc[iv.hour] = { calls: 0, time: 0, slaW: 0, slaSum: 0, n: 0, agSum: 0, agN: 0 });
+          a.calls += iv.calls;
+          a.time += iv.calls * iv.ahtSec;
+          a.slaW += iv.calls * iv.sla;
+          a.slaSum += iv.sla;
+          a.n += 1;
+          if (iv.agents > 0) { a.agSum += iv.agents; a.agN += 1; }
+        });
+
+        const dayDrivers = (appState.casesByDate[d] && appState.casesByDate[d].length > 0) ? appState.casesByDate[d] : (rec.drivers || []);
+        dayDrivers.forEach(x => { driverTotals[x.name] = (driverTotals[x.name] || 0) + x.count; });
+
+        const note = appState.commentsByDate[d];
+        if (note && note.trim()) notes.push(`${shortDate(d)}: ${note.trim()}`);
+      });
+
+      const intervals = Object.keys(acc).sort().map(h => {
+        const a = acc[h];
+        return {
+          hour: h,
+          calls: a.calls,
+          ahtSec: a.calls > 0 ? Math.round(a.time / a.calls) : 0,
+          sla: a.calls > 0 ? a.slaW / a.calls : (a.n > 0 ? a.slaSum / a.n : 0),
+          agents: a.agN > 0 ? Math.round(a.agSum / a.agN) : 0
+        };
+      });
+
+      const drivers = Object.entries(driverTotals).map(([name, count]) => ({ name, count })).sort((a, b) => b.count - a.count);
+      return { intervals, absences, drivers, _isWeek: true, _dates: dates, _notes: notes };
+    }
+
+    // Whatever the key is (a date, a week key, or the current date while in Week view) -> the key to actually draw
+    function resolveViewKey(dt) {
+      if (viewMode === 'week') return currentViewKey();
+      if (typeof dt === 'string' && dt.startsWith(WEEK_KEY_PREFIX)) return appState.currentDate;
+      return dt;
+    }
+
+    /* ---------- Top cards follow the Weekly / Monthly tab ----------
+       While the Service Level by Period panel is open on "Weekly" or "Monthly", the Calls, Service Level,
+       Handle Time and Call Drivers cards show the total for the week (or month) chosen in that panel.
+       Absences is left alone. By Weekday and the normal hourly view show the day / week as before. */
+    function applyPeriodKpis() {
+      if (!heatmapPanelVisible || (heatmapMode !== 'weekly' && heatmapMode !== 'monthly')) return;
+
+      let rec = null, caption = '';
+      if (heatmapMode === 'weekly') {
+        ensureHeatmapWeekKey();
+        if (!heatmapWeekKey) return;
+        const [mk, n] = heatmapWeekKey.split('|');
+        rec = buildWeekRecord(mk, Number(n));
+        if (rec) {
+          const info = weekInfoForDate(rec._dates[0]);
+          caption = `Week ${n} \u00b7 ${fmtWeekSpan(info.start, info.end)} \u00b7 ${rec._dates.length} day${rec._dates.length === 1 ? '' : 's'}`;
+        }
+      } else {
+        const dates = Object.keys(appState.dates).filter(d => heatmapMonthFilter === 'all' || d.slice(0, 7) === heatmapMonthFilter).sort();
+        rec = buildRecordFromDates(dates);
+        if (rec) caption = `${heatmapMonthFilter === 'all' ? 'All months' : monthKeyToLabel(heatmapMonthFilter)} \u00b7 ${dates.length} day${dates.length === 1 ? '' : 's'}`;
+      }
+      if (!rec) return;
+
+      const st = getIntervalStats(rec.intervals);
+      document.getElementById('dispCalls').innerText = st.totalCalls.toLocaleString();
+      document.getElementById('dispSLA').innerText = Math.round(st.sla * 100) + '%';
+      document.getElementById('dispAHT').innerText = secondsToHMS(st.aht);
+      document.getElementById('subCalls').innerText = caption;
+
+      const box = document.getElementById('dispDrivers');
+      box.innerHTML = '';
+      (rec.drivers || []).slice(0, 3).forEach(d => {
+        const div = document.createElement('div');
+        div.className = 'driver-row';
+        div.innerHTML = `<span>${d.name}</span><span class="driver-num">${d.count}</span>`;
+        box.appendChild(div);
+      });
+      setKpiDelta('deltaCalls', []); setKpiDelta('deltaSLA', []); setKpiDelta('deltaAHT', []);
+    }
+
     function toggleHeatmapPanel() {
       heatmapPanelVisible = !heatmapPanelVisible;
 
@@ -896,8 +1164,8 @@
 
       updateComparePanelVisibility();
 
+      renderDashboard(currentViewKey()); // restores the day / week cards when closing, applies the period totals when opening
       if (heatmapPanelVisible) {
-        renderHeatmap();
         renderPeriodSummary();
       }
     }
@@ -952,6 +1220,7 @@
     }
 
     function saveComment(val) {
+      if (viewMode === 'week') return; // the week's notes are read-only; edit them on each day
       appState.commentsByDate[appState.currentDate] = val;
       saveState();
     }
@@ -993,6 +1262,9 @@
         appState.currentDate = dates[0];
       }
       dropdown.value = appState.currentDate;
+
+      // keep the month / week pickers in step with newly uploaded or loaded dates
+      populateWeekControls();
     }
 
     function onDateSelectionChanged() {
@@ -1003,6 +1275,7 @@
     }
 
     function onAbsenceChanged(val) {
+      if (viewMode === 'week') return; // week absences are the sum of each day's value
       if (appState.dates[appState.currentDate]) {
         appState.dates[appState.currentDate].absences = Number(val) || 0;
         saveState();
@@ -1012,16 +1285,16 @@
 
     /* ================= Compare dates =================
        Turn on with the compare button in the top bar, then pick any other logged
-       date in the "VS" dropdown. "+ Add date" lines up more days at once (up to 3),
-       each with its own color. While it's on:
-         - each KPI (calls / SLA / AHT) shows the change vs. every compared date
-         - the hourly SLA chart overlays each compared date as a colored line with
+       date in the "VS" dropdown. While it's on:
+         - each KPI (calls / SLA / AHT) shows the change vs. the compared date
+         - the hourly SLA chart overlays the compared date as a colored line with
            its % at every hour (the "% labels" chip hides them if it gets busy)
-         - the Agents / Calls charts overlay the same dates as dashed lines
-         - a Date Comparison table under the charts lists every date side by side
-       View-only: nothing here is written to Firestore. */
+         - the Agents / Calls charts overlay the same date as a dashed line
+         - a Date Comparison table lists both dates side by side
+       Only available in Day view. View-only: nothing here is written to Firestore. */
 
     function toggleCompare() {
+      if (viewMode === 'week' && !compareEnabled) return; // not available in Week view
       compareEnabled = !compareEnabled;
 
       // Comparison lives on the hourly view, so leave the period heatmap if it's open.
@@ -1315,13 +1588,61 @@
       updateComparePanelVisibility();
     }
 
+    // Banner + labels that change wording between Day and Week view
+    function updatePeriodUI(isWeek, record) {
+      const banner = document.getElementById('periodBanner');
+      const set = (id, txt) => { const el = document.getElementById(id); if (el) el.innerText = txt; };
+
+      if (isWeek && record) {
+        const wl = weekLabel(weekMonth, weekNum);
+        const dayList = record._dates.map(d => shortDate(d).slice(0, 5)).join(', ');
+        banner.style.display = 'block';
+        banner.innerHTML = `${monthKeyToLabel(weekMonth)} &middot; Week ${weekNum} (${wl.span}) &middot; ${wl.days} day${wl.days === 1 ? '' : 's'} logged: ${dayList}`
+          + `<small>Totals are added up across these days. Service Level and Handle Time are weighted by calls; Agents Staffed is the average per hour.</small>`;
+        set('subCalls', `Week total \u00b7 ${wl.days} day${wl.days === 1 ? '' : 's'}`);
+        set('subAbsence', 'Total for the week');
+        set('hourlyHeading', 'Service Level % by Hourly Interval \u2014 Week ' + weekNum);
+        set('agentsHeading', 'Agent Count vs Calls Received \u2014 Week ' + weekNum);
+        set('legendAgentsLbl', 'Avg Agents Staffed');
+        set('legendCallsLbl', 'Calls Received (week total)');
+        set('commentTitle', 'DAILY REMARKS IN THIS WEEK (read-only \u2014 edit them in Day view)');
+      } else {
+        banner.style.display = 'none';
+        banner.innerHTML = '';
+        set('subCalls', 'Cumulative shift volume');
+        set('subAbsence', 'Unplanned exceptions');
+        set('hourlyHeading', 'Service Level % by Hourly Interval');
+        set('agentsHeading', 'Agent Count vs Calls Received');
+        set('legendAgentsLbl', 'Agents Staffed');
+        set('legendCallsLbl', 'Calls Received');
+        set('commentTitle', 'SHIFT COMMENTARY & OPERATIONAL REMARKS');
+      }
+    }
+
     function renderDashboard(dt) {
-      const record = appState.dates[dt];
-      if (!record) return;
+      dt = resolveViewKey(dt);
+      const isWeek = typeof dt === 'string' && dt.startsWith(WEEK_KEY_PREFIX);
+
+      let record;
+      if (isWeek) {
+        record = buildWeekRecord(weekMonth, weekNum);
+        if (!record) {
+          // nothing logged for this selection — keep the banner honest instead of showing stale numbers
+          const banner = document.getElementById('periodBanner');
+          banner.style.display = 'block';
+          banner.innerHTML = 'No logged dates for this week. Pick another month or week, or upload an Abandon DSR sheet.';
+          return;
+        }
+      } else {
+        record = appState.dates[dt];
+        if (!record) return;
+      }
+
+      updatePeriodUI(isWeek, record);
 
       // Compare setup: which dates (if any) are being laid over this one, each with its own color
-      if (compareEnabled) syncCompareDates(dt);
-      const cmpList = compareEnabled
+      if (compareEnabled && !isWeek) syncCompareDates(dt);
+      const cmpList = (compareEnabled && !isWeek)
         ? appState.compareDates.filter(d => d !== dt && appState.dates[d]).map((d, i) => ({
             date: d,
             record: appState.dates[d],
@@ -1330,7 +1651,7 @@
             color: CMP_COLORS[i % CMP_COLORS.length]
           }))
         : [];
-      const curLabel = shortDate(dt);
+      const curLabel = isWeek ? `Week ${weekNum}` : shortDate(dt);
 
       const intervals = record.intervals;
       let totalCalls = 0;
@@ -1371,11 +1692,15 @@
       document.getElementById("dispCalls").innerText = totalCalls.toLocaleString();
       document.getElementById("dispSLA").innerText = Math.round(weightedSLA * 100) + "%";
       document.getElementById("dispAHT").innerText = secondsToHMS(weightedAHT);
-      document.getElementById("absenceInput").value = record.absences ?? 1;
+
+      const absInput = document.getElementById("absenceInput");
+      absInput.value = record.absences ?? 1;
+      absInput.readOnly = isWeek;
+      absInput.title = isWeek ? 'Sum of each logged day\u2019s absences. Edit them in Day view.' : '';
 
       const driversContainer = document.getElementById("dispDrivers");
       driversContainer.innerHTML = "";
-      const currentDrivers = (appState.casesByDate[dt] && appState.casesByDate[dt].length > 0)
+      const currentDrivers = (!isWeek && appState.casesByDate[dt] && appState.casesByDate[dt].length > 0)
         ? appState.casesByDate[dt]
         : record.drivers;
 
@@ -1390,7 +1715,7 @@
       document.getElementById("sumPeakHr").innerText = `at ${peakObj.hour}`;
 
       document.getElementById("sumLow").innerText = Math.round(lowObj.sla * 100) + "%";
-      document.getElementById("sumLowHr").innerText = `Lowest point`;
+      document.getElementById("sumLowHr").innerText = `Lowest point` + (lowObj ? ` at ${lowObj.hour}` : '');
 
       if (recoveryObj) {
         document.getElementById("sumRecover").innerText = `${recoveryObj.hour} (${Math.round(recoveryObj.sla * 100)}%)`;
@@ -1403,7 +1728,14 @@
       document.getElementById("guideCrit").innerText = `Critical : ${formatDashRanges(redHourIndices)}`;
       document.getElementById("guidePeak").innerText = `Peak : ${formatDashRanges(greenOrangeHourIndices)}`;
 
-      document.getElementById("shiftComment").value = appState.commentsByDate[dt] || "";
+      const commentBox = document.getElementById("shiftComment");
+      if (isWeek) {
+        commentBox.readOnly = true;
+        commentBox.value = record._notes.length ? record._notes.join('\n') : 'No remarks were written for the days in this week.';
+      } else {
+        commentBox.readOnly = false;
+        commentBox.value = appState.commentsByDate[dt] || "";
+      }
 
       renderComparison(dt, record, cmpList);
 
@@ -1802,6 +2134,111 @@
         });
     }
 
+    /* ---------- Weekly tab: pick Week 1-5, see that week day by day ----------
+       Same layout as "By Weekday", but every row is one real date of the chosen week
+       (Monday to Sunday by default) instead of an average over many dates. The first row is the
+       WEEK TOTAL: every logged day combined, call-weighted, so it matches Week view on the main dashboard. */
+    let heatmapWeekKey = null; // 'YYYY-MM|n'
+
+    function listHeatmapWeeks() {
+      const map = {};
+      Object.keys(appState.dates).forEach(dateStr => {
+        const info = weekInfoForDate(dateStr);
+        if (heatmapMonthFilter !== 'all' && info.monthKey !== heatmapMonthFilter) return;
+        const key = `${info.monthKey}|${info.wk}`;
+        if (!map[key]) map[key] = { key, monthKey: info.monthKey, wk: info.wk, start: info.start, end: info.end, days: 0 };
+        map[key].days += 1;
+      });
+      return Object.values(map).sort((a, b) => a.start - b.start);
+    }
+
+    function ensureHeatmapWeekKey() {
+      const weeks = listHeatmapWeeks();
+      if (!weeks.some(w => w.key === heatmapWeekKey)) heatmapWeekKey = weeks.length ? weeks[weeks.length - 1].key : null; // newest week by default
+      return weeks;
+    }
+
+    function populateHeatmapWeekSelect() {
+      const sel = document.getElementById('hmWeekSelect');
+      if (!sel) return;
+      const weeks = ensureHeatmapWeekKey();
+      sel.innerHTML = weeks.length
+        ? weeks.map(w => {
+            const monthName = new Date(w.start.getFullYear(), w.start.getMonth(), 1).toLocaleString('en-US', { month: 'short', year: 'numeric' });
+            const prefix = heatmapMonthFilter === 'all' ? `${monthName} \u00b7 ` : '';
+            return `<option value="${w.key}">${prefix}Week ${w.wk} (${fmtWeekSpan(w.start, w.end)})</option>`;
+          }).join('')
+        : '<option value="">No data</option>';
+      if (heatmapWeekKey) sel.value = heatmapWeekKey;
+    }
+
+    function onHeatmapWeekChanged() {
+      const sel = document.getElementById('hmWeekSelect');
+      heatmapWeekKey = sel && sel.value ? sel.value : null;
+      renderHeatmap();
+      renderPeriodSummary();
+    }
+
+    function computeWeekBuckets() {
+      const weeks = ensureHeatmapWeekKey();
+      const w = weeks.find(x => x.key === heatmapWeekKey);
+      if (!w) return [];
+
+      const dayNames = ["Sunday", "Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday"];
+      const monShort = d => d.toLocaleString('en-US', { month: 'short' }) + ' ' + d.getDate();
+      const rows = [];
+      const tot = { hourCalls: Array(24).fill(0), hourSlaW: Array(24).fill(0), hourSlaSum: Array(24).fill(0), hourCount: Array(24).fill(0), calls: 0, slaW: 0, days: 0 };
+
+      for (let i = 0; i < 7; i++) {
+        const d = new Date(w.start.getFullYear(), w.start.getMonth(), w.start.getDate() + i);
+        const iso = `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}-${String(d.getDate()).padStart(2, '0')}`;
+        const rec = appState.dates[iso];
+        const hours = Array(24).fill(null);
+        let calls = 0, slaW = 0;
+
+        if (rec && rec.intervals) {
+          tot.days += 1;
+          rec.intervals.forEach(iv => {
+            const hr = parseInt(String(iv.hour).split(':')[0], 10);
+            if (Number.isNaN(hr) || hr < 0 || hr > 23) return;
+            hours[hr] = iv.sla;
+            calls += iv.calls;
+            slaW += iv.calls * iv.sla;
+            tot.hourCalls[hr] += iv.calls;
+            tot.hourSlaW[hr] += iv.calls * iv.sla;
+            tot.hourSlaSum[hr] += iv.sla;
+            tot.hourCount[hr] += 1;
+          });
+          tot.calls += calls; tot.slaW += slaW;
+        }
+
+        rows.push({
+          label: dayNames[d.getDay()],
+          sub: rec ? `${monShort(d)} \u00b7 ${calls.toLocaleString()} calls` : `${monShort(d)} \u00b7 no data logged`,
+          hours,
+          totalSLA: calls > 0 ? slaW / calls : 0,
+          noData: !rec
+        });
+      }
+
+      const totalHours = tot.hourCount.map((n, i) => n === 0 ? null : (tot.hourCalls[i] > 0 ? tot.hourSlaW[i] / tot.hourCalls[i] : tot.hourSlaSum[i] / n));
+      rows.unshift({
+        label: `WEEK ${w.wk} TOTAL`,
+        sub: `${fmtWeekSpan(w.start, w.end)} \u00b7 ${tot.days} of 7 days \u00b7 ${tot.calls.toLocaleString()} calls`,
+        hours: totalHours,
+        totalSLA: tot.calls > 0 ? tot.slaW / tot.calls : 0,
+        noData: tot.days === 0,
+        isTotal: true
+      });
+      return rows;
+    }
+
+    function getPeriodBuckets() {
+      if (heatmapMode === 'monthly') return computeMonthBuckets();
+      if (heatmapMode === 'weekly') return computeWeekBuckets();
+      return computeWeekdayBuckets();
+    }
+
     /* ---------- Month filter: lets the person pick a single month (e.g. September, then
        August) so the Weekly/Monthly bands only show that month instead of everything at once ---------- */
     function getAvailableMonths() {
@@ -1847,10 +2284,12 @@
 
     function setHeatmapMode(mode) {
       heatmapMode = mode;
-      document.querySelectorAll('.heatmap-tab').forEach(btn => {
+      document.querySelectorAll('.heatmap-tab[data-mode]').forEach(btn => {
         btn.classList.toggle('active', btn.dataset.mode === mode);
       });
-      renderHeatmap();
+      const hmWk = document.getElementById('hmWeekSelect');
+      if (hmWk) hmWk.style.display = mode === 'weekly' ? '' : 'none';
+      renderDashboard(currentViewKey());
       renderPeriodSummary();
     }
 
@@ -1858,11 +2297,13 @@
       const list = document.getElementById("weeklyHeatmap");
       if (!list) return;
 
+      if (heatmapMode === 'weekly') populateHeatmapWeekSelect();
+      applyPeriodKpis();
       const sub = document.getElementById("heatmapSub");
       // computeWeekdayBuckets() applies the month filter internally (it needs to check
       // each date's own month before bucketing it into Monday/Tuesday/etc.); the monthly
       // view still filters its already-built per-month buckets by key, same as before.
-      let buckets = heatmapMode === 'monthly' ? computeMonthBuckets() : computeWeekdayBuckets();
+      let buckets = getPeriodBuckets();
 
       if (heatmapMonthFilter !== 'all' && heatmapMode === 'monthly') {
         buckets = buckets.filter(b => b.monthKey === heatmapMonthFilter);
@@ -1871,7 +2312,9 @@
       if (sub) {
         const baseLabel = heatmapMode === 'monthly'
           ? 'Each row is a calendar month // hourly pattern + total SLA'
-          : 'Averaged across every logged Monday, Tuesday, etc. // hourly pattern + total SLA';
+          : (heatmapMode === 'weekly'
+            ? 'One row per day of the selected week, plus the week total // hourly pattern + total SLA, weighted by calls'
+            : 'Averaged across every logged Monday, Tuesday, etc. // hourly pattern + total SLA');
         sub.innerText = heatmapMonthFilter !== 'all'
           ? `${baseLabel} \u2014 filtered to ${monthKeyToLabel(heatmapMonthFilter)}`
           : baseLabel;
@@ -1905,6 +2348,7 @@
       buckets.forEach(b => {
         const row = document.createElement("div");
         row.className = "bucket-row";
+        if (b.isTotal) { row.style.borderColor = 'var(--coral)'; row.style.background = 'var(--blush)'; }
 
         const labelWrap = document.createElement("div");
         labelWrap.className = "bucket-label-wrap";
@@ -1932,12 +2376,18 @@
         });
         row.appendChild(strip);
 
-        const totalColor = colorForPct(b.totalSLA);
         const total = document.createElement("div");
         total.className = "bucket-total";
-        total.style.background = totalColor.bg;
-        total.style.border = `1px solid ${totalColor.border}`;
-        total.innerHTML = `<div class="val" style="color:${totalColor.text}">${Math.round(b.totalSLA * 100)}%</div><div class="lbl" style="color:${totalColor.text}">TOTAL SLA</div>`;
+        if (b.noData) {
+          total.style.background = 'var(--card)';
+          total.style.border = '1px dashed var(--border)';
+          total.innerHTML = `<div class="val" style="color:var(--muted)">\u2013</div><div class="lbl" style="color:var(--muted)">NO DATA</div>`;
+        } else {
+          const totalColor = colorForPct(b.totalSLA);
+          total.style.background = totalColor.bg;
+          total.style.border = `1px solid ${totalColor.border}`;
+          total.innerHTML = `<div class="val" style="color:${totalColor.text}">${Math.round(b.totalSLA * 100)}%</div><div class="lbl" style="color:${totalColor.text}">${b.isTotal ? 'WEEK SLA' : 'TOTAL SLA'}</div>`;
+        }
         row.appendChild(total);
 
         list.appendChild(row);
@@ -1952,7 +2402,7 @@
       const container = document.getElementById("periodSummaryList");
       if (!container) return;
 
-      let buckets = heatmapMode === 'monthly' ? computeMonthBuckets() : computeWeekdayBuckets();
+      let buckets = getPeriodBuckets();
       if (heatmapMonthFilter !== 'all' && heatmapMode === 'monthly') {
         buckets = buckets.filter(b => b.monthKey === heatmapMonthFilter);
       }
