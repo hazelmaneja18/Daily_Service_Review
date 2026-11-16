@@ -112,14 +112,14 @@
       background: var(--card-bg);
       border: 1px solid var(--border-subtle);
       border-radius: 11px;
-      padding: 0.65rem 0.85rem;
+      padding: 0.6rem 0.85rem;
       box-shadow: var(--shadow-card);
       display: flex;
       flex-direction: column;
       align-items: center;
       text-align: center;
       justify-content: space-between;
-      min-height: 96px;
+      min-height: 112px;
       position: relative;
       transition: transform 0.15s ease, box-shadow 0.15s ease;
     }
@@ -177,6 +177,18 @@
       line-height: 1;
       letter-spacing: -0.03em;
     }
+    /* Survey pill inside each tenure card */
+    .kpi-survey {
+      display: inline-flex; align-items: center; gap: 0.35rem;
+      font-family: 'JetBrains Mono', monospace;
+      font-size: 0.72rem; font-weight: 900;
+      padding: 0.14rem 0.6rem;
+      border-radius: 12px;
+      border: 1px solid rgba(13,43,69,0.08);
+      background: #f1f5f9; color: var(--text-muted);
+      margin-bottom: 0.2rem;
+    }
+    .kpi-survey small { font-size: 0.56rem; font-weight: 700; opacity: 0.8; }
     .kpi-subtext {
       font-size: 0.66rem;
       color: var(--text-muted);
@@ -201,7 +213,7 @@
       background: linear-gradient(180deg, #ffffff 0%, #f5fafe 100%);
       border: 1px solid var(--border-subtle);
       border-radius: 11px;
-      padding: 0.75rem 1rem 0.4rem;
+      padding: 0.75rem 1rem 0.5rem;
       box-shadow: var(--shadow-card);
       display: flex;
       flex-direction: column;
@@ -211,12 +223,11 @@
       display: flex;
       justify-content: space-between;
       align-items: center;
-      margin-bottom: 0.2rem;
+      margin-bottom: 0.3rem;
       flex-shrink: 0;
     }
     .chart-heading { font-size: 0.86rem; font-weight: 800; color: var(--text-main); display: flex; align-items: center; gap: 0.45rem; }
     .chart-heading::before { content: ""; width: 3px; height: 14px; background: var(--teal-primary); border-radius: 2px; display: inline-block; }
-    /* Shows which group (Tech Sup / DIC) the charts and cards are currently built from */
     .role-badge {
       background: var(--teal-subtle);
       color: var(--teal-dark);
@@ -229,12 +240,19 @@
       border-radius: 12px;
     }
     .chart-viewport { position: relative; width: 100%; flex: 1; min-height: 0; }
-    .multi-chart-grid { display: flex; flex-direction: column; gap: 0.55rem; height: 100%; }
+    /* 2 x 2 grid: Consult, Hold, Conference, Survey */
+    .multi-chart-grid {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      grid-template-rows: 1fr 1fr;
+      gap: 0.55rem;
+      height: 100%;
+    }
     .mini-chart-block {
-      flex: 1;
       display: flex;
       flex-direction: column;
       min-height: 0;
+      min-width: 0;
       background: #ffffff;
       border: 1px solid var(--border-subtle);
       border-radius: 9px;
@@ -245,7 +263,9 @@
       font-weight: 800;
       margin-bottom: 0.15rem;
       flex-shrink: 0;
+      display: flex; justify-content: space-between; align-items: center;
     }
+    .mini-chart-title small { font-size: 0.58rem; font-weight: 700; color: var(--text-soft); }
     .mini-chart-canvas-wrap { position: relative; flex: 1; min-height: 0; }
 
     /* Comparison Table Panel */
@@ -323,22 +343,19 @@
     .selector-box { display: flex; flex-direction: column; gap: 0.15rem; }
     .selector-box label { font-size: 0.62rem; font-weight: 800; color: var(--text-muted); text-transform: uppercase; }
 
-    /* Weekly comparison: a week picker sits beside each month picker */
     .selector-row { display: flex; gap: 0.35rem; }
     .selector-row .dropdown { min-width: 0; flex: 1; }
     .selector-row .week-select { flex: 1.15; border-color: var(--teal-border); background-color: var(--teal-subtle); }
     .comp-selectors.weekly { grid-template-columns: 1fr; }
-    /* Weekly comparison: pick which tenure tier to show */
     .tier-filter { display: flex; align-items: center; gap: 0.5rem; }
     .tier-filter-lbl { font-size: 0.62rem; font-weight: 800; color: var(--text-muted); text-transform: uppercase; }
     .tier-filter .comp-mode-toggle { flex: 1; }
     .tier-filter .mode-btn { flex: 1; padding: 0.22rem 0.3rem; }
-    /* three comparison modes no longer fit beside the title, so the switch gets its own row */
     .comp-header-row { flex-wrap: wrap; }
     .comp-header-row .comp-mode-toggle { flex: 1 1 100%; }
     .comp-header-row .mode-btn { flex: 1; }
 
-    /* Cohort Comparison Cards — replaces the old plain matrix table */
+    /* Cohort Comparison Cards */
     .comparison-grid {
       display: grid;
       grid-template-columns: repeat(3, 1fr);
@@ -372,7 +389,7 @@
       display: flex;
       flex-direction: column;
       gap: 0.3rem;
-      padding: 0.65rem 0.75rem;
+      padding: 0.55rem 0.75rem;
       border-bottom: 1px dashed var(--border-subtle);
     }
     .cohort-metric-row:last-child { border-bottom: none; }
@@ -395,7 +412,7 @@
       font-family: 'JetBrains Mono', monospace;
     }
     .trend-svg { width: 14px; height: 14px; flex-shrink: 0; }
-    
+
     .c-down { color: var(--trend-down); }
     .c-down svg { stroke: var(--trend-down); }
 
@@ -471,8 +488,6 @@
     }
     .pill-btn:hover { background: var(--teal-subtle); border-color: var(--teal-primary); }
 
-    /* The Agent Stats window fills the whole page. (.modal-box.agent-box is needed so these
-       sizes win over the plain .modal-box width, which is declared further down.) */
     .modal-box.agent-box { width: calc(100vw - 1.2rem); max-width: none; height: calc(100vh - 1.2rem); max-height: none; padding: 0.85rem 1rem; overflow: hidden; gap: 0.5rem; }
     .agent-filters { display: flex; flex-wrap: wrap; gap: 0.5rem 0.9rem; align-items: flex-end; background: #eef7ff; border: 1px solid var(--border-subtle); border-radius: 8px; padding: 0.45rem 0.65rem; }
     .agent-filter { display: flex; flex-direction: column; gap: 0.15rem; }
@@ -487,7 +502,6 @@
     .ag-sw { display: inline-block; width: 11px; height: 11px; border-radius: 3px; border: 1px solid rgba(13,43,69,0.12); }
     .agent-box > .agent-list-wrap { flex: 1 1 auto; min-height: 0; flex-shrink: 1; overflow-x: hidden; overflow-y: auto; border: 1px solid var(--border-subtle); border-radius: 9px; background: #ffffff; }
 
-    /* One fluid grid for header and rows, so nothing needs a sideways scroll */
     .ag-grid { display: grid; grid-template-columns: minmax(140px, 1.5fr) 52px minmax(92px, 1fr) repeat(3, minmax(80px, 1fr)) 62px 56px; align-items: center; column-gap: 0.55rem; padding: 0.4rem 0.7rem; border-bottom: 1px solid #edf5fd; }
     .ag-grid.ag-head { position: sticky; top: 0; z-index: 2; background: #eef7ff; border-bottom: 1px solid var(--border-subtle); padding-top: 0.5rem; padding-bottom: 0.5rem; }
     .ag-h { font-size: 0.6rem; font-weight: 900; color: var(--text-muted); text-transform: uppercase; letter-spacing: 0.03em; cursor: pointer; user-select: none; white-space: nowrap; }
@@ -501,12 +515,10 @@
     .ag-calls { font-family: 'JetBrains Mono', monospace; font-size: 0.72rem; font-weight: 800; color: var(--text-main); }
     .ag-sheat { font-family: 'JetBrains Mono', monospace; font-size: 0.74rem; font-weight: 900; text-align: center; border-radius: 7px; padding: 0.32rem 0; border: 1px solid rgba(13,43,69,0.08); }
 
-    /* Handle Time heat-map cell */
     .ag-heat { display: flex; flex-direction: column; align-items: center; justify-content: center; border-radius: 8px; padding: 0.28rem 0.3rem; border: 1px solid rgba(13,43,69,0.08); line-height: 1.15; }
     .ag-heat-val { font-family: 'JetBrains Mono', monospace; font-size: 0.8rem; font-weight: 900; }
     .ag-heat-d { font-family: 'JetBrains Mono', monospace; font-size: 0.56rem; font-weight: 800; opacity: 0.85; }
 
-    /* Consult / Hold / Conference: value over a thin bar */
     .ag-metric { display: flex; flex-direction: column; gap: 0.2rem; min-width: 0; }
     .ag-val { font-family: 'JetBrains Mono', monospace; font-size: 0.72rem; font-weight: 800; }
     .ag-track { position: relative; height: 7px; background: #edf5fd; border-radius: 4px; }
@@ -515,7 +527,6 @@
     .ag-none { color: var(--text-soft); font-weight: 600; }
     .agent-empty { padding: 2rem 1rem; text-align: center; font-size: 0.8rem; font-weight: 700; color: var(--text-muted); }
 
-    /* Progress view (weekly / monthly comparison per agent) */
     .agent-progress { background: #f3eefb; border-color: #d7c9f0; }
     .chip-row { display: flex; flex-wrap: wrap; gap: 0.3rem; }
     .pchip { border: 1px solid var(--teal-border); background: #ffffff; color: var(--teal-dark); font-size: 0.64rem; font-weight: 800; padding: 0.24rem 0.6rem; border-radius: 12px; cursor: pointer; white-space: nowrap; }
@@ -598,13 +609,13 @@
       display: flex;
       align-items: center;
       justify-content: space-between;
+      gap: 0.6rem;
       transition: all 0.15s ease;
     }
     .upload-btn-label:hover { background: #bbdefb; }
-    .upload-status { font-size: 0.7rem; color: var(--trend-down); font-weight: 700; }
+    .upload-status { font-size: 0.7rem; color: var(--trend-down); font-weight: 700; text-align: right; }
     input[type="file"] { display: none; }
 
-    /* Roster Search & Filters */
     .roster-filter-bar {
       display: grid;
       grid-template-columns: 1fr 120px 120px 130px;
@@ -677,7 +688,6 @@
     }
     .add-btn:hover { background: var(--teal-primary); }
 
-    /* Team leader chips (Settings) */
     .leader-chips { display: flex; flex-wrap: wrap; gap: 0.35rem; }
     .leader-chip {
       display: inline-flex; align-items: center; gap: 0.35rem;
@@ -732,8 +742,6 @@
     </div>
 
     <div class="toolbar-right">
-      <!-- Role view: Tech Support Reps vs DIC. Everything on the page (cards, charts,
-           comparison) follows this switch. -->
       <span class="label-tag">View:</span>
       <div class="comp-mode-toggle" id="roleToggle">
         <button type="button" id="btnRoleTechSup" class="mode-btn active" onclick="setRoleView('techsup')">Tech Sup</button>
@@ -747,39 +755,38 @@
     </div>
   </div>
 
-  <!-- Centered KPI Cards -->
+  <!-- Centered KPI Cards (Handle Time + Survey per tenure tier) -->
   <div class="kpi-row">
-    <!-- 1 Year Above -->
     <div class="kpi-card">
       <div class="kpi-header-row">
         <span class="kpi-header">1 YEAR ABOVE</span>
-        <span class="kpi-count-badge" id="count1Year">28 Agents</span>
+        <span class="kpi-count-badge" id="count1Year">0 Agents</span>
       </div>
       <div class="kpi-core">
         <div class="kpi-icon-wrap">
           <svg viewBox="0 0 24 24"><path d="M12 2a10 10 0 1 0 10 10A10 10 0 0 0 12 2zm1 14h-2V7h2v9zm0-11h-2V3h2v2z"/></svg>
         </div>
-        <div class="kpi-val" id="card1Year">0:19:46</div>
+        <div class="kpi-val" id="card1Year">-</div>
       </div>
+      <span class="kpi-survey" id="surv1Year">★ –</span>
       <div class="kpi-subtext" id="sub1Year">Volume-weighted AHT</div>
     </div>
 
-    <!-- 6 - 12 Months -->
     <div class="kpi-card">
       <div class="kpi-header-row">
         <span class="kpi-header">6 - 12 MONTHS</span>
-        <span class="kpi-count-badge" id="count6to12">4 Agents</span>
+        <span class="kpi-count-badge" id="count6to12">0 Agents</span>
       </div>
       <div class="kpi-core">
         <div class="kpi-icon-wrap">
           <svg viewBox="0 0 24 24"><path d="M12 1a9 9 0 0 0-9 9v7c0 1.66 1.34 3 3 3h3v-8H5v-2c0-3.87 3.13-7 7-7s7 3.13 7 7v2h-4v8h3c1.66 0 3-1.34 3-3v-7a9 9 0 0 0-9-9z"/></svg>
         </div>
-        <div class="kpi-val" id="card6to12">0:20:49</div>
+        <div class="kpi-val" id="card6to12">-</div>
       </div>
+      <span class="kpi-survey" id="surv6to12">★ –</span>
       <div class="kpi-subtext" id="sub6to12">Mid-tenured tier</div>
     </div>
 
-    <!-- 0 - 6 Months -->
     <div class="kpi-card">
       <div class="kpi-header-row">
         <span class="kpi-header">0 - 6 MONTHS</span>
@@ -791,10 +798,10 @@
         </div>
         <div class="kpi-val" id="card0to6" style="font-size: 1.15rem; color: var(--text-muted);">No Data</div>
       </div>
+      <span class="kpi-survey" id="surv0to6">★ –</span>
       <div class="kpi-subtext" id="sub0to6">New hire bracket</div>
     </div>
 
-    <!-- Trainee -->
     <div class="kpi-card">
       <div class="kpi-header-row">
         <span class="kpi-header">TRAINEE</span>
@@ -806,17 +813,18 @@
         </div>
         <div class="kpi-val" id="cardTrainee" style="font-size: 1.15rem; color: var(--text-muted);">No Trainees</div>
       </div>
+      <span class="kpi-survey" id="survTrainee">★ –</span>
       <div class="kpi-subtext" id="subTrainee">Under 45 days</div>
     </div>
   </div>
 
   <!-- Dashboard Split -->
   <div class="dashboard-layout">
-    
-    <!-- Clustered Bar Chart -->
+
+    <!-- Charts -->
     <div class="chart-panel">
       <div class="chart-header">
-        <div class="chart-heading">Consult, Hold & Conference Times by Tenurity</div>
+        <div class="chart-heading">Consult, Hold, Conference &amp; Survey by Tenurity</div>
         <span class="role-badge" id="roleBadge">Tech Sup</span>
       </div>
       <div class="chart-viewport">
@@ -833,16 +841,20 @@
             <div class="mini-chart-title" style="color:#6d28d9;">Conference Time</div>
             <div class="mini-chart-canvas-wrap"><canvas id="chartConf"></canvas></div>
           </div>
+          <div class="mini-chart-block">
+            <div class="mini-chart-title" style="color:#0e8a60;">Survey Score <small id="surveyTargetNote">target 4.70 · scale 0–5</small></div>
+            <div class="mini-chart-canvas-wrap"><canvas id="chartSurvey"></canvas></div>
+          </div>
         </div>
       </div>
     </div>
 
-    <!-- Comparison Table Panel -->
+    <!-- Comparison Panel -->
     <div class="comp-panel">
       <div class="comp-top-cluster">
         <div class="comp-header-row">
           <div class="comp-title-badge">DATA COMPARISON</div>
-          
+
           <div class="comp-mode-toggle">
             <button id="btnModeCoverage" class="mode-btn active" onclick="setComparisonMode('coverage')">Coverage Data</button>
             <button id="btnModeMonthly" class="mode-btn" onclick="setComparisonMode('monthly')">Monthly Comparison</button>
@@ -850,7 +862,6 @@
           </div>
         </div>
 
-        <!-- Month Selector Box (Weekly Comparison adds a week picker beside each month) -->
         <div class="comp-selectors" id="compSelectors">
           <div class="selector-box">
             <label id="baselineLabel">Baseline Month</label>
@@ -868,7 +879,6 @@
           </div>
         </div>
 
-        <!-- Weekly Comparison: show every tenure tier, or just one -->
         <div class="tier-filter" id="weeklyTierRow" style="display:none;">
           <span class="tier-filter-lbl">Show</span>
           <div class="comp-mode-toggle" id="weeklyTierToggle">
@@ -880,17 +890,14 @@
           </div>
         </div>
 
-        <!-- Cohort Comparison Cards -->
         <div class="comparison-grid" id="matrixTableBody"></div>
 
-        <!-- Summary Highlights -->
         <div class="comp-summary-box">
           <div class="summary-box-title" id="summaryBoxModeTitle">Coverage Summary (Day 1 - Day 9)</div>
           <div class="summary-list" id="compSummaryList"></div>
         </div>
       </div>
 
-      <!-- Roster footprint: Tech Support Agents (Rep + DIC) and Tech Trainees are counted separately, then the whole total -->
       <div class="comp-footprint">
         <div class="footprint-col">
           <span class="footprint-lbl">Tech Support Agent Roster</span>
@@ -917,7 +924,7 @@
 
   </div>
 
-  <!-- Settings Modal with Search & Team/Role/Tenure Filtering -->
+  <!-- Settings Modal -->
   <div class="modal-overlay" id="settingsModal" onclick="if(event.target === this) toggleModal(false)">
     <div class="modal-box">
       <div class="modal-header">
@@ -925,7 +932,6 @@
         <button class="close-btn" onclick="toggleModal(false)">&times;</button>
       </div>
 
-      <!-- Upload Box -->
       <div class="unified-upload-box">
         <span class="upload-heading">Upload Monthly Tenurity Report (.xlsx / .csv)</span>
         <label for="unifiedFileInput" class="upload-btn-label">
@@ -933,10 +939,9 @@
           <span class="upload-status" id="unifiedUploadStatus">Checking Cloud...</span>
         </label>
         <input type="file" id="unifiedFileInput" accept=".xlsx,.xls,.csv" onchange="handleUnifiedUpload(event)">
-        <span style="font-size: 0.68rem; color: var(--text-muted);">Reads DSR & Monthly AHT reports automatically. Tech Sup and DIC figures are both built from the same upload.</span>
+        <span style="font-size: 0.68rem; color: var(--text-muted);">Reads DSR & Monthly AHT reports automatically (including the Survey column). Tech Sup and DIC figures are both built from the same upload, and saved to the cloud so they are still here after a refresh.</span>
       </div>
 
-      <!-- Roster Excel upload: updates Lead / Role / Date of Hire for everyone listed in the file -->
       <div class="unified-upload-box">
         <span class="upload-heading">Update Roster from Excel (.xlsx)</span>
         <label for="rosterFileInput" class="upload-btn-label">
@@ -950,7 +955,6 @@
         <span style="font-size: 0.68rem; color: var(--text-muted);">Matches agents by name: updates their lead, role and hire date, adds anyone new, and adds new leads to the Team Leaders list. Tenure tiers recalculate from the hire dates. Re-upload the monthly report afterwards so call data is regrouped by the new tenure.</span>
       </div>
 
-      <!-- Team leaders: add a leader here and they appear in every Team Leader dropdown -->
       <div style="font-size: 0.74rem; font-weight: 800; color: var(--text-main);">Team Leaders</div>
       <div class="add-agent-bar">
         <input type="text" id="newLeaderName" class="add-agent-input" placeholder="New team leader name (e.g. Eizel Payabyab)" onkeydown="if(event.key === 'Enter') addTeamLeader()">
@@ -958,7 +962,6 @@
       </div>
       <div class="leader-chips" id="leaderChips"></div>
 
-      <!-- Add New Agent Form -->
       <div style="font-size: 0.74rem; font-weight: 800; color: var(--text-main); margin-top: 0.1rem;">Date of Hire (DOH) Reference Roster</div>
       <div class="add-agent-bar">
         <input type="text" id="newAgentName" class="add-agent-input" placeholder="New Agent Name (e.g. John Doe)">
@@ -968,7 +971,6 @@
         <button class="add-btn" onclick="addNewAgent()">+ Add</button>
       </div>
 
-      <!-- Search and Filter Tool Strip (Includes Tenure Filter) -->
       <div class="roster-filter-bar" style="grid-template-columns: 1fr 120px 120px 130px;">
         <input type="text" id="searchAgentInput" class="filter-search-input" placeholder="🔍 Search name or surname..." oninput="renderDohTable()">
         <select id="filterTeamSelect" class="filter-select" onchange="renderDohTable()"></select>
@@ -985,7 +987,6 @@
         <span class="roster-count-tag" id="filteredRosterCount">Showing: 32 agents</span>
       </div>
 
-      <!-- Roster Table -->
       <div class="doh-table-wrap">
         <table class="doh-table">
           <thead>
@@ -1004,7 +1005,7 @@
     </div>
   </div>
 
-  <!-- Agent Stats: every agent's Handle / Consult / Hold / Conference time, with group + lead filters -->
+  <!-- Agent Stats -->
   <div class="modal-overlay" id="agentModal" onclick="if(event.target === this) toggleAgentModal(false)">
     <div class="modal-box agent-box">
       <div class="modal-header">
@@ -1038,7 +1039,6 @@
         </div>
       </div>
 
-      <!-- Progress view controls: weekly or monthly comparison, which metric, and which weeks / months -->
       <div class="agent-filters agent-progress" id="agentProgressBar" style="display:none;">
         <div class="agent-filter">
           <label>Compare by</label>
@@ -1087,9 +1087,6 @@
       firebase.initializeApp(firebaseConfig);
     }
     const db = firebase.firestore();
-    // Some corporate networks/proxies block Firestore's default streaming (WebChannel)
-    // connection, which makes writes look successful locally but never actually
-    // reach the cloud. Forcing long-polling works around that.
     db.settings({ experimentalForceLongPolling: true });
 
     Chart.register(ChartDataLabels);
@@ -1188,13 +1185,9 @@
     let dohRoster = defaultRoster;
     let monthlyDataStore = defaultMonthlyStore;
 
-    // Roles a roster entry can have (matches the "Role" column of the tenurity Excel)
     const ROLE_OPTIONS = ["Tech Support Rep", "Tech Support Rep - DIC", "Tech Support Rep - Trainee", "Escalation Lead", "Team Leader", "Others"];
-
-    // Everyone who can be picked as a lead. Add more in Settings, or by uploading the tenurity Excel.
     let teamLeaders = ["Edwin Cuesta", "Hazel Maneja", "Kyle Sioson", "Frank Molina", "Eizel Payabyab", "AJ Dela Cruz"];
 
-    // Maps any wording of a role (from the Excel or older saved data) onto one of ROLE_OPTIONS
     function normalizeRole(raw) {
       const s = String(raw || '').trim().toLowerCase();
       if (!s) return 'Others';
@@ -1210,20 +1203,17 @@
       return String(str).replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;');
     }
 
-    // <option> list for a dropdown; keeps an unlisted current value selectable instead of dropping it
     function selectOptionsHtml(list, selected) {
       const items = (!selected || list.includes(selected)) ? list : list.concat(selected);
       return items.map(v => `<option value="${escapeHtml(v)}" ${v === selected ? 'selected' : ''}>${escapeHtml(v)}</option>`).join('');
     }
 
-    // Any team a roster entry points at is also a valid leader
     function ensureTeamLeadersFromRoster() {
       dohRoster.forEach(r => {
         if (r.team && !teamLeaders.some(t => t.toLowerCase() === r.team.toLowerCase())) teamLeaders.push(r.team);
       });
     }
 
-    // Fills every team / role dropdown (add-agent form and roster filters) from the current lists
     function populateRosterSelects() {
       const teamSel = document.getElementById('newAgentTeam');
       const roleSel = document.getElementById('newAgentRole');
@@ -1251,64 +1241,134 @@
       }
     }
 
-    // Save state to Firebase Cloud Firestore
-    function saveToCloud() {
-      db.collection('petro_tenure').doc('roster_data').set({
-        dohRoster: dohRoster,
-        monthlyDataStore: monthlyDataStore,
-        teamLeaders: teamLeaders,
-        updatedAt: new Date()
-      }).then(() => {
-        console.log("Tenure state synced to Firebase.");
-      }).catch(err => console.error("Firebase save error:", err));
+    /* ================= Cloud storage =================
+       Why uploads used to vanish on refresh: everything (roster + every month, including a list of
+       every single call's consult / hold / conference time) was written into ONE Firestore document.
+       Firestore refuses documents over 1 MiB, so after a real upload the save silently failed
+       (the error only went to the console) and the next refresh loaded the old data.
+
+       Now:
+         - tenure buckets store running totals (sums + counts) instead of per-call lists -> tiny
+         - the roster / team leaders live in doc "roster_data"
+         - each month lives in its own doc "month_YYYY-MM" (same collection, so existing rules still apply)
+         - the status line in Settings tells you whether the save really reached the cloud */
+    const CLOUD_COLLECTION = 'petro_tenure';
+    const MONTH_DOC_PREFIX = 'month_';
+
+    function sanitizeForCloud(obj) {
+      return JSON.parse(JSON.stringify(obj)); // drops undefined, turns NaN into null (Firestore-safe)
     }
 
-    // Load state from Firebase Cloud Firestore on startup
+    function setUploadStatus(text, color) {
+      const el = document.getElementById('unifiedUploadStatus');
+      if (!el) return;
+      el.innerText = text;
+      el.style.color = color || 'var(--trend-down)';
+    }
+
+    // Roster + team leaders
+    function saveToCloud() {
+      return db.collection(CLOUD_COLLECTION).doc('roster_data').set({
+        dohRoster: sanitizeForCloud(dohRoster),
+        teamLeaders: sanitizeForCloud(teamLeaders),
+        updatedAt: new Date()
+      }).then(() => {
+        console.log('Roster synced to Firebase.');
+      }).catch(err => {
+        console.error('Firebase roster save error:', err);
+        setUploadStatus('Roster not saved: ' + (err.code || err.message), '#ef4444');
+        throw err;
+      });
+    }
+
+    // One document per month
+    function saveMonthToCloud(monthKey) {
+      const rec = monthlyDataStore[monthKey];
+      if (!rec) return Promise.resolve();
+      return db.collection(CLOUD_COLLECTION).doc(MONTH_DOC_PREFIX + monthKey).set({
+        key: monthKey,
+        data: sanitizeForCloud(rec),
+        updatedAt: new Date()
+      });
+    }
+
     function loadFromCloud() {
-      db.collection('petro_tenure').doc('roster_data').get().then(doc => {
-        if (doc.exists) {
-          const remote = doc.data();
+      setUploadStatus('Checking Cloud...', 'var(--text-muted)');
+
+      Promise.all([
+        db.collection(CLOUD_COLLECTION).doc('roster_data').get(),
+        db.collection(CLOUD_COLLECTION).get()
+      ]).then(([rosterDoc, snap]) => {
+        const loadedMonths = {};
+        let legacyMonths = null;
+        let foundAnything = false;
+
+        if (rosterDoc.exists) {
+          foundAnything = true;
+          const remote = rosterDoc.data();
           if (remote.dohRoster) dohRoster = remote.dohRoster;
-          if (remote.monthlyDataStore) monthlyDataStore = remote.monthlyDataStore;
           if (remote.teamLeaders && remote.teamLeaders.length) teamLeaders = remote.teamLeaders;
-
-          // Older saves used a plain "DIC" role (or no Trainee/DIC wording) — bring them onto the current role names
-          dohRoster.forEach(r => { r.role = normalizeRole(r.role); });
-          ensureTeamLeadersFromRoster();
-          populateRosterSelects();
-          renderLeaderChips();
-
-          document.getElementById("unifiedUploadStatus").innerText = "Loaded (Cloud Sync)";
-          updateDropdownOptions();
-          renderDohTable();
-          onMonthChange();
+          // Older versions kept every month inside this one document
+          if (remote.monthlyDataStore) legacyMonths = remote.monthlyDataStore;
         }
-      }).catch(err => console.log("Cloud fetch note:", err));
+
+        if (legacyMonths) Object.assign(loadedMonths, legacyMonths);
+
+        snap.forEach(d => {
+          if (d.id.indexOf(MONTH_DOC_PREFIX) === 0) {
+            const payload = d.data();
+            if (payload && payload.data) loadedMonths[d.id.slice(MONTH_DOC_PREFIX.length)] = payload.data;
+          }
+        });
+
+        if (Object.keys(loadedMonths).length) {
+          foundAnything = true;
+          monthlyDataStore = loadedMonths;
+          // Move old single-document data into the new per-month documents
+          if (legacyMonths) {
+            Object.keys(legacyMonths).forEach(k => { if (!snap.docs.some(d => d.id === MONTH_DOC_PREFIX + k)) saveMonthToCloud(k).catch(e => console.error(e)); });
+          }
+        }
+
+        dohRoster.forEach(r => { r.role = normalizeRole(r.role); });
+        ensureTeamLeadersFromRoster();
+        populateRosterSelects();
+        renderLeaderChips();
+
+        if (foundAnything) {
+          setUploadStatus(`Loaded (Cloud Sync) · ${Object.keys(monthlyDataStore).length} month(s)`);
+        } else {
+          setUploadStatus('Cloud is empty — upload a report', 'var(--text-muted)');
+        }
+        updateDropdownOptions();
+        renderDohTable();
+        onMonthChange();
+      }).catch(err => {
+        console.error('Cloud fetch error:', err);
+        setUploadStatus('Cloud load failed: ' + (err.code || err.message), '#ef4444');
+        updateDropdownOptions();
+        onMonthChange();
+      });
     }
 
     let comparisonMode = 'coverage';
-    let weeklyTierFilter = 'all'; // Weekly Comparison: 'all' or one tenure tier key
+    let weeklyTierFilter = 'all';
     let chartInstanceConsult = null;
     let chartInstanceHold = null;
     let chartInstanceConf = null;
+    let chartInstanceSurvey = null;
 
-    /* ================= Role view: Tech Sup / DIC =================
-       The "View" switch in the top bar decides whose numbers the whole page shows.
-       Which roster roles belong to each side is set here, in one place:
-         - Tech Sup -> "Tech Support Rep" and "Tech Support Rep - Trainee"
-         - DIC      -> "Tech Support Rep - DIC"
-       Both groups are built from the same uploaded report; each is stored separately. */
+    /* ================= Role view: Tech Sup / DIC ================= */
     const ROLE_GROUPS = {
       techsup: { label: 'Tech Sup', rosterLabel: 'Tech Support Rep Roster', roles: ["Tech Support Rep", "Tech Support Rep - Trainee"] },
       dic:     { label: 'DIC',      rosterLabel: 'DIC Roster',              roles: ["Tech Support Rep - DIC"] }
     };
-    let roleView = 'techsup'; // 'techsup' | 'dic'
+    let roleView = 'techsup';
 
     function inRoleGroup(role) {
       return ROLE_GROUPS[roleView].roles.includes(role);
     }
 
-    // Which group a roster role belongs to (used when building the upload), or null if neither
     function roleGroupOf(role) {
       if (ROLE_GROUPS.techsup.roles.includes(role)) return 'techsup';
       if (ROLE_GROUPS.dic.roles.includes(role)) return 'dic';
@@ -1329,7 +1389,6 @@
       document.getElementById('btnModeMonthly').classList.toggle('active', mode === 'monthly');
       document.getElementById('btnModeWeekly').classList.toggle('active', mode === 'weekly');
 
-      // Weekly mode: a week picker appears beside each month picker
       const weekly = mode === 'weekly';
       document.getElementById('compSelectors').classList.toggle('weekly', weekly);
       document.getElementById('targetWeekSelect').style.display = weekly ? '' : 'none';
@@ -1339,7 +1398,6 @@
       document.getElementById('comparisonLabel').innerText = weekly ? 'Comparison (Month · Week)' : 'Comparison Month';
 
       if (weekly && prev !== 'weekly') {
-        // Start on "Week 1 vs Week 2" of the month currently open at the top
         const active = document.getElementById('activeMonthSelect').value;
         document.getElementById('targetMonthSelect').value = active;
         document.getElementById('compMonthSelect').value = active;
@@ -1358,7 +1416,6 @@
       recalculateComparison();
     }
 
-    // Default month pair for Coverage / Monthly: previous month vs latest month
     function resetMonthSelectDefaults() {
       const keys = Object.keys(monthlyDataStore).sort().reverse();
       if (keys.length === 0) return;
@@ -1366,10 +1423,7 @@
       document.getElementById('compMonthSelect').value = keys[0];
     }
 
-    /* ================= Weekly comparison =================
-       Weeks are calendar blocks of the month: Week 1 = days 1-7, Week 2 = 8-14, Week 3 = 15-21,
-       Week 4 = 22-28, Week 5 = 29-end. Only weeks the uploaded report actually reaches are listed,
-       and a partly-covered last week shows the days it really has (e.g. "Sep 22–26"). */
+    /* ================= Weekly comparison ================= */
     function availableWeeks(monthKey) {
       const rec = monthlyDataStore[monthKey];
       if (!rec) return [];
@@ -1393,7 +1447,6 @@
       return availableWeeks(monthKey).find(w => w.n === n) || null;
     }
 
-    // Rebuilds both week pickers for the months chosen beside them. reset = true goes back to Week 1 vs Week 2.
     function populateWeekSelects(reset) {
       const tMonth = document.getElementById('targetMonthSelect').value;
       const cMonth = document.getElementById('compMonthSelect').value;
@@ -1437,14 +1490,14 @@
         const firstName = nameTokens[0] || '';
         const lastName = nameTokens[nameTokens.length - 1] || '';
 
-        const matchesSearch = !searchVal || 
-          r.name.toLowerCase().includes(searchVal) || 
-          firstName.includes(searchVal) || 
+        const matchesSearch = !searchVal ||
+          r.name.toLowerCase().includes(searchVal) ||
+          firstName.includes(searchVal) ||
           lastName.includes(searchVal);
 
         const matchesTeam = (teamFilter === "ALL") || (r.team === teamFilter);
         const matchesRole = (roleFilter === "ALL") || (r.role === roleFilter);
-        
+
         const agentTenure = getTenureBucket(r.doh, refDateStr);
         const matchesTenure = (tenureFilter === "ALL") || (agentTenure === tenureFilter);
 
@@ -1569,6 +1622,33 @@
       }
     }
 
+    // Survey trend: a HIGHER score is better (green up arrow); a lower score is red.
+    function renderSurveyTrendCell(diff) {
+      if (diff === null || isNaN(diff)) return `<span class="c-none">-</span>`;
+      const txt = Math.abs(diff).toFixed(2);
+      if (Math.abs(diff) < 0.005) {
+        return `<span class="trend-item c-none" style="font-family:'JetBrains Mono',monospace;">▬ no change</span>`;
+      }
+      if (diff > 0) {
+        return `
+          <span class="trend-item c-down">
+            <svg class="trend-svg" viewBox="0 0 24 24" fill="none" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+              <line x1="12" y1="19" x2="12" y2="5"></line>
+              <polyline points="5 12 12 5 19 12"></polyline>
+            </svg>
+            +${txt}
+          </span>`;
+      }
+      return `
+        <span class="trend-item c-up">
+          <svg class="trend-svg" viewBox="0 0 24 24" fill="none" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+            <line x1="12" y1="5" x2="12" y2="19"></line>
+            <polyline points="19 12 12 19 5 12"></polyline>
+          </svg>
+          -${txt}
+        </span>`;
+    }
+
     function updateDropdownOptions() {
       const activeSel = document.getElementById("activeMonthSelect");
       const targetSel = document.getElementById("targetMonthSelect");
@@ -1577,8 +1657,6 @@
       if (!activeSel) return;
 
       const currentActive = activeSel.value;
-      const currentTarget = targetSel.value;
-      const currentComp = compSel.value;
 
       activeSel.innerHTML = "";
       targetSel.innerHTML = "";
@@ -1597,16 +1675,12 @@
       compSel.value = keys[0];
 
       if (comparisonMode === 'weekly') {
-        // keep Weekly Comparison on the open month, Week 1 vs Week 2
         targetSel.value = activeSel.value;
         compSel.value = activeSel.value;
         populateWeekSelects(true);
       }
     }
 
-    // The month's data for whichever group is selected (Tech Sup or DIC). Tech Sup is the
-    // month record itself (as before); DIC lives under its `dic` key, and a month with no
-    // DIC data yet simply comes back with every tenure bucket empty.
     function getRoleSource(monthKey) {
       const base = monthlyDataStore[monthKey];
       if (!base) return null;
@@ -1623,7 +1697,6 @@
       };
     }
 
-    // How many roster agents of the selected group fall in each tenure tier for that month
     function countRosterByBucket(monthKey) {
       const refDateStr = monthKey + "-01";
       const c = { y1: 0, m6: 0, m0: 0, tr: 0 };
@@ -1631,7 +1704,7 @@
       const monthEnd = new Date(yy, mm, 0, 23, 59, 59);
       dohRoster.forEach(r => {
         if (!inRoleGroup(r.role)) return;
-        if (r.doh && new Date(r.doh) > monthEnd) return; // hired after this month — wasn't on the team yet
+        if (r.doh && new Date(r.doh) > monthEnd) return;
         const b = getTenureBucket(r.doh, refDateStr);
         if (b === "1 Year above") c.y1++;
         else if (b === "6-12 Months") c.m6++;
@@ -1641,11 +1714,6 @@
       return c;
     }
 
-    // Roster footprint for a month, independent of the Tech Sup / DIC switch:
-    //   Tech Support Agents = Tech Support Rep + DIC
-    //   Tech Trainees       = Tech Support Rep - Trainee (counted separately)
-    //   Whole roster        = both together
-    // Only agents already hired by the end of that month are counted.
     function renderFootprint(monthKey) {
       const [yy, mm] = monthKey.split('-').map(Number);
       const monthEnd = new Date(yy, mm, 0, 23, 59, 59);
@@ -1676,13 +1744,10 @@
       if (!baseData) return null;
 
       const c = countRosterByBucket(monthKey);
-
       const source = (isCoverage && baseData.coverage) ? baseData.coverage : baseData;
-      
+
       return {
         ...source,
-        // Only real figures from the uploaded report are shown. A tier with no call data stays empty
-        // (it used to be filled with made-up reference numbers, which made empty tiers look like they had data).
         "1 Year above": source["1 Year above"] ? { ...source["1 Year above"], count: c.y1 } : null,
         "6-12 Months": source["6-12 Months"] ? { ...source["6-12 Months"], count: c.m6 } : null,
         "0-6 Months": source["0-6 Months"] ? { ...source["0-6 Months"], count: c.m0 } : null,
@@ -1691,60 +1756,51 @@
       };
     }
 
-    // "Coverage" comparisons only make sense when both months are restricted to the
-    // same day-of-month window (e.g. Day 1-16 of August vs Day 1-16 of September) —
-    // otherwise a full month is silently being compared against a partial one. This
-    // sums the real per-day buckets captured at upload time, up to dayLimit, for both
-    // months, instead of reusing the flawed whole-month duplicate the app used before.
-    // Whole-month coverage: Day 1 up to dayLimit
     function computeCoverageMetricsForMonth(monthKey, dayLimit) {
       return computeRangeMetrics(monthKey, 1, dayLimit, false);
     }
 
-    // Metrics for just days dayFrom..dayTo of a month (used by Coverage and by Weekly Comparison).
-    // strict = true: a month with no day-by-day data gives empty tiers instead of falling back to whole-month figures.
+    // A stored day bucket is either the new running-totals shape or the older per-call-list shape
+    function dayToRaw(d) {
+      if (!d) return null;
+      if (d.calls !== undefined) return d;
+      const sum = (arr) => (arr || []).reduce((a, b) => a + b, 0);
+      return {
+        calls: d.totalCalls || 0, time: d.totalTime || 0,
+        cS: sum(d.consult), cN: (d.consult || []).length,
+        hS: sum(d.hold), hN: (d.hold || []).length,
+        fS: sum(d.conf), fN: (d.conf || []).length,
+        sS: 0, sN: 0
+      };
+    }
+
     function computeRangeMetrics(monthKey, dayFrom, dayTo, strict) {
       const baseData = getRoleSource(monthKey);
       if (!baseData) return null;
 
       const c = countRosterByBucket(monthKey);
-
       const bucketKeys = ["1 Year above", "6-12 Months", "0-6 Months", "Trainee"];
 
       if (!baseData.dailyBuckets) {
         if (strict) return { "1 Year above": null, "6-12 Months": null, "0-6 Months": null, "Trainee": null, _counts: c, _noDaily: true };
-        // No per-day breakdown captured for this month (e.g. bootstrap/demo data) —
-        // fall back to whatever whole-month data is available.
         return computeLiveMetricsForMonth(monthKey, true);
       }
 
       const agg = {};
-      bucketKeys.forEach(k => agg[k] = { totalTime: 0, totalCalls: 0, consult: [], hold: [], conf: [] });
+      bucketKeys.forEach(k => agg[k] = emptyRaw());
 
       Object.keys(baseData.dailyBuckets).forEach(dayStr => {
         const dn = parseInt(dayStr, 10);
-        if (dn < dayFrom || dn > dayTo) return; // outside the requested day window
+        if (dn < dayFrom || dn > dayTo) return;
         const dayData = baseData.dailyBuckets[dayStr];
         bucketKeys.forEach(k => {
-          const d = dayData[k];
-          if (!d) return;
-          agg[k].totalTime += d.totalTime;
-          agg[k].totalCalls += d.totalCalls;
-          agg[k].consult = agg[k].consult.concat(d.consult);
-          agg[k].hold = agg[k].hold.concat(d.hold);
-          agg[k].conf = agg[k].conf.concat(d.conf);
+          const raw = dayToRaw(dayData[k]);
+          if (raw) addRaw(agg[k], raw);
         });
       });
 
-      const calcAvg = (arr) => arr.length ? Math.round(arr.reduce((a, b) => a + b, 0) / arr.length) : null;
       const result = {};
-      bucketKeys.forEach(k => {
-        const b = agg[k];
-        const weightedAHT = b.totalCalls > 0 ? Math.round(b.totalTime / b.totalCalls) : null;
-        result[k] = (weightedAHT !== null && weightedAHT > 0)
-          ? { aht: weightedAHT, consult: calcAvg(b.consult), hold: calcAvg(b.hold), conf: calcAvg(b.conf), count: 0 }
-          : null;
-      });
+      bucketKeys.forEach(k => { result[k] = rawToTier(agg[k]); });
 
       result["1 Year above"] = result["1 Year above"] ? { ...result["1 Year above"], count: c.y1 } : null;
       result["6-12 Months"] = result["6-12 Months"] ? { ...result["6-12 Months"], count: c.m6 } : null;
@@ -1755,11 +1811,29 @@
       return result;
     }
 
+    // Survey pill on a KPI card
+    function paintSurveyPill(id, tier) {
+      const el = document.getElementById(id);
+      if (!el) return;
+      if (tier && tier.survey != null) {
+        const h = heatForSurvey(tier.survey);
+        el.style.background = h.bg;
+        el.style.color = h.text;
+        const n = tier.surveyN ? ` <small>${Math.round(tier.surveyN).toLocaleString()} surveys</small>` : '';
+        el.innerHTML = `★ ${Number(tier.survey).toFixed(2)}${n}`;
+        el.title = `Average survey score · target ${SURVEY_HEAT.target.toFixed(2)}`;
+      } else {
+        el.style.background = '#f1f5f9';
+        el.style.color = 'var(--text-muted)';
+        el.innerHTML = '★ No survey data';
+        el.title = 'No survey responses for this tier. Re-upload the monthly report if it has a Survey column.';
+      }
+    }
+
     function onMonthChange() {
       const m = document.getElementById("activeMonthSelect").value;
       const data = computeLiveMetricsForMonth(m, comparisonMode === 'coverage');
 
-      // Label everything with the group currently being shown
       document.getElementById("roleBadge").innerText = ROLE_GROUPS[roleView].label;
 
       if (data) {
@@ -1768,17 +1842,23 @@
         document.getElementById("card0to6").innerText = data["0-6 Months"] ? timeSecToHMS(data["0-6 Months"].aht) : "No Data";
         document.getElementById("cardTrainee").innerText = data["Trainee"] ? timeSecToHMS(data["Trainee"].aht) : ((data._counts && data._counts.tr > 0) ? "No Data" : "No Trainees");
 
-        // Counts come straight from the roster so they still show when a tier has agents but no calls yet
-        const cnt = data._counts || {};
-        const count1Y = cnt.y1 ?? 0;
-        const count6M = cnt.m6 ?? 0;
-        const count0M = cnt.m0 ?? 0;
-        const countTR = cnt.tr ?? 0;
+        // Make the numbers on the cards look "live" (not muted grey) when they have a value
+        [["card1Year","1 Year above"],["card6to12","6-12 Months"],["card0to6","0-6 Months"],["cardTrainee","Trainee"]].forEach(([id, tier]) => {
+          const el = document.getElementById(id);
+          if (data[tier]) { el.style.fontSize = ''; el.style.color = ''; }
+          else { el.style.fontSize = '1.15rem'; el.style.color = 'var(--text-muted)'; }
+        });
 
-        document.getElementById("count1Year").innerText = `${count1Y} Agents`;
-        document.getElementById("count6to12").innerText = `${count6M} Agents`;
-        document.getElementById("count0to6").innerText = `${count0M} Agents`;
-        document.getElementById("countTrainee").innerText = `${countTR} Agents`;
+        const cnt = data._counts || {};
+        document.getElementById("count1Year").innerText = `${cnt.y1 ?? 0} Agents`;
+        document.getElementById("count6to12").innerText = `${cnt.m6 ?? 0} Agents`;
+        document.getElementById("count0to6").innerText = `${cnt.m0 ?? 0} Agents`;
+        document.getElementById("countTrainee").innerText = `${cnt.tr ?? 0} Agents`;
+
+        paintSurveyPill("surv1Year", data["1 Year above"]);
+        paintSurveyPill("surv6to12", data["6-12 Months"]);
+        paintSurveyPill("surv0to6", data["0-6 Months"]);
+        paintSurveyPill("survTrainee", data["Trainee"]);
 
         renderBarChart(data);
       }
@@ -1801,7 +1881,7 @@
       let tgt, cmp, tw = null, cw = null;
 
       if (weekly) {
-        populateWeekSelects(false); // keep the week lists in step with the months chosen beside them
+        populateWeekSelects(false);
         tw = getSelectedWeek(targetM, 'targetWeekSelect');
         cw = getSelectedWeek(compM, 'compWeekSelect');
         tgt = (tw && computeRangeMetrics(targetM, tw.from, tw.to, true)) || noMetrics();
@@ -1831,12 +1911,12 @@
         { label: "HANDLE TIME", field: "aht" },
         { label: "CONSULT", field: "consult" },
         { label: "HOLD", field: "hold" },
-        { label: "CONFERENCE", field: "conf" }
+        { label: "CONFERENCE", field: "conf" },
+        { label: "SURVEY", field: "survey", score: true }
       ];
 
       const tierName = { "1 Year above": "1 Year+", "6-12 Months": "6-12 Months", "0-6 Months": "0-6 Months", "Trainee": "Trainee" };
 
-      // Weekly Comparison can be narrowed to a single tenure tier; otherwise every tier with data is shown
       const filterTier = (weekly && weeklyTierFilter !== 'all') ? weeklyTierFilter : null;
       let shown;
       if (filterTier) {
@@ -1844,7 +1924,7 @@
         summaryTitle.innerText += ` \u00b7 ${tierName[filterTier]}`;
       } else {
         shown = ["1 Year above", "6-12 Months", "0-6 Months"];
-        if (tgt["Trainee"] || cmp["Trainee"]) shown.push("Trainee"); // only once trainees actually have calls
+        if (tgt["Trainee"] || cmp["Trainee"]) shown.push("Trainee");
       }
 
       const diffOf = (tier, field) => {
@@ -1863,7 +1943,7 @@
         const rowsHtml = metrics.map(m => `
           <div class="cohort-metric-row">
             <span class="cohort-metric-label">${m.label}</span>
-            ${renderTrendCell(diffOf(tier, m.field))}
+            ${m.score ? renderSurveyTrendCell(diffOf(tier, m.field)) : renderTrendCell(diffOf(tier, m.field))}
           </div>
         `).join('');
         card.innerHTML = `<div class="cohort-card-title">${tier}</div>${rowsHtml}`;
@@ -1877,6 +1957,10 @@
       shown.forEach(tier => {
         const d = diffOf(tier, "aht");
         if (d !== null) items.push(dot(d <= 0 ? 'var(--trend-down)' : 'var(--trend-slight)', `${tierName[tier]}: ${formatSimpleSec(d)} ${d <= 0 ? 'faster' : 'slower'}`));
+      });
+      shown.forEach(tier => {
+        const s = diffOf(tier, "survey");
+        if (s !== null && Math.abs(s) >= 0.005) items.push(dot(s > 0 ? 'var(--trend-down)' : 'var(--trend-up)', `${tierName[tier]} survey: ${s > 0 ? '+' : '-'}${Math.abs(s).toFixed(2)}`));
       });
       if (items.length === 0) {
         items.push(dot('var(--text-muted)', filterTier
@@ -1899,7 +1983,10 @@
       summaryList.innerHTML = items.join('');
     }
 
-    function renderMiniBarChart(canvasId, existingInstance, values, labels, colorLight, colorDark) {
+    function renderMiniBarChart(canvasId, existingInstance, values, labels, colorLight, colorDark, opts) {
+      opts = opts || {};
+      const fmt = opts.fmt || timeSecToHMS;
+      const tickFmt = opts.tickFmt || fmt;
       const ctx = document.getElementById(canvasId).getContext("2d");
       if (existingInstance) existingInstance.destroy();
 
@@ -1913,18 +2000,18 @@
           labels: labels,
           datasets: [{
             data: values,
-            backgroundColor: grad,
+            backgroundColor: opts.barColors || grad,
             borderRadius: 7,
-            categoryPercentage: 0.65,
-            barPercentage: 0.85,
-            maxBarThickness: 22
+            categoryPercentage: 0.8,
+            barPercentage: 0.8,
+            maxBarThickness: 20
           }]
         },
         options: {
           indexAxis: 'y',
           responsive: true,
           maintainAspectRatio: false,
-          layout: { padding: { top: 2, bottom: 2, left: 2, right: 55 } },
+          layout: { padding: { top: 2, bottom: 2, left: 2, right: 62 } },
           plugins: {
             legend: { display: false },
             tooltip: {
@@ -1933,7 +2020,7 @@
               cornerRadius: 6,
               titleFont: { family: 'Plus Jakarta Sans', size: 11, weight: '800' },
               bodyFont: { family: 'JetBrains Mono', size: 10.5 },
-              callbacks: { label: (c) => timeSecToHMS(c.parsed.x) }
+              callbacks: { label: (c) => c.parsed.x > 0 ? fmt(c.parsed.x) : 'No data' }
             },
             datalabels: {
               anchor: 'end',
@@ -1943,26 +2030,27 @@
               borderRadius: 4,
               padding: { top: 2, bottom: 1, left: 4, right: 4 },
               font: { family: 'JetBrains Mono', weight: '800', size: 10 },
-              color: colorDark,
-              formatter: (val) => val > 0 ? timeSecToHMS(val) : ''
+              color: (c) => (c.dataset.data[c.dataIndex] > 0 ? (opts.labelColor || colorDark) : '#94a3b8'),
+              formatter: (val) => val > 0 ? fmt(val) : 'No data'
             }
           },
           scales: {
-            // Each metric gets its own auto-scaled axis, so a small Conference Time
-            // value is never squashed to invisibility by Hold Time's much larger scale.
             x: {
               min: 0,
+              max: opts.max,
               grid: { color: '#e3f2fd' },
               ticks: {
-                callback: (val) => timeSecToHMS(val),
-                font: { family: 'JetBrains Mono', size: 9.5 },
+                callback: (val) => tickFmt(val),
+                font: { family: 'JetBrains Mono', size: 9 },
                 color: '#64748b',
-                maxTicksLimit: 5
+                maxTicksLimit: 4
               }
             },
             y: {
               grid: { display: false },
-              ticks: { font: { family: 'Plus Jakarta Sans', size: 10, weight: '800' }, color: '#334155' }
+              // autoSkip off: every tier (including Trainee) always gets its label,
+              // even in short charts. Before, Chart.js hid every other label.
+              ticks: { autoSkip: false, font: { family: 'Plus Jakarta Sans', size: 10, weight: '800' }, color: '#334155' }
             }
           }
         }
@@ -1970,32 +2058,26 @@
     }
 
     function renderBarChart(data) {
+      const tiers = ["1 Year above", "6-12 Months", "0-6 Months", "Trainee"];
       const labels = ["1 Year above", "6-12 Months", "0-6 Months", "Trainee"];
+      const pick = (field) => tiers.map(t => (data[t] && data[t][field] != null) ? data[t][field] : 0);
 
-      const consultTimes = [
-        data["1 Year above"] ? data["1 Year above"].consult : 0,
-        data["6-12 Months"] ? data["6-12 Months"].consult : 0,
-        data["0-6 Months"] ? data["0-6 Months"].consult : 0,
-        data["Trainee"] ? data["Trainee"].consult : 0
-      ];
+      chartInstanceConsult = renderMiniBarChart("chartConsult", chartInstanceConsult, pick('consult'), labels, '#90caf9', '#1565c0');
+      chartInstanceHold = renderMiniBarChart("chartHold", chartInstanceHold, pick('hold'), labels, '#fde68a', '#b45309');
+      chartInstanceConf = renderMiniBarChart("chartConf", chartInstanceConf, pick('conf'), labels, '#c4b5fd', '#6d28d9');
 
-      const holdTimes = [
-        data["1 Year above"] ? data["1 Year above"].hold : 0,
-        data["6-12 Months"] ? data["6-12 Months"].hold : 0,
-        data["0-6 Months"] ? data["0-6 Months"].hold : 0,
-        data["Trainee"] ? data["Trainee"].hold : 0
-      ];
-
-      const confTimes = [
-        data["1 Year above"] ? data["1 Year above"].conf : 0,
-        data["6-12 Months"] ? data["6-12 Months"].conf : 0,
-        data["0-6 Months"] ? data["0-6 Months"].conf : 0,
-        data["Trainee"] ? data["Trainee"].conf : 0
-      ];
-
-      chartInstanceConsult = renderMiniBarChart("chartConsult", chartInstanceConsult, consultTimes, labels, '#90caf9', '#1565c0');
-      chartInstanceHold = renderMiniBarChart("chartHold", chartInstanceHold, holdTimes, labels, '#fde68a', '#b45309');
-      chartInstanceConf = renderMiniBarChart("chartConf", chartInstanceConf, confTimes, labels, '#c4b5fd', '#6d28d9');
+      // Survey: each bar is coloured by the same green / yellow / red rule as the rest of the dashboard
+      const sv = pick('survey');
+      const svColors = sv.map(v => v > 0 ? heatForSurvey(v).bg : '#e2e8f0');
+      chartInstanceSurvey = renderMiniBarChart("chartSurvey", chartInstanceSurvey, sv, labels, '#8fe3ac', '#0e8a60', {
+        fmt: (v) => Number(v).toFixed(2),
+        tickFmt: (v) => Number(v).toFixed(1),
+        max: 5,
+        barColors: svColors,
+        labelColor: '#0f172a'
+      });
+      const note = document.getElementById('surveyTargetNote');
+      if (note) note.innerText = `target ${SURVEY_HEAT.target.toFixed(2)} · scale 0–5`;
     }
 
     function timeStrToSeconds(str) {
@@ -2007,9 +2089,6 @@
       return 0;
     }
 
-    // Distinguishes "this leg of the call didn't happen" (blank or "-") from an actual
-    // recorded duration (including a genuine 00:00:00) — the former must be excluded from
-    // an average, not counted as zero, or the average gets diluted toward zero.
     function hasTimeValue(raw) {
       if (raw === null || raw === undefined) return false;
       if (typeof raw === 'number') return true;
@@ -2038,7 +2117,6 @@
         .trim();
     }
 
-    // Treats known spelling variants of the same person as one name
     function canonicalName(str) {
       let c = normalizeName(str);
       if (c === "christiann quimno") c = "christian quimno";
@@ -2047,7 +2125,6 @@
       return c;
     }
 
-    // Index of an agent in dohRoster (also matches "Last First" order), or -1
     function findRosterIndex(agentName) {
       if (!agentName) return -1;
       const clean = canonicalName(agentName);
@@ -2120,10 +2197,7 @@
       renderDohTable();
     }
 
-    /* ================= Roster upload (Settings) =================
-       Reads a sheet with the columns Lead, Agent Name, Role, Date of Hire (like Tenurity_info.xlsx)
-       and merges it into the roster by name: existing agents get their lead / role / hire date
-       updated, new agents are added, and any new lead is added to the Team Leaders list. */
+    /* ================= Roster upload (Settings) ================= */
     function parseHireDate(val) {
       if (val === null || val === undefined || val === '') return '';
       if (typeof val === 'number') {
@@ -2133,7 +2207,7 @@
       const str = String(val).trim();
       let m = str.match(/^(\d{4})[\/-](\d{1,2})[\/-](\d{1,2})/);
       if (m) return `${m[1]}-${m[2].padStart(2, '0')}-${m[3].padStart(2, '0')}`;
-      m = str.match(/^(\d{1,2})[\/-](\d{1,2})[\/-](\d{4})/); // month/day/year
+      m = str.match(/^(\d{1,2})[\/-](\d{1,2})[\/-](\d{4})/);
       if (m) return `${m[3]}-${m[1].padStart(2, '0')}-${m[2].padStart(2, '0')}`;
       const d = new Date(str);
       return isNaN(d.getTime()) ? '' : `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}-${String(d.getDate()).padStart(2, '0')}`;
@@ -2152,7 +2226,6 @@
           const sheet = wb.Sheets[wb.SheetNames[0]];
           const rows = XLSX.utils.sheet_to_json(sheet, { header: 1, defval: '' });
 
-          // Find the header row and which column is which
           let hdr = -1;
           const col = { lead: -1, name: -1, role: -1, doh: -1 };
           for (let r = 0; r < Math.min(15, rows.length); r++) {
@@ -2197,7 +2270,6 @@
           const seen = new Set();
 
           parsed.forEach(p => {
-            // Reuse the existing spelling of a lead if it's already in the list (ignoring capitalisation)
             if (p.lead) {
               const existing = teamLeaders.find(t => t.toLowerCase() === p.lead.toLowerCase());
               if (existing) p.lead = existing; else teamLeaders.push(p.lead);
@@ -2213,14 +2285,13 @@
               if (p.doh && rec.doh !== p.doh) { rec.doh = p.doh; changed = true; }
               if (changed) updated++; else unchanged++;
             } else {
-              if (!p.doh) { skipped++; return; } // a new agent needs a hire date to be placed in a tenure tier
+              if (!p.doh) { skipped++; return; }
               dohRoster.push({ name: p.name, doh: p.doh, team: p.lead || teamLeaders[0], role: p.role || 'Tech Support Rep' });
               seen.add(dohRoster.length - 1);
               added++;
             }
           });
 
-          // Optional clean-up: drop anyone who isn't in the file (Team Leaders are never removed)
           if (document.getElementById('removeMissingCheck').checked) {
             const gone = dohRoster.filter((r, i) => !seen.has(i) && r.role !== 'Team Leader');
             if (gone.length > 0) {
@@ -2233,7 +2304,7 @@
           }
 
           ensureTeamLeadersFromRoster();
-          saveToCloud();
+          saveToCloud().catch(() => {});
           populateRosterSelects();
           renderLeaderChips();
           renderDohTable();
@@ -2249,17 +2320,13 @@
           alert('That file could not be read. Please upload an .xlsx or .csv with the columns Lead, Agent Name, Role, Date of Hire.');
           statusEl.innerText = 'Could not read file';
         } finally {
-          input.value = ''; // lets the same file be chosen again later
+          input.value = '';
         }
       };
       reader.readAsArrayBuffer(file);
     }
 
-    /* ================= Agent Stats =================
-       One row per agent with Handle / Consult / Hold / Conference time as bars, for the chosen month.
-       Filters: Group (All Tech Support, Tech Support Rep, DIC, Trainee, Escalation Lead), Team Lead, name search.
-       Figures come from the per-agent totals saved when the monthly report is uploaded; group and lead
-       always follow the current roster, so changing someone's role or team updates this view straight away. */
+    /* ================= Agent Stats ================= */
     const AGENT_GROUPS = {
       all:     { label: 'All Tech Support', roles: ["Tech Support Rep", "Tech Support Rep - DIC", "Tech Support Rep - Trainee"] },
       rep:     { label: 'Tech Support Rep', roles: ["Tech Support Rep"] },
@@ -2275,17 +2342,14 @@
     ];
     let agentGroup = 'all';
     let agentSort = { key: 'aht', dir: 'asc' };
-    let agentView = 'snapshot';    // 'snapshot' (one month) | 'progress' (weekly / monthly comparison)
-    let progressBy = 'weekly';     // 'weekly' | 'monthly'
+    let agentView = 'snapshot';
+    let progressBy = 'weekly';
     let progressMetric = 'aht';
-    let progressWeeks = null;      // Set of week numbers to compare; null = every week of the month
-    let progressMonths = null;     // Set of month keys to compare; null = the latest three months
+    let progressWeeks = null;
+    let progressMonths = null;
     let progressSort = { key: 'change', dir: 'asc' };
 
-    /* ---- per-agent totals: small helpers ----
-       Every agent/period is kept as plain running totals so periods can be added together:
-       calls, time (sum of handle seconds), cS/cN (consult sum / how many calls had one), hS/hN hold,
-       fS/fN conference, sS/sN survey (score sum / survey count). */
+    /* Running totals: calls, time, cS/cN consult, hS/hN hold, fS/fN conference, sS/sN survey */
     const RAW_KEYS = ['calls', 'time', 'cS', 'cN', 'hS', 'hN', 'fS', 'fN', 'sS', 'sN'];
     function emptyRaw() { return { calls: 0, time: 0, cS: 0, cN: 0, hS: 0, hN: 0, fS: 0, fN: 0, sS: 0, sN: 0 }; }
     function addRaw(t, a) { RAW_KEYS.forEach(k => { t[k] += (a[k] || 0); }); }
@@ -2300,6 +2364,30 @@
         surveyN: a.sN || 0
       };
     }
+    // One call row added into a running-totals object
+    function accumulateCall(t, o) {
+      t.calls += o.calls;
+      t.time += o.ahtSec * o.calls;
+      if (hasTimeValue(o.consultRaw)) { t.cS += o.consultSec; t.cN++; }
+      if (hasTimeValue(o.holdRaw)) { t.hS += o.holdSec; t.hN++; }
+      if (hasTimeValue(o.confRaw)) { t.fS += o.confSec; t.fN++; }
+      if (o.surveyW > 0) { t.sS += o.surveyScore * o.surveyW; t.sN += o.surveyW; }
+    }
+    // Running totals -> the tier summary shown on the cards and charts (null when there are no calls)
+    function rawToTier(a) {
+      if (!a || !(a.calls > 0) || !(a.time > 0)) return null;
+      const m = rawToMetrics(a);
+      const rnd = (v) => v == null ? null : Math.round(v);
+      return {
+        aht: rnd(m.aht),
+        consult: rnd(m.consult),
+        hold: rnd(m.hold),
+        conf: rnd(m.conf),
+        survey: m.survey == null ? null : Math.round(m.survey * 100) / 100,
+        surveyN: m.surveyN,
+        count: a.calls
+      };
+    }
     function fmtSurvey(v) { return Number(v).toFixed(2); }
     function parseSurveyScore(raw) {
       if (raw === null || raw === undefined) return null;
@@ -2310,7 +2398,6 @@
       return isNaN(n) ? null : n;
     }
 
-    // Week-by-week totals are saved as one flat list of numbers per agent (11 per week) to keep the saved data small
     function packAgent(a) {
       const w = [];
       Object.keys(a.weeks || {}).map(Number).sort((x, y) => x - y).forEach(n => {
@@ -2331,7 +2418,6 @@
       return out;
     }
 
-    // Decides whether an agent belongs in the current Group / Team Lead / Search filter, using the current roster
     function makeAgentMatcher(groupKey, lead, search) {
       const roles = AGENT_GROUPS[groupKey].roles;
       const q = (search || '').trim().toLowerCase();
@@ -2353,7 +2439,6 @@
       return new Date(y, m - 1, 1).toLocaleString('en-US', { month: 'short' }) + ' ' + String(y).slice(2);
     }
 
-    // Rows + group averages for a month and set of filters (kept separate from the drawing code)
     function buildAgentRows(monthKey, groupKey, lead, search) {
       const rec = monthlyDataStore[monthKey];
       const none = { rec: rec || null, rows: [], avg: {}, missing: 0, hasData: false, hasSurvey: false };
@@ -2372,10 +2457,8 @@
         addRaw(tot, a);
       });
 
-      // Group averages: handle time is call-weighted; consult / hold / conference / survey average over the calls that had them
       const avg = rawToMetrics(tot);
 
-      // Roster agents who fit the filters but have no calls this month
       const have = new Set(rows.map(x => canonicalName(x.name)));
       const missing = dohRoster.filter(r =>
         matcher.test(r.name, r.role, r.team) && !(r.doh && new Date(r.doh) > monthEnd) && !have.has(canonicalName(r.name))
@@ -2394,7 +2477,6 @@
     }
 
     function populateAgentFilters(resetMonth) {
-      // month
       const mSel = document.getElementById('agentMonthSelect');
       const prevM = mSel.value;
       const keys = Object.keys(monthlyDataStore).sort().reverse();
@@ -2402,13 +2484,11 @@
       const active = document.getElementById('activeMonthSelect').value;
       mSel.value = (!resetMonth && keys.includes(prevM)) ? prevM : (keys.includes(active) ? active : keys[0]);
 
-      // team lead
       const lSel = document.getElementById('agentLeadSelect');
       const prevL = lSel.value;
       lSel.innerHTML = '<option value="ALL">All Leads</option>' + selectOptionsHtml(teamLeaders, '');
       lSel.value = (prevL === 'ALL' || teamLeaders.includes(prevL)) ? prevL : 'ALL';
 
-      // group buttons
       document.getElementById('agentGroupToggle').innerHTML = Object.keys(AGENT_GROUPS).map(k =>
         `<button type="button" class="mode-btn ${k === agentGroup ? 'active' : ''}" onclick="setAgentGroup('${k}')">${AGENT_GROUPS[k].label}</button>`
       ).join('');
@@ -2428,14 +2508,9 @@
       renderAgentStats();
     }
 
-    /* ================= Handle Time heat map =================
-       Each agent's Handle Time is coloured against a target (default 19:30 for every tenure tier):
-         green  - at or under the target
-         yellow - just over it (up to +closeBy)
-         red    - well over it (+hotBy or more); in between it blends from yellow to red
-       Change the numbers here to tune it, or give a tier its own target. */
+    /* ================= Handle Time heat map ================= */
     const AGENT_AHT = {
-      targets: { "1 Year above": 1170, "6-12 Months": 1170, "0-6 Months": 1170, "Trainee": 1170 }, // seconds (1170 = 19:30)
+      targets: { "1 Year above": 1170, "6-12 Months": 1170, "0-6 Months": 1170, "Trainee": 1170 },
       closeBy: 0.08,
       hotBy: 0.18
     };
@@ -2463,16 +2538,11 @@
       return { bg: mix(Y, R, t), text: t < 0.5 ? '#7a5600' : '#9b1f27' };
     }
 
-    /* ================= Survey heat map =================
-       Average survey score coloured against a target (default 4.70, on a 5-point scale):
-         green  - at or above the target
-         yellow - just under it (down to target - closeBy)
-         red    - well under (target - hotBy or lower); in between it blends from yellow to red
-       Change the numbers here to tune it. */
+    /* ================= Survey heat map ================= */
     const SURVEY_HEAT = { target: 4.70, closeBy: 0.20, hotBy: 0.70 };
 
     function heatForSurvey(v) {
-      const x = Math.round(v * 100) / 100; // colour what is shown (2 decimals), so 4.70 is green
+      const x = Math.round(v * 100) / 100;
       const T = SURVEY_HEAT.target;
       const yellowStart = T - SURVEY_HEAT.closeBy;
       const redAt = T - SURVEY_HEAT.hotBy;
@@ -2486,7 +2556,6 @@
       return { bg: mix(Y, R, t), text: t < 0.5 ? '#7a5600' : '#9b1f27' };
     }
 
-    // Colour key shown above the table: 'aht', 'survey' or 'both'
     function heatLegendHtml(which) {
       const sw = (c) => `<span class="ag-sw" style="background:${c};"></span>`;
       const G = 'rgb(143,227,172)', Y = 'rgb(255,216,115)', R = 'rgb(255,125,125)';
@@ -2516,9 +2585,6 @@
 
       document.getElementById('agentHint').innerHTML = 'Bars are scaled to the longest agent in view &nbsp;·&nbsp; <b style="color:#0f172a;">|</b> marks the group average &nbsp;·&nbsp; click a column title to sort';
 
-      // heat-map key (uses the 1 Year Above target as the reference)
-      const T0 = ahtTargetFor("1 Year above");
-      const sw = (color) => `<span class="ag-sw" style="background:${color};"></span>`;
       legend.style.display = '';
       legend.innerHTML = heatLegendHtml('both');
 
@@ -2538,7 +2604,6 @@
         return;
       }
 
-      // sort
       const dir = agentSort.dir === 'asc' ? 1 : -1;
       const rows = res.rows.slice().sort((a, b) => {
         if (agentSort.key === 'name') return a.name.localeCompare(b.name) * dir;
@@ -2549,7 +2614,6 @@
         return (av - bv) * dir;
       });
 
-      // summary tiles (Avg Handle Time is heat-coloured like the table)
       const a = res.avg;
       const fmt = (v) => v == null ? '–' : timeSecToHMS(v);
       const tile = (lbl, val, color, bg) => `<div class="agent-tile"${bg ? ` style="background:${bg};"` : ''}><span class="t-lbl">${lbl}</span><span class="t-val" style="color:${color};">${val}</span></div>`;
@@ -2579,7 +2643,6 @@
         return;
       }
 
-      // bar scale for Consult / Hold / Conference
       const barMetrics = AGENT_METRICS.filter(m => m.key !== 'aht');
       const max = {};
       barMetrics.forEach(m => { max[m.key] = Math.max(0, ...rows.map(r => r[m.key] || 0)); });
@@ -2597,7 +2660,6 @@
       rows.forEach(r => {
         const tier = r.doh ? getTenureBucket(r.doh, monthKey + '-01') : null;
 
-        // Handle Time: heat-map cell, with how far over / under the target
         let ahtCell;
         if (r.aht == null) {
           ahtCell = `<div class="ag-heat" style="background:#f1f5f9;"><span class="ag-heat-val ag-none">–</span></div>`;
@@ -2644,10 +2706,7 @@
       list.innerHTML = html;
     }
 
-    /* ================= Agent Progress (weekly / monthly comparison per agent) =================
-       Pick one metric and a set of weeks (inside one month) or months. Every agent gets a value per period,
-       an arrow showing the change from the period before, a little trend line, and an overall Change from
-       the first to the last period chosen. Green = getting better, red = getting worse. */
+    /* ================= Agent Progress ================= */
     const PROGRESS_METRICS = [
       { key: 'aht',     label: 'Handle Time', better: 'lower',  kind: 'time',  text: '#0d47a1' },
       { key: 'consult', label: 'Consult',     better: 'lower',  kind: 'time',  text: '#1565c0' },
@@ -2664,7 +2723,6 @@
       return Math.round(v).toLocaleString();
     }
 
-    // Turns a difference into text + a colour class (good / bad / flat / neutral)
     function progressDelta(metric, d) {
       if (d == null) return null;
       const eps = metric.kind === 'time' ? 1 : (metric.kind === 'score' ? 0.005 : 0.5);
@@ -2723,7 +2781,6 @@
       renderAgentStats();
     }
 
-    // Chip for one week / one month: clicking adds or removes it from the comparison (at least one stays on)
     function toggleProgressPeriod(key) {
       if (progressBy === 'weekly') {
         const monthKey = document.getElementById('agentMonthSelect').value;
@@ -2746,7 +2803,6 @@
       const inProgress = agentView === 'progress';
       bar.style.display = inProgress ? 'flex' : 'none';
 
-      // the month picker is only needed for Snapshot and Weekly comparison
       document.getElementById('agentMonthFilter').style.display = (!inProgress || progressBy === 'weekly') ? '' : 'none';
       if (!inProgress) return;
 
@@ -2774,12 +2830,11 @@
       }
     }
 
-    // Works out every agent's totals per chosen period, plus the group total per period
     function buildProgress() {
       const lead = document.getElementById('agentLeadSelect').value || 'ALL';
       const search = document.getElementById('agentSearchInput').value;
       const matcher = makeAgentMatcher(agentGroup, lead, search);
-      const periods = []; // { label, sub, monthKey, week }
+      const periods = [];
 
       if (progressBy === 'weekly') {
         const monthKey = document.getElementById('agentMonthSelect').value;
@@ -2823,7 +2878,6 @@
       return { state: 'ok', periods, rows, team: teamRaw.map(t => t.calls > 0 ? rawToMetrics(t) : null) };
     }
 
-    // For one row of values: the change from each period to the one before, and first-to-last overall
     function analyseSeries(metric, vals) {
       let prev = null;
       const deltas = vals.map(v => {
@@ -2847,8 +2901,6 @@
       document.getElementById('agentHint').innerHTML = 'Each period is compared with the one before it &nbsp;·&nbsp; <b style="color:#0e8a60;">green</b> = better, <b style="color:#c0392b;">red</b> = worse &nbsp;·&nbsp; Change = last period vs first &nbsp;·&nbsp; click a column title to sort';
       note.innerText = '';
 
-      const T0 = ahtTargetFor("1 Year above");
-      const sw = (color) => `<span class="ag-sw" style="background:${color};"></span>`;
       legend.style.display = (metric.key === 'aht' || metric.key === 'survey') ? '' : 'none';
       legend.innerHTML = metric.key === 'survey' ? heatLegendHtml('survey') : heatLegendHtml('aht');
 
@@ -2866,7 +2918,6 @@
       const n = periods.length;
       const tierOf = (r, pi) => r.doh ? getTenureBucket(r.doh, periods[pi].monthKey + '-01') : '1 Year above';
 
-      // analyse each agent
       const rows = data.rows.map(r => {
         const vals = r.cells.map(c => c ? c[metric.key] : null);
         return Object.assign({}, r, { vals }, analyseSeries(metric, vals));
@@ -2874,7 +2925,6 @@
       const teamVals = data.team.map(c => c ? c[metric.key] : null);
       const team = analyseSeries(metric, teamVals);
 
-      // sort (default: most improved first)
       const dir = progressSort.dir === 'asc' ? 1 : -1;
       const score = (r) => r.change == null ? null : (metric.better === 'lower' ? r.change : -r.change);
       rows.sort((a, b) => {
@@ -2888,7 +2938,6 @@
         return (av - bv) * dir;
       });
 
-      // summary tiles
       const up = rows.filter(r => r.verdict && r.verdict.cls === 'good').length;
       const down = rows.filter(r => r.verdict && r.verdict.cls === 'bad').length;
       const flat = rows.filter(r => r.verdict && r.verdict.flat).length;
@@ -2939,7 +2988,6 @@
       };
       const trendColor = (verdict) => verdict ? ({ good: '#10b981', bad: '#ef4444', flat: '#94a3b8', neutral: '#2196f3' })[verdict.cls] : '#94a3b8';
 
-      // group row first
       html += `<div class="ag-pgrid ag-team" style="grid-template-columns:${cols};">`
         + `<div><div class="ag-name">Group average</div><div class="ag-sub"><span>${rows.length} agent${rows.length === 1 ? '' : 's'} in this filter</span></div></div>`
         + teamVals.map((v, i) => cell(data.team[i], v, team.deltas[i] == null ? null : progressDelta(metric, team.deltas[i]), '1 Year above')).join('')
@@ -2965,9 +3013,12 @@
       list.innerHTML = html;
     }
 
+    /* ================= Monthly report upload ================= */
     function handleUnifiedUpload(e) {
-      const file = e.target.files[0];
+      const inputEl = e.target;
+      const file = inputEl.files[0];
       if (!file) return;
+      setUploadStatus('Reading file...', 'var(--text-muted)');
 
       const reader = new FileReader();
       reader.onload = function(evt) {
@@ -2985,9 +3036,6 @@
         let defaultYear = "2026";
         let detectedEndDay = 31;
 
-        // Prefer a sheet of granular per-call rows (has its own date per row) over a
-        // pre-aggregated summary sheet — that's the only place real day-by-day
-        // coverage can come from. Falls back to the first sheet for other formats.
         const sheetName = wb.SheetNames.find(n => /raw/i.test(n)) || wb.SheetNames[0];
         const sheet = wb.Sheets[sheetName];
         const json = XLSX.utils.sheet_to_json(sheet, { header: 1 });
@@ -3024,11 +3072,7 @@
             if (str.includes("CONSULT")) colMap.consult = idx;
             if (str.includes("HOLD")) colMap.hold = idx;
             if (str.includes("CONFERENCE")) colMap.conf = idx;
-            // "Call ID" is a per-row identifier, not a count — only treat an actual
-            // count column (e.g. "Handled Calls") as the weighting field.
             if (str.includes("CALLS") && !str.includes("CALL ID")) colMap.calls = idx;
-            // Survey: a column with "survey" (or CSAT) in its title holds the score; one that also says
-            // count / responses holds how many surveys that row represents.
             if (str.includes("SURVEY") || str.includes("CSAT")) {
               if (/COUNT|RESPONSE|TOTAL|#|QTY/.test(str)) colMap.surveyN = idx;
               else if (colMap.survey === -1) colMap.survey = idx;
@@ -3039,7 +3083,6 @@
 
         if (startRow === -1) startRow = 13;
 
-        // Parses a DATE cell (Excel serial number, "YYYY/MM/DD", or "YYYY-MM-DD") into a day-of-month.
         function extractDayOfMonth(rawVal) {
           if (rawVal === null || rawVal === undefined || rawVal === '') return null;
           let parsedDate = null;
@@ -3052,13 +3095,18 @@
           return (parsedDate && !isNaN(parsedDate.getTime())) ? parsedDate.getDate() : null;
         }
 
+        // Every tenure tier is a small set of running totals (sums + counts), not a list of every call.
+        const buildBuckets = () => ({
+          "1 Year above": emptyRaw(),
+          "6-12 Months": emptyRaw(),
+          "0-6 Months": emptyRaw(),
+          "Trainee": emptyRaw()
+        });
+
         for (let r = startRow; r < json.length; r++) {
           const row = json[r];
           if (!row) continue;
 
-          // Some exports drop the HOUR value on certain rows, which silently shifts every
-          // column after it one place to the right. Detect that per-row and read from the
-          // corrected position instead of misreading (e.g.) a timestamp as an agent name.
           const shift = (colMap.hour !== -1 && (row[colMap.hour] === null || row[colMap.hour] === undefined || String(row[colMap.hour]).trim() === '')) ? 1 : 0;
 
           const nameIdx = colMap.name + shift;
@@ -3077,28 +3125,19 @@
           const monthKey = `${defaultYear}-${monthNum}`;
           const formattedTitle = `${rowMonthName.charAt(0).toUpperCase() + rowMonthName.slice(1).toLowerCase()} - ${defaultYear}`;
 
-          const buildBuckets = () => ({
-            "1 Year above": { totalTime: 0, totalCalls: 0, consult: [], hold: [], conf: [] },
-            "6-12 Months": { totalTime: 0, totalCalls: 0, consult: [], hold: [], conf: [] },
-            "0-6 Months": { totalTime: 0, totalCalls: 0, consult: [], hold: [], conf: [] },
-            "Trainee": { totalTime: 0, totalCalls: 0, consult: [], hold: [], conf: [] }
-          });
-
           if (!detectedMonthsData[monthKey]) {
             detectedMonthsData[monthKey] = {
               name: formattedTitle,
-              maxDay: 0, // filled in from real row dates below; falls back to detectedEndDay if none found
+              maxDay: 0,
               buckets: buildBuckets(),
-              dailyBuckets: {}, // { [dayOfMonth]: { "1 Year above": {...}, ... } } — lets coverage mode later restrict both months to the same day range
-              dicBuckets: buildBuckets(), // same two structures again, for the DIC group
+              dailyBuckets: {},
+              dicBuckets: buildBuckets(),
               dicDaily: {},
-              agents: {}, // per-agent totals for the Agent Stats view
-              surveyCol: colMap.survey !== -1 // did the report have a survey column at all?
+              agents: {},
+              surveyCol: colMap.survey !== -1
             };
           }
 
-          // Track the actual day-of-month reached in this report, from the row's own date —
-          // this is what makes "Coverage Summary (Day 1 - Day N)" match the real uploaded data.
           let rowDayNum = null;
           if (colMap.date !== -1) {
             rowDayNum = extractDayOfMonth(row[colMap.date + shift]);
@@ -3115,41 +3154,34 @@
           const consultRaw = row[colMap.consult + shift];
           const holdRaw = row[colMap.hold + shift];
           const confRaw = row[colMap.conf + shift];
-          const consultSec = timeStrToSeconds(consultRaw);
-          const holdSec = timeStrToSeconds(holdRaw);
-          const confSec = timeStrToSeconds(confRaw);
-          // Raw per-call rows have no separate "count" column — each row already represents
-          // exactly one call, so the weight is 1 unless a genuine count column was found.
           const calls = (colMap.calls !== -1) ? (parseFloat(row[colMap.calls + shift]) || 1) : 1;
+
+          const surveyScore = colMap.survey !== -1 ? parseSurveyScore(row[colMap.survey + shift]) : null;
+          const surveyW = surveyScore === null ? 0 : (colMap.surveyN !== -1 ? (parseFloat(row[colMap.surveyN + shift]) || 0) : 1);
+
+          const callInfo = {
+            ahtSec, calls,
+            consultRaw, consultSec: timeStrToSeconds(consultRaw),
+            holdRaw, holdSec: timeStrToSeconds(holdRaw),
+            confRaw, confSec: timeStrToSeconds(confRaw),
+            surveyScore, surveyW
+          };
 
           const monthRec = detectedMonthsData[monthKey];
 
-          // Per-agent running totals (any roster role) — feed the Agent Stats view, both the monthly
-          // numbers and a week-by-week split (week = day of month / 7, rounded up).
-          // Consult / Hold / Conference only count calls where that leg happened, same rule as the tiers below.
+          // Per-agent totals (any roster role): whole month + week by week
           if (ahtSec > 0) {
-            const surveyScore = colMap.survey !== -1 ? parseSurveyScore(row[colMap.survey + shift]) : null;
-            const surveyW = surveyScore === null ? 0 : (colMap.surveyN !== -1 ? (parseFloat(row[colMap.surveyN + shift]) || 0) : 1);
-
             let ag = monthRec.agents[rosterEntry.name];
             if (!ag) ag = monthRec.agents[rosterEntry.name] = Object.assign({ name: rosterEntry.name, weeks: {} }, emptyRaw());
-            const targets = [ag];
+            accumulateCall(ag, callInfo);
             if (rowDayNum !== null) {
               const wk = Math.ceil(rowDayNum / 7);
               if (!ag.weeks[wk]) ag.weeks[wk] = emptyRaw();
-              targets.push(ag.weeks[wk]);
+              accumulateCall(ag.weeks[wk], callInfo);
             }
-            targets.forEach(t => {
-              t.calls += calls;
-              t.time += ahtSec * calls;
-              if (hasTimeValue(consultRaw)) { t.cS += consultSec; t.cN++; }
-              if (hasTimeValue(holdRaw)) { t.hS += holdSec; t.hN++; }
-              if (hasTimeValue(confRaw)) { t.fS += confSec; t.fN++; }
-              if (surveyW > 0) { t.sS += surveyScore * surveyW; t.sN += surveyW; }
-            });
           }
 
-          // Tech Sup rows and DIC rows are kept in separate buckets so the View switch can show either.
+          // Tech Sup and DIC rows go into separate buckets
           const group = roleGroupOf(rosterEntry.role);
           if (!group) continue;
 
@@ -3160,82 +3192,59 @@
           const tDaily = group === 'dic' ? monthRec.dicDaily : monthRec.dailyBuckets;
 
           if (ahtSec > 0) {
-            tBuckets[bucket].totalTime += ahtSec * calls;
-            tBuckets[bucket].totalCalls += calls;
-            // Only count a call toward the Consult/Hold/Conference average when that leg
-            // actually happened (a blank or "-" cell means it didn't) — otherwise every call
-            // that skipped, say, a conference drags the average toward zero, same mistake
-            // Excel's own formulas avoid by only averaging over non-blank cells.
-            if (hasTimeValue(consultRaw)) tBuckets[bucket].consult.push(consultSec);
-            if (hasTimeValue(holdRaw)) tBuckets[bucket].hold.push(holdSec);
-            if (hasTimeValue(confRaw)) tBuckets[bucket].conf.push(confSec);
+            accumulateCall(tBuckets[bucket], callInfo);
 
             if (rowDayNum !== null) {
-              if (!tDaily[rowDayNum]) {
-                tDaily[rowDayNum] = buildBuckets();
-              }
-              const dayB = tDaily[rowDayNum][bucket];
-              dayB.totalTime += ahtSec * calls;
-              dayB.totalCalls += calls;
-              if (hasTimeValue(consultRaw)) dayB.consult.push(consultSec);
-              if (hasTimeValue(holdRaw)) dayB.hold.push(holdSec);
-              if (hasTimeValue(confRaw)) dayB.conf.push(confSec);
+              if (!tDaily[rowDayNum]) tDaily[rowDayNum] = buildBuckets();
+              accumulateCall(tDaily[rowDayNum][bucket], callInfo);
             }
           }
         }
 
-        // If a month never had a readable date (no DATE column, or all unparsable), fall
-        // back to whatever the report's own Start:/End: header specified, or 31.
         Object.keys(detectedMonthsData).forEach(mKey => {
           if (!detectedMonthsData[mKey].maxDay) detectedMonthsData[mKey].maxDay = detectedEndDay;
         });
 
-        const calcAvg = (arr) => arr.length ? Math.round(arr.reduce((a, b) => a + b, 0) / arr.length) : null;
+        const tiersOf = (source) => {
+          const res = {};
+          ["1 Year above", "6-12 Months", "0-6 Months", "Trainee"].forEach(k => { res[k] = rawToTier(source[k]); });
+          return res;
+        };
 
         Object.keys(detectedMonthsData).forEach(mKey => {
           const item = detectedMonthsData[mKey];
-          
-          const formatBucketGroup = (source) => {
-            const res = {};
-            ["1 Year above", "6-12 Months", "0-6 Months", "Trainee"].forEach(bKey => {
-              const bData = source[bKey];
-              const weightedAHT = bData.totalCalls > 0 ? Math.round(bData.totalTime / bData.totalCalls) : null;
-              const count = bData.totalCalls > 0 ? bData.totalCalls : 0;
-
-              if (weightedAHT !== null && weightedAHT > 0) {
-                res[bKey] = {
-                  aht: weightedAHT,
-                  consult: calcAvg(bData.consult),
-                  hold: calcAvg(bData.hold),
-                  conf: calcAvg(bData.conf),
-                  count: count
-                };
-              } else {
-                res[bKey] = null;
-              }
-            });
-            return res;
-          };
-
-          const fullSummary = formatBucketGroup(item.buckets);
-          const dicSummary = formatBucketGroup(item.dicBuckets);
-
           monthlyDataStore[mKey] = {
             name: item.name,
             maxDay: item.maxDay,
-            ...fullSummary,
+            ...tiersOf(item.buckets),
             dailyBuckets: item.dailyBuckets,
-            dic: { ...dicSummary, dailyBuckets: item.dicDaily },
+            dic: { ...tiersOf(item.dicBuckets), dailyBuckets: item.dicDaily },
             agents: Object.values(item.agents).map(packAgent),
             surveyCol: item.surveyCol
           };
         });
 
-        saveToCloud();
-        document.getElementById("unifiedUploadStatus").innerText = `Loaded ${Object.keys(detectedMonthsData).length} Month(s)`;
+        const monthKeys = Object.keys(detectedMonthsData);
+        if (monthKeys.length === 0) {
+          setUploadStatus('No months found in that file', '#ef4444');
+          inputEl.value = '';
+          return;
+        }
+
+        // Save every uploaded month (own document each) and confirm it really reached the cloud
+        setUploadStatus('Saving to cloud...', 'var(--text-muted)');
+        Promise.all(monthKeys.map(k => saveMonthToCloud(k)))
+          .then(() => {
+            setUploadStatus(`Loaded ${monthKeys.length} Month(s) · saved to cloud ✓`);
+          })
+          .catch(err => {
+            console.error('Month save error:', err);
+            setUploadStatus('NOT saved to cloud: ' + (err.code || err.message), '#ef4444');
+            alert('The report was read, but saving it to the cloud failed (' + (err.code || err.message) + ').\n\nThe data will disappear when you refresh. If this says "permission-denied", the Firestore rules need to allow reads/writes on the "petro_tenure" collection.');
+          });
 
         updateDropdownOptions();
-        const availableMonths = Object.keys(detectedMonthsData).sort().reverse();
+        const availableMonths = monthKeys.sort().reverse();
         if (availableMonths.length >= 2) {
           document.getElementById("targetMonthSelect").value = availableMonths[1];
           document.getElementById("compMonthSelect").value = availableMonths[0];
@@ -3245,6 +3254,7 @@
         }
 
         onMonthChange();
+        inputEl.value = '';
       };
       reader.readAsArrayBuffer(file);
     }
