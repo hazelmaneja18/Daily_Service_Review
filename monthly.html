@@ -13,27 +13,29 @@
   <script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore-compat.js"></script>
   <style>
     :root {
-      /* ---- Theme: Sky Blue (matches the rest of the PETRO MNL portal) ---- */
-      --bg: #eef7ff;
+      /* ---- Theme: Sky Blue base with Indigo / Sunset accents ---- */
+      --bg: #eef4ff;
       --card-bg: #ffffff;
-      --border-subtle: #d3e9fc;
-      --border-focus: #2196f3;
-      --teal-primary: #0d47a1;
-      --teal-light: #2196f3;
-      --teal-glow: #e3f2fd;
-      --comp-color: #f59e0b;
-      --comp-light: #fef3c7;
+      --border-subtle: #dbe7fb;
+      --border-focus: #4361ee;
+      --teal-primary: #2b3a9e;
+      --teal-light: #4361ee;
+      --teal-glow: #e8efff;
+      --comp-color: #ff8a3d;
+      --comp-light: #fff1e6;
       --text-main: #0f172a;
       --text-muted: #64748b;
       --text-soft: #94a3b8;
       --emerald: #10b981;
-      --emerald-bg: #ecfdf5;
+      --emerald-bg: #e8fbf3;
       --rose: #f43f5e;
-      --rose-bg: #fff1f2;
+      --rose-bg: #fff0f3;
       --amber: #f59e0b;
       --amber-bg: #fffbeb;
-      --shadow-sm: 0 1px 3px rgba(13, 71, 161, 0.05), 0 1px 2px rgba(13, 71, 161, 0.03);
-      --shadow-card: 0 4px 12px -2px rgba(13, 71, 161, 0.07), 0 2px 6px -1px rgba(13, 71, 161, 0.04);
+      --grad-a: linear-gradient(135deg, #3b4cca 0%, #4cc9f0 100%);
+      --grad-b: linear-gradient(135deg, #ff7a45 0%, #ffc53d 100%);
+      --shadow-sm: 0 1px 3px rgba(43, 58, 158, 0.06), 0 1px 2px rgba(43, 58, 158, 0.04);
+      --shadow-card: 0 10px 28px -10px rgba(43, 58, 158, 0.18), 0 2px 8px -2px rgba(43, 58, 158, 0.06);
     }
 
     * { box-sizing: border-box; margin: 0; padding: 0; font-family: 'Plus Jakarta Sans', sans-serif; }
@@ -49,30 +51,35 @@
       flex-direction: column;
       padding: clamp(0.5vh, 1vh, 1rem) clamp(0.75rem, 1.2vw, 1.25rem);
       gap: 0.6rem;
+      background:
+        radial-gradient(900px 380px at 8% -8%, rgba(76, 201, 240, 0.20), transparent 60%),
+        radial-gradient(800px 360px at 100% 0%, rgba(67, 97, 238, 0.14), transparent 60%),
+        var(--bg);
     }
 
     /* Executive Top Action Bar */
     .top-toolbar {
-      background: var(--card-bg);
+      background: rgba(255, 255, 255, 0.92);
       border: 1px solid var(--border-subtle);
-      border-radius: 11px;
+      border-radius: 14px;
       padding: 0.45rem 0.95rem;
       display: flex;
       justify-content: space-between;
       align-items: center;
       box-shadow: var(--shadow-sm);
       flex-shrink: 0;
+      backdrop-filter: blur(6px);
     }
     .brand-group { display: flex; align-items: center; gap: 1rem; }
     .brand-badge {
-      background: linear-gradient(135deg, #0d47a1 0%, #2196f3 100%);
+      background: var(--grad-a);
       color: #ffffff;
-      padding: 0.3rem 0.75rem;
-      border-radius: 7px;
+      padding: 0.32rem 0.8rem;
+      border-radius: 9px;
       font-size: 0.75rem;
       font-weight: 800;
-      letter-spacing: 0.04em;
-      box-shadow: 0 2px 6px rgba(13, 71, 161, 0.25);
+      letter-spacing: 0.05em;
+      box-shadow: 0 4px 12px rgba(59, 76, 202, 0.30);
     }
 
     /* Modern Mode Switcher */
@@ -80,7 +87,7 @@
       display: flex;
       background: var(--teal-glow);
       border: 1px solid var(--border-subtle);
-      border-radius: 8px;
+      border-radius: 10px;
       padding: 2.5px;
       gap: 2px;
     }
@@ -90,8 +97,8 @@
       color: var(--text-muted);
       font-size: 0.72rem;
       font-weight: 800;
-      padding: 0.28rem 0.75rem;
-      border-radius: 6px;
+      padding: 0.28rem 0.8rem;
+      border-radius: 8px;
       cursor: pointer;
       transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
       white-space: nowrap;
@@ -100,17 +107,17 @@
     .mode-btn.active {
       background: #ffffff;
       color: var(--teal-primary);
-      box-shadow: 0 1px 4px rgba(13, 71, 161, 0.16);
+      box-shadow: 0 2px 8px rgba(43, 58, 158, 0.16);
     }
 
     .toolbar-right { display: flex; align-items: center; gap: 0.6rem; }
     .label-tag { font-size: 0.68rem; font-weight: 800; color: var(--text-muted); text-transform: uppercase; letter-spacing: 0.03em; }
-    
+
     .dropdown {
-      background: #eef7ff url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='10' height='10' fill='%2364748b' viewBox='0 0 16 16'%3E%3Cpath d='M7.247 11.14 2.451 5.658C1.885 5.013 2.345 4 3.204 4h9.592a1 1 0 0 1 .753 1.659l-4.796 5.48a1 1 0 0 1-1.506 0z'/%3E%3C/svg%3E") no-repeat calc(100% - 10px) center;
+      background: #f3f7ff url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='10' height='10' fill='%2364748b' viewBox='0 0 16 16'%3E%3Cpath d='M7.247 11.14 2.451 5.658C1.885 5.013 2.345 4 3.204 4h9.592a1 1 0 0 1 .753 1.659l-4.796 5.48a1 1 0 0 1-1.506 0z'/%3E%3C/svg%3E") no-repeat calc(100% - 10px) center;
       border: 1px solid var(--border-subtle);
       padding: 0.32rem 1.8rem 0.32rem 0.75rem;
-      border-radius: 7px;
+      border-radius: 9px;
       font-size: 0.76rem;
       font-weight: 700;
       color: var(--text-main);
@@ -118,14 +125,14 @@
       appearance: none;
       cursor: pointer;
       min-width: 145px;
-      transition: border-color 0.15s ease;
+      transition: border-color 0.15s ease, box-shadow 0.15s ease;
     }
-    .dropdown:focus { border-color: var(--teal-primary); }
+    .dropdown:focus { border-color: var(--border-focus); box-shadow: 0 0 0 3px rgba(67, 97, 238, 0.14); }
 
     .gear-btn {
       width: 32px; height: 32px;
-      border-radius: 7px;
-      background: #eef7ff;
+      border-radius: 9px;
+      background: #f3f7ff;
       border: 1px solid var(--border-subtle);
       color: var(--text-muted);
       display: flex; align-items: center; justify-content: center;
@@ -135,8 +142,8 @@
     }
     .gear-btn:hover {
       background: var(--teal-glow);
-      border-color: var(--teal-primary);
-      color: var(--teal-primary);
+      border-color: var(--border-focus);
+      color: var(--teal-light);
     }
 
     /* KPI Quick Strip */
@@ -149,19 +156,30 @@
     .kpi-card {
       background: var(--card-bg);
       border: 1px solid var(--border-subtle);
-      border-radius: 11px;
-      padding: 0.55rem 0.85rem;
+      border-radius: 14px;
+      padding: 0.55rem 0.85rem 0.55rem 1.05rem;
       box-shadow: var(--shadow-sm);
       display: flex;
       flex-direction: column;
       justify-content: space-between;
       min-height: 80px;
       position: relative;
+      overflow: hidden;
       transition: transform 0.15s ease, box-shadow 0.15s ease;
     }
+    .kpi-card::before {
+      content: "";
+      position: absolute;
+      left: 0; top: 0; bottom: 0;
+      width: 5px;
+      background: var(--grad-a);
+    }
+    .kpi-card:nth-child(2)::before { background: linear-gradient(180deg, #ff7a45, #ffc53d); }
+    .kpi-card:nth-child(3)::before { background: linear-gradient(180deg, #7b2ff7, #b388ff); }
+    .kpi-card:nth-child(4)::before { background: linear-gradient(180deg, #06b6a4, #4ade80); }
     .kpi-card:hover {
       transform: translateY(-2px);
-      box-shadow: 0 10px 22px -6px rgba(13, 71, 161, 0.14);
+      box-shadow: 0 14px 28px -10px rgba(43, 58, 158, 0.22);
     }
     .kpi-title-row {
       display: flex;
@@ -173,19 +191,19 @@
       font-weight: 800;
       color: var(--text-muted);
       text-transform: uppercase;
-      letter-spacing: 0.04em;
+      letter-spacing: 0.05em;
     }
     .kpi-pill {
       font-size: 0.62rem;
       font-weight: 800;
       font-family: 'JetBrains Mono', monospace;
-      padding: 0.1rem 0.4rem;
+      padding: 0.12rem 0.5rem;
       border-radius: 12px;
     }
     .pill-green { background: var(--emerald-bg); color: var(--emerald); }
     .pill-rose { background: var(--rose-bg); color: var(--rose); }
-    .pill-teal { background: var(--teal-glow); color: var(--teal-primary); }
-    
+    .pill-teal { background: var(--teal-glow); color: var(--teal-light); }
+
     .kpi-val-row {
       display: flex;
       align-items: baseline;
@@ -193,11 +211,15 @@
       margin: 0.15rem 0;
     }
     .kpi-val {
-      font-size: clamp(1.25rem, 1.7vw, 1.65rem);
+      font-size: clamp(1.25rem, 1.7vw, 1.7rem);
       font-weight: 900;
       font-family: 'JetBrains Mono', monospace;
       color: var(--teal-primary);
       line-height: 1;
+      background: linear-gradient(90deg, #2b3a9e, #4361ee);
+      -webkit-background-clip: text;
+      background-clip: text;
+      -webkit-text-fill-color: transparent;
     }
     .kpi-sub {
       font-size: 0.66rem;
@@ -223,13 +245,23 @@
     .chart-card {
       background: var(--card-bg);
       border: 1px solid var(--border-subtle);
-      border-radius: 12px;
-      padding: 0.75rem 1rem 0.5rem;
+      border-radius: 16px;
+      padding: 0.8rem 1rem 0.5rem;
       box-shadow: var(--shadow-card);
       display: flex;
       flex-direction: column;
       flex: 1;
       min-height: 0;
+      position: relative;
+      overflow: hidden;
+    }
+    .chart-card::before {
+      content: "";
+      position: absolute;
+      left: 0; right: 0; top: 0;
+      height: 3px;
+      background: var(--grad-a);
+      opacity: 0.9;
     }
     .chart-card-header {
       display: flex;
@@ -243,26 +275,28 @@
       font-weight: 900;
       color: var(--text-main);
       text-transform: uppercase;
-      letter-spacing: 0.04em;
+      letter-spacing: 0.05em;
       display: flex;
       align-items: center;
-      gap: 0.45rem;
+      gap: 0.5rem;
     }
     .chart-card-title::before {
       content: "";
-      width: 3px;
-      height: 13px;
-      background: var(--teal-light);
-      border-radius: 2px;
+      width: 9px;
+      height: 9px;
+      background: var(--grad-a);
+      border-radius: 50%;
       display: inline-block;
+      box-shadow: 0 0 0 3px rgba(67, 97, 238, 0.14);
     }
     .chart-card-badge {
       font-size: 0.65rem;
       font-weight: 800;
-      color: var(--teal-primary);
+      color: var(--teal-light);
       background: var(--teal-glow);
-      padding: 0.15rem 0.5rem;
-      border-radius: 5px;
+      border: 1px solid var(--border-subtle);
+      padding: 0.18rem 0.6rem;
+      border-radius: 20px;
       font-family: 'JetBrains Mono', monospace;
     }
 
@@ -295,10 +329,10 @@
     .modal-box {
       background: var(--card-bg);
       border: 1px solid var(--border-subtle);
-      border-radius: 13px;
+      border-radius: 16px;
       width: min(92vw, 520px);
       padding: 1.25rem;
-      box-shadow: 0 15px 30px -5px rgba(13, 71, 161, 0.22);
+      box-shadow: 0 15px 30px -5px rgba(43, 58, 158, 0.25);
       display: flex;
       flex-direction: column;
       gap: 0.85rem;
@@ -317,7 +351,7 @@
       background: var(--teal-glow);
       color: var(--teal-primary);
       padding: 0.55rem 0.85rem;
-      border-radius: 7px;
+      border-radius: 9px;
       font-size: 0.75rem;
       font-weight: 700;
       cursor: pointer;
@@ -326,7 +360,7 @@
       justify-content: space-between;
       transition: all 0.15s ease;
     }
-    .upload-btn-label:hover { background: #bbdefb; }
+    .upload-btn-label:hover { background: #d6e2ff; }
     .upload-status { font-size: 0.68rem; color: var(--emerald); font-weight: 700; }
     input[type="file"] { display: none; }
   </style>
@@ -363,7 +397,7 @@
   </div>
 
   <!-- Coverage Banner (only shown in Month Comparison mode) -->
-  <div id="coverageBanner" style="display:none; background:var(--teal-glow); border:1px solid var(--teal-primary); border-radius:8px; padding:0.4rem 0.85rem; font-size:0.72rem; font-weight:700; color:var(--teal-primary); flex-shrink:0;"></div>
+  <div id="coverageBanner" style="display:none; background:var(--teal-glow); border:1px solid var(--border-focus); border-radius:10px; padding:0.4rem 0.85rem; font-size:0.72rem; font-weight:700; color:var(--teal-primary); flex-shrink:0;"></div>
 
   <!-- KPI Strip Summary Header -->
   <div class="kpi-strip">
@@ -386,7 +420,7 @@
       <div class="kpi-val-row">
         <span class="kpi-val" id="kpiAHTVal">--</span>
       </div>
-      <span class="kpi-sub" id="kpiAHTSub">Overall Target &lt; 20:00</span>
+      <span class="kpi-sub" id="kpiAHTSub">Overall Target &lt; 18:50</span>
     </div>
 
     <div class="kpi-card">
@@ -517,6 +551,228 @@
     }
 
     Chart.register(ChartDataLabels);
+
+    /* =====================================================================
+       CHART LOOK & FEEL (visual styling only — no data or logic lives here)
+       - gradient bars with rounded ends and a soft "track" behind each bar
+       - white pill value labels with a colored outline
+       - dashed, borderless grid and dark rounded tooltips
+       - donut with rounded slices and the SLA % printed in the middle
+       Month 1 is always the indigo -> cyan family, Month 2 the sunset family.
+       ===================================================================== */
+    Chart.defaults.font.family = "'Plus Jakarta Sans', sans-serif";
+    Chart.defaults.color = '#64748b';
+    // Change only these two values. (Replacing the whole animation object strips the internal fields
+    // Chart.js needs to animate gradient fills, which makes every chart fail to draw.)
+    Chart.defaults.animation.duration = 900;
+    Chart.defaults.animation.easing = 'easeOutQuart';
+
+    const PAL = {
+      month:   [['#3b4cca', '#4cc9f0'], ['#ff7a45', '#ffc53d']], // [dark end, light end] per month slot
+      consult: ['#3a86ff', '#4cc9f0'],
+      hold:    ['#ff9f1c', '#ffd166'],
+      conf:    ['#6d28d9', '#b388ff']
+    };
+    const SOLID = ['#4361ee', '#ff8a3d'];          // flat versions for the donut
+    const TEXT_COLORS = ['#2b3a9e', '#d9480f'];    // label text for month 1 / month 2
+    const TRACK = 'rgba(67, 97, 238, 0.07)';
+    const GRID = 'rgba(100, 116, 139, 0.16)';
+
+    function makeGradient(chart, pair, horizontal) {
+      const a = chart.chartArea;
+      if (!a) return pair[1];
+      const g = horizontal
+        ? chart.ctx.createLinearGradient(a.left, 0, a.right, 0)
+        : chart.ctx.createLinearGradient(0, a.bottom, 0, a.top);
+      g.addColorStop(0, pair[0]);
+      g.addColorStop(1, pair[1]);
+      return g;
+    }
+    const monthFill = (horizontal) => (c) => makeGradient(c.chart, PAL.month[c.dataIndex % 2], horizontal);
+    const metricFill = (pair) => (c) => makeGradient(c.chart, pair, false);
+
+    // White value pill, outlined in the month's color
+    function pillLabels(size, extra) {
+      return Object.assign({
+        color: (c) => TEXT_COLORS[c.dataIndex % 2],
+        backgroundColor: 'rgba(255, 255, 255, 0.96)',
+        borderColor: (c) => PAL.month[c.dataIndex % 2][0] + '55',
+        borderWidth: 1,
+        borderRadius: 9,
+        padding: { top: 3, bottom: 2, left: 7, right: 7 },
+        font: { family: 'JetBrains Mono', weight: '800', size: size }
+      }, extra || {});
+    }
+
+    function tooltipStyle(callbacks) {
+      return {
+        backgroundColor: 'rgba(15, 23, 42, 0.94)',
+        titleColor: '#ffffff',
+        bodyColor: '#e2e8f0',
+        padding: 11,
+        cornerRadius: 10,
+        boxPadding: 5,
+        usePointStyle: true,
+        titleFont: { family: 'Plus Jakarta Sans', size: 12, weight: '800' },
+        bodyFont: { family: 'JetBrains Mono', size: 11.5, weight: '700' },
+        callbacks: callbacks || {}
+      };
+    }
+
+    function axisStyle(overrides) {
+      return Object.assign({
+        grid: { color: GRID },
+        border: { display: false, dash: [4, 4] },
+        ticks: { font: { family: 'JetBrains Mono', size: 10.5, weight: '600' }, color: '#94a3b8', padding: 6 }
+      }, overrides || {});
+    }
+    const categoryAxis = (size) => ({
+      grid: { display: false },
+      border: { display: false },
+      ticks: { font: { family: 'Plus Jakarta Sans', weight: '800', size: size || 12 }, color: '#334155', padding: 8 }
+    });
+
+    function roundRectPath(ctx, x, y, w, h, r) {
+      r = Math.min(r, w / 2, h / 2);
+      ctx.beginPath();
+      ctx.moveTo(x + r, y);
+      ctx.arcTo(x + w, y, x + w, y + h, r);
+      ctx.arcTo(x + w, y + h, x, y + h, r);
+      ctx.arcTo(x, y + h, x, y, r);
+      ctx.arcTo(x, y, x + w, y, r);
+      ctx.closePath();
+    }
+
+    // Soft rounded track drawn behind every bar of the first dataset
+    const barTrackPlugin = {
+      id: 'barTrack',
+      beforeDatasetsDraw(chart, args, opts) {
+        if (!opts || !opts.enabled) return;
+        const meta = chart.getDatasetMeta(0);
+        const area = chart.chartArea;
+        const horizontal = chart.options.indexAxis === 'y';
+        const ctx = chart.ctx;
+        ctx.save();
+        ctx.fillStyle = TRACK;
+        meta.data.forEach(bar => {
+          const p = bar.getProps(['x', 'y', 'width', 'height'], true);
+          if (horizontal) {
+            roundRectPath(ctx, area.left, p.y - p.height / 2, area.right - area.left, p.height, p.height / 2);
+          } else {
+            roundRectPath(ctx, p.x - p.width / 2, area.top, p.width, area.bottom - area.top, Math.min(14, p.width / 2));
+          }
+          ctx.fill();
+        });
+        ctx.restore();
+      }
+    };
+
+    // Big number in the hole of the rings
+    const donutCenterPlugin = {
+      id: 'donutCenter',
+      afterDraw(chart, args, opts) {
+        if (!opts || !opts.big) return;
+        const arc = chart.getDatasetMeta(0).data[0];
+        if (!arc) return;
+        const cx = arc.x, cy = arc.y;
+        const ctx = chart.ctx;
+        ctx.save();
+        ctx.textAlign = 'center';
+        ctx.textBaseline = 'middle';
+        ctx.fillStyle = '#1e2a78';
+        ctx.font = "800 34px 'JetBrains Mono', monospace";
+        ctx.fillText(opts.big, cx, cy - 6);
+        ctx.fillStyle = '#94a3b8';
+        ctx.font = "800 10.5px 'Plus Jakarta Sans', sans-serif";
+        ctx.fillText(opts.caption || '', cx, cy + 20);
+        if (opts.small) {
+          ctx.fillStyle = '#ff7a45';
+          ctx.font = "800 11.5px 'JetBrains Mono', monospace";
+          ctx.fillText(opts.small, cx, cy + 37);
+        }
+        ctx.restore();
+      }
+    };
+
+    // Round "candy" head at the end of a thin bar (lollipop look)
+    const lollipopCapPlugin = {
+      id: 'lollipopCap',
+      afterDatasetsDraw(chart, args, opts) {
+        if (!opts || !opts.enabled) return;
+        const meta = chart.getDatasetMeta(0);
+        const r = opts.radius || 12;
+        const ctx = chart.ctx;
+        ctx.save();
+        meta.data.forEach((bar, i) => {
+          const p = bar.getProps(['x', 'y'], true); // end point of the bar on the value axis
+          const pair = PAL.month[i % 2];
+          ctx.shadowColor = 'rgba(43, 58, 158, 0.28)';
+          ctx.shadowBlur = 10;
+          ctx.shadowOffsetY = 3;
+          ctx.beginPath(); ctx.arc(p.x, p.y, r, 0, Math.PI * 2);
+          ctx.fillStyle = '#ffffff'; ctx.fill();
+          ctx.shadowColor = 'transparent';
+          ctx.lineWidth = 4; ctx.strokeStyle = pair[0]; ctx.stroke();
+          ctx.beginPath(); ctx.arc(p.x, p.y, Math.max(2, r - 6.5), 0, Math.PI * 2);
+          ctx.fillStyle = pair[1]; ctx.fill();
+        });
+        ctx.restore();
+      }
+    };
+
+    // Dashed goal line with a small tag (used for the 18:50 handle-time target)
+    const targetLinePlugin = {
+      id: 'targetLine',
+      afterDatasetsDraw(chart, args, opts) {
+        if (!opts || opts.value == null) return;
+        const a = chart.chartArea;
+        const x = chart.scales.x.getPixelForValue(opts.value);
+        if (x < a.left || x > a.right) return;
+        const ctx = chart.ctx;
+        ctx.save();
+        ctx.setLineDash([5, 4]);
+        ctx.strokeStyle = '#10b981';
+        ctx.lineWidth = 1.6;
+        ctx.beginPath(); ctx.moveTo(x, a.top - 2); ctx.lineTo(x, a.bottom); ctx.stroke();
+        ctx.setLineDash([]);
+        const text = opts.label || 'TARGET';
+        ctx.font = "800 9.5px 'JetBrains Mono', monospace";
+        const w = ctx.measureText(text).width + 14;
+        roundRectPath(ctx, x - w / 2, a.top - 22, w, 17, 8.5);
+        ctx.fillStyle = '#e8fbf3'; ctx.fill();
+        ctx.strokeStyle = 'rgba(16, 185, 129, 0.45)'; ctx.lineWidth = 1; ctx.stroke();
+        ctx.fillStyle = '#0b9266'; ctx.textAlign = 'center'; ctx.textBaseline = 'middle';
+        ctx.fillText(text, x, a.top - 13.5);
+        ctx.restore();
+      }
+    };
+
+    // Adds breathing room between a chart's legend and the bars underneath it
+    const legendSpacingPlugin = {
+      id: 'legendSpacing',
+      beforeInit(chart, args, opts) {
+        const extra = opts && opts.extra;
+        if (!extra || !chart.legend || chart.legend._spaced) return;
+        const legend = chart.legend;
+        const originalFit = legend.fit;
+        legend.fit = function () { originalFit.bind(legend)(); this.height += extra; };
+        legend._spaced = true;
+      }
+    };
+
+    // Diagonal-stripe fill for the volume columns
+    function stripeFill(c) {
+      const pair = PAL.month[c.dataIndex % 2];
+      const cv = document.createElement('canvas');
+      cv.width = cv.height = 14;
+      const g = cv.getContext('2d');
+      g.fillStyle = pair[0]; g.fillRect(0, 0, 14, 14);
+      g.strokeStyle = pair[1]; g.lineWidth = 5;
+      [[-7, 14, 7, 0], [7, 14, 21, 0]].forEach(([x1, y1, x2, y2]) => { g.beginPath(); g.moveTo(x1, y1); g.lineTo(x2, y2); g.stroke(); });
+      return c.chart.ctx.createPattern(cv, 'repeat') || pair[0];
+    }
+
+    Chart.register(barTrackPlugin, donutCenterPlugin, lollipopCapPlugin, targetLinePlugin, legendSpacingPlugin);
 
     const monthOrderMap = {
       "january": 1, "february": 2, "march": 3, "april": 4,
@@ -781,10 +1037,10 @@
       }
 
       updateKPIStrip(monthKeys, activeDataMap);
-      renderHandleTimeCharts(monthKeys, activeDataMap);
-      renderSurveyCharts(monthKeys, activeDataMap);
-      renderSLAChart(monthKeys, activeDataMap);
-      renderVolumeChart(monthKeys, activeDataMap);
+      [renderHandleTimeCharts, renderSurveyCharts, renderSLAChart, renderVolumeChart].forEach(fn => {
+        try { fn(monthKeys, activeDataMap); }
+        catch (err) { console.error('Chart render error in ' + fn.name + ':', err); }
+      });
     }
 
     // Single Month view used to trust the stored top-level aggregate (monthlyAHTStore)
@@ -843,7 +1099,7 @@
       } else {
         document.getElementById('kpiAHTPill').innerText = ahtSec <= 1200 ? 'On Target' : 'Review';
         document.getElementById('kpiAHTPill').className = ahtSec <= 1200 ? 'kpi-pill pill-green' : 'kpi-pill pill-rose';
-        document.getElementById('kpiAHTSub').innerText = 'Target < 20:00';
+        document.getElementById('kpiAHTSub').innerText = 'Target < 18:50';
       }
 
       const slaPct = primary.slaPercent || 0;
@@ -874,6 +1130,7 @@
     }
 
     function renderHandleTimeCharts(months, dataMap) {
+      /* 1) Average Handle Time -> lollipop with a 18:50 target line */
       const ahtCtx = document.getElementById('ahtSummaryChart').getContext('2d');
       const dataValsAHT = months.map(m => dataMap[m]?.ahtSec || 0);
 
@@ -881,31 +1138,47 @@
         type: 'bar',
         data: {
           labels: months,
-          datasets: [{ data: dataValsAHT, backgroundColor: months.map((_, i) => i === 0 ? '#0d47a1' : '#f59e0b'), borderRadius: 6, maxBarThickness: 34 }]
+          datasets: [{
+            data: dataValsAHT,
+            backgroundColor: monthFill(true),
+            borderRadius: 10,
+            borderSkipped: false,
+            maxBarThickness: 9,
+            categoryPercentage: 0.8,
+            barPercentage: 0.9
+          }]
         },
         options: {
           indexAxis: 'y', responsive: true, maintainAspectRatio: false,
-          layout: { padding: { right: 60, top: 10, bottom: 5 } },
+          layout: { padding: { right: 84, top: 30, bottom: 5, left: 4 } },
           plugins: {
             legend: { display: false },
-            datalabels: {
-              anchor: 'end', align: 'right', color: '#0d47a1',
-              font: { family: 'JetBrains Mono', weight: '800', size: 14.0 },
+            barTrack: { enabled: true },
+            lollipopCap: { enabled: true, radius: 12 },
+            targetLine: { value: 1200, label: 'TARGET 18:50' },
+            tooltip: tooltipStyle({ label: (c) => ` Avg Handle Time  ${timeSecToHMS(c.parsed.x)}` }),
+            datalabels: pillLabels(12.5, {
+              anchor: 'end', align: 'right', offset: 20,
               formatter: (val) => timeSecToHMS(val)
-            }
+            })
           },
           scales: {
-            x: { ticks: { callback: (val) => timeSecToHMS(val), font: { family: 'JetBrains Mono', size: 11.5 }, color: '#64748b' }, grid: { color: '#e3f2fd' } },
-            y: { grid: { display: false }, ticks: { font: { family: 'Plus Jakarta Sans', weight: '700', size: 13.0 }, color: '#334155' } }
+            x: axisStyle({
+              min: 0, suggestedMax: 1350,
+              ticks: { callback: (val) => timeSecToHMS(val), font: { family: 'JetBrains Mono', size: 10.5, weight: '600' }, color: '#94a3b8', padding: 6, maxTicksLimit: 5 }
+            }),
+            y: categoryAxis(12)
           }
         }
       });
 
+      /* 2) Consult / Hold / Conference -> slim capsule columns, legend kept clear of the bars */
       const brkCtx = document.getElementById('consultHoldConfChart').getContext('2d');
+      const capsule = { borderRadius: 20, borderSkipped: false, maxBarThickness: 22, categoryPercentage: 0.72, barPercentage: 0.85 };
       const datasets = [
-        { label: 'Consult', data: months.map(m => dataMap[m]?.consultSec || 0), backgroundColor: '#2196f3', borderRadius: 4, maxBarThickness: 32 },
-        { label: 'Hold', data: months.map(m => dataMap[m]?.holdSec || 0), backgroundColor: '#f59e0b', borderRadius: 4, maxBarThickness: 32 },
-        { label: 'Conference', data: months.map(m => dataMap[m]?.confSec || 0), backgroundColor: '#0d47a1', borderRadius: 4, maxBarThickness: 32 }
+        Object.assign({ label: 'Consult', data: months.map(m => dataMap[m]?.consultSec || 0), backgroundColor: metricFill(PAL.consult), _txt: '#1d6fd6' }, capsule),
+        Object.assign({ label: 'Hold', data: months.map(m => dataMap[m]?.holdSec || 0), backgroundColor: metricFill(PAL.hold), _txt: '#b45309' }, capsule),
+        Object.assign({ label: 'Conference', data: months.map(m => dataMap[m]?.confSec || 0), backgroundColor: metricFill(PAL.conf), _txt: '#6d28d9' }, capsule)
       ];
 
       chartInstances.breakdown = new Chart(brkCtx, {
@@ -913,105 +1186,142 @@
         data: { labels: months, datasets: datasets },
         options: {
           responsive: true, maintainAspectRatio: false,
-          layout: { padding: { top: 14 } },
+          layout: { padding: { top: 6, bottom: 2 } },
           plugins: {
-            legend: { position: 'top', labels: { boxWidth: 10, padding: 18, font: { family: 'Plus Jakarta Sans', size: 12.0, weight: '700' }, color: '#334155' } },
+            legend: {
+              position: 'top',
+              align: 'center',
+              labels: { usePointStyle: true, pointStyle: 'circle', boxWidth: 10, boxHeight: 10, padding: 26, font: { family: 'Plus Jakarta Sans', size: 12.5, weight: '800' }, color: '#334155' }
+            },
+            legendSpacing: { extra: 30 },
+            tooltip: tooltipStyle({ label: (c) => ` ${c.dataset.label}  ${timeSecToHMS(c.parsed.y)}` }),
             datalabels: {
-              anchor: 'end', align: 'top', offset: 4, color: '#0f172a',
-              font: { family: 'JetBrains Mono', weight: '800', size: 10.5 },
+              anchor: 'end', align: 'top', offset: 4,
+              color: (c) => c.dataset._txt,
+              backgroundColor: 'rgba(255, 255, 255, 0.96)',
+              borderColor: (c) => c.dataset._txt + '44',
+              borderWidth: 1,
+              borderRadius: 7,
+              padding: { top: 2, bottom: 1, left: 4, right: 4 },
+              font: { family: 'JetBrains Mono', weight: '800', size: 9.5 },
               formatter: (val) => timeSecToHMS(val)
             }
           },
           scales: {
-            y: { max: 350, ticks: { callback: (val) => timeSecToHMS(val), font: { family: 'JetBrains Mono', size: 11.5 }, color: '#64748b', stepSize: 60 }, grid: { color: '#e3f2fd' } },
-            x: { grid: { display: false }, ticks: { font: { family: 'Plus Jakarta Sans', weight: '700', size: 13.0 }, color: '#334155' } }
+            y: axisStyle({ max: 350, ticks: { callback: (val) => timeSecToHMS(val), font: { family: 'JetBrains Mono', size: 10.5, weight: '600' }, color: '#94a3b8', stepSize: 60, padding: 6 } }),
+            x: categoryAxis(12)
           }
         }
       });
     }
 
     function renderSurveyCharts(months, dataMap) {
+      /* 3) CSAT score -> vertical lollipop */
       const surveyCtx = document.getElementById('surveyScoreChart').getContext('2d');
       chartInstances.survey = new Chart(surveyCtx, {
         type: 'bar',
         data: {
           labels: months,
-          datasets: [{ data: months.map(m => dataMap[m]?.surveyScore || 0), backgroundColor: months.map((_, i) => i === 0 ? '#0d47a1' : '#f59e0b'), borderRadius: 6, maxBarThickness: 38 }]
+          datasets: [{
+            data: months.map(m => dataMap[m]?.surveyScore || 0),
+            backgroundColor: monthFill(false),
+            borderRadius: 10,
+            borderSkipped: false,
+            maxBarThickness: 9
+          }]
         },
         options: {
-          responsive: true, maintainAspectRatio: false, layout: { padding: { top: 20 } },
+          responsive: true, maintainAspectRatio: false, layout: { padding: { top: 40 } },
           plugins: {
             legend: { display: false },
-            datalabels: { anchor: 'end', align: 'top', font: { family: 'JetBrains Mono', weight: '800', size: 14.0 }, color: '#0d47a1', formatter: (v) => v.toFixed(2) }
+            barTrack: { enabled: true },
+            lollipopCap: { enabled: true, radius: 13 },
+            tooltip: tooltipStyle({ label: (c) => ` CSAT Score  ${Number(c.parsed.y).toFixed(2)} / 5.00` }),
+            datalabels: pillLabels(13, { anchor: 'end', align: 'top', offset: 20, formatter: (v) => v.toFixed(2) })
           },
           scales: {
-            y: { min: 4.4, max: 5.0, ticks: { stepSize: 0.1, font: { family: 'JetBrains Mono', size: 11.5 }, color: '#64748b' }, grid: { color: '#e3f2fd' } },
-            x: { grid: { display: false }, ticks: { font: { family: 'Plus Jakarta Sans', weight: '700', size: 13.0 }, color: '#334155' } }
+            y: axisStyle({ min: 4.4, max: 5.0, ticks: { stepSize: 0.1, font: { family: 'JetBrains Mono', size: 10.5, weight: '600' }, color: '#94a3b8', padding: 6 } }),
+            x: categoryAxis(12)
           }
         }
       });
 
+      /* 4) Survey responses -> thick capsule bars */
       const respCtx = document.getElementById('surveyRespondedChart').getContext('2d');
       chartInstances.responded = new Chart(respCtx, {
         type: 'bar',
         data: {
           labels: months,
-          datasets: [{ data: months.map(m => dataMap[m]?.responded || 0), backgroundColor: months.map((_, i) => i === 0 ? '#0d47a1' : '#f59e0b'), borderRadius: 6, maxBarThickness: 34 }]
+          datasets: [{
+            data: months.map(m => dataMap[m]?.responded || 0),
+            backgroundColor: monthFill(true),
+            borderRadius: 20,
+            borderSkipped: false,
+            maxBarThickness: 28,
+            categoryPercentage: 0.8,
+            barPercentage: 0.85
+          }]
         },
         options: {
           indexAxis: 'y', responsive: true, maintainAspectRatio: false,
-          layout: { padding: { right: 45, top: 10, bottom: 5 } },
+          layout: { padding: { right: 62, top: 10, bottom: 5 } },
           plugins: {
             legend: { display: false },
-            datalabels: { anchor: 'end', align: 'right', font: { family: 'JetBrains Mono', weight: '800', size: 14.0 }, color: '#0d47a1', formatter: (v) => v.toLocaleString() }
+            barTrack: { enabled: true },
+            tooltip: tooltipStyle({ label: (c) => ` Survey Responses  ${Number(c.parsed.x).toLocaleString()}` }),
+            datalabels: pillLabels(12.5, { anchor: 'end', align: 'right', offset: 6, formatter: (v) => v.toLocaleString() })
           },
           scales: {
-            x: { grid: { color: '#e3f2fd' }, ticks: { font: { family: 'JetBrains Mono', size: 11.5 }, color: '#64748b' } },
-            y: { grid: { display: false }, ticks: { font: { family: 'Plus Jakarta Sans', weight: '700', size: 13.0 }, color: '#334155' } }
+            x: axisStyle({ ticks: { font: { family: 'JetBrains Mono', size: 10.5, weight: '600' }, color: '#94a3b8', padding: 6, maxTicksLimit: 6 } }),
+            y: categoryAxis(12)
           }
         }
       });
     }
 
     function renderSLAChart(months, dataMap) {
+      /* 5) Service level -> simple progress bars on a 0-100% scale, with the 80% goal marked */
       const slaCtx = document.getElementById('slaChart').getContext('2d');
-      let labels = [], dataVals = [], bgColors = [];
-
-      if (months.length === 1) {
-        labels = [months[0], 'Remaining'];
-        const val = dataMap[months[0]]?.slaPercent || 0;
-        dataVals = [val, 100 - val];
-        bgColors = ['#0d47a1', '#e3f2fd'];
-      } else {
-        labels = months;
-        dataVals = months.map(m => dataMap[m]?.slaPercent || 0);
-        bgColors = ['#0d47a1', '#f59e0b'];
-      }
+      const vals = months.map(m => dataMap[m]?.slaPercent || 0);
 
       chartInstances.sla = new Chart(slaCtx, {
-        type: 'doughnut',
-        data: { labels: labels, datasets: [{ data: dataVals, backgroundColor: bgColors, borderWidth: 2, borderColor: '#ffffff' }] },
+        type: 'bar',
+        data: {
+          labels: months,
+          datasets: [{
+            label: 'Service Level',
+            data: vals,
+            backgroundColor: monthFill(true),
+            borderRadius: 20,
+            borderSkipped: false,
+            maxBarThickness: 30,
+            categoryPercentage: 0.7,
+            barPercentage: 0.9
+          }]
+        },
         options: {
-          responsive: true, maintainAspectRatio: false,
+          indexAxis: 'y', responsive: true, maintainAspectRatio: false,
+          layout: { padding: { right: 70, top: 34, bottom: 8, left: 6 } },
           plugins: {
-            legend: { position: 'bottom', labels: { boxWidth: 10, font: { family: 'Plus Jakarta Sans', size: 13.5, weight: '700' }, color: '#334155' } },
-            datalabels: {
-              color: (ctx) => {
-                const sliceColor = ctx.dataset.backgroundColor[ctx.dataIndex];
-                return sliceColor === '#0d47a1' ? '#ffffff' : '#0f172a';
-              },
-              font: { family: 'JetBrains Mono', weight: '900', size: 16.0 },
-              formatter: (val, ctx) => {
-                if (months.length === 1 && ctx.dataIndex === 1) return '';
-                return `${val}%`;
-              }
-            }
+            legend: { display: false },
+            barTrack: { enabled: true },
+            targetLine: { value: 80, label: 'TARGET 80%' },
+            tooltip: tooltipStyle({ label: (c) => ` Service Level  ${c.parsed.x}%` }),
+            datalabels: pillLabels(14, { anchor: 'end', align: 'right', offset: 6, formatter: (v) => `${v}%` })
+          },
+          scales: {
+            x: axisStyle({
+              min: 0, max: 100,
+              ticks: { stepSize: 20, callback: (v) => `${v}%`, font: { family: 'JetBrains Mono', size: 10.5, weight: '600' }, color: '#94a3b8', padding: 6 }
+            }),
+            y: categoryAxis(13)
           }
         }
       });
     }
 
     function renderVolumeChart(months, dataMap) {
+      /* 6) Inbound volume -> plain, flat columns */
       const volCtx = document.getElementById('volumeChart').getContext('2d');
       const dataVals = months.map(m => dataMap[m]?.totalCalls || 0);
 
@@ -1019,17 +1329,30 @@
         type: 'bar',
         data: {
           labels: months,
-          datasets: [{ label: 'Handled Calls', data: dataVals, backgroundColor: months.map((_, i) => i === 0 ? '#0d47a1' : '#f59e0b'), borderRadius: 6, maxBarThickness: 36 }]
+          datasets: [{
+            label: 'Handled Calls',
+            data: dataVals,
+            backgroundColor: (c) => SOLID[c.dataIndex % 2],
+            borderRadius: 8,
+            borderSkipped: 'bottom',
+            maxBarThickness: 46
+          }]
         },
         options: {
-          responsive: true, maintainAspectRatio: false, layout: { padding: { top: 22 } },
+          responsive: true, maintainAspectRatio: false, layout: { padding: { top: 28 } },
           plugins: {
             legend: { display: false },
-            datalabels: { anchor: 'end', align: 'top', font: { family: 'JetBrains Mono', weight: '800', size: 14.0 }, color: '#0d47a1', formatter: (v) => v.toLocaleString() }
+            tooltip: tooltipStyle({ label: (c) => ` Handled Calls  ${Number(c.parsed.y).toLocaleString()}` }),
+            datalabels: {
+              anchor: 'end', align: 'top', offset: 4,
+              color: (c) => TEXT_COLORS[c.dataIndex % 2],
+              font: { family: 'JetBrains Mono', weight: '800', size: 14 },
+              formatter: (v) => v.toLocaleString()
+            }
           },
           scales: {
-            x: { grid: { display: false }, ticks: { font: { family: 'Plus Jakarta Sans', size: 13.0, weight: '700' }, color: '#334155' } },
-            y: { grid: { color: '#e3f2fd' }, ticks: { font: { family: 'JetBrains Mono', size: 11.5 }, color: '#64748b' } }
+            x: categoryAxis(12),
+            y: axisStyle({ beginAtZero: true })
           }
         }
       });
